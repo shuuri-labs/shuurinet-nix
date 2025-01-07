@@ -85,9 +85,12 @@ in
         };
       in containerSettings // {
         imports = [ 
-          # ../users-groups/users.nix
-          # ../users-groups/accessGroups.nix
+          ../users-groups/users.nix
+          ../users-groups/accessGroups.nix
         ];
+
+        # Add empty storage paths to prevent errors
+        host.storage.paths = {};
 
         services = {
           transmission = {
@@ -145,10 +148,13 @@ in
         };
       in containerSettings // {
         imports = [ 
-          # ../users-groups/users.nix
-          # ../users-groups/accessGroups.nix
+          ../users-groups/users.nix
+          ../users-groups/accessGroups.nix
         ];
 
+        # Add empty storage paths to prevent errors
+        host.storage.paths = {};
+        
         services.sonarr = {
           enable = true;
           user = "radarrSonarr";

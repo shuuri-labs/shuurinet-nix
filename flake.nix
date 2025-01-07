@@ -40,7 +40,8 @@
       # NixOS configurations for various hosts
       nixosConfigurations = {
         "dondozo" = makeHost ./hosts/dondozo/configuration.nix;
-        "nixos" = makeHost ./hosts/castform/configuration.nix;
+        "nixos" = makeHost ./hosts/lotad/configuration.nix;
+        "lotad" = makeHost ./hosts/lotad/configuration.nix;
       };
     
       # MacOS configuration via nix-darwin

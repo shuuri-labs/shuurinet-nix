@@ -59,19 +59,25 @@ in
       media = {
         name = "mediaDirAccess";
         gid = 501;
-        governedPaths = [ "${config.host.storage.paths.media}" ];
+        governedPaths = if (config ? host.storage.paths && config.host.storage.paths ? media)
+          then [ "${config.host.storage.paths.media}" ]
+          else [];
         guestRead = true;
       };
       arrMedia = {
         name = "arrMediaDirAccess";
         gid = 502;
-        governedPaths = [ "${config.host.storage.paths.arrMedia}" ];
+        governedPaths = if (config ? host.storage.paths && config.host.storage.paths ? arrMedia)
+          then [ "${config.host.storage.paths.arrMedia}" ]
+          else [];  
         guestRead = true;
       };
       downloads = {
         name = "downloadsDirAccess";
         gid = 503;
-        governedPaths = [ "${config.host.storage.paths.downloads}" ];
+        governedPaths = if (config ? host.storage.paths && config.host.storage.paths ? downloads)
+          then [ "${config.host.storage.paths.downloads}" ]
+          else [];
         guestRead = true;
       };
 
@@ -79,7 +85,9 @@ in
       documents = {
         name = "documentsAccess";
         gid = 504;
-        governedPaths = [ "${config.host.storage.paths.documents}" ];
+        governedPaths = if (config ? host.storage.paths && config.host.storage.paths ? documents)
+          then [ "${config.host.storage.paths.documents}" ]
+          else [];
         guestRead = false;
       };
 
@@ -87,7 +95,9 @@ in
       backups = {
         name = "backups";
         gid = 505;
-        governedPaths = [ "${config.host.storage.paths.backups}" ];
+        governedPaths = if (config ? host.storage.paths && config.host.storage.paths ? backups)
+          then [ "${config.host.storage.paths.backups}" ]
+          else [];
         guestRead = false;
       };
     };

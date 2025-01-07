@@ -7,20 +7,20 @@
 let
   mountedPools = {
     bulkStorage = {
-      name = "castform-rust";
-      path = "/castform-rust";
+      name = "lotad-rust";
+      path = "/lotad-rust";
       driveIds = [ ];
     };
 
     fastStorage = {
-      name = "castform-rust";
-      path = "/castform-rust";
+      name = "lotad-rust";
+      path = "/lotad-rust";
       driveIds = [];
     };
 
     editingStorage = {
-      name = "castform-rust";
-      path = "/castform-rust";
+      name = "lotad-rust";
+      path = "/lotad-rust";
       driveIds = [];
     };
   };
@@ -31,7 +31,7 @@ let
     bridge = "br0";
   };
 
-  subnet = config.homelab.networks.subnets.bln;
+  subnet = config.homelab.networks.subnets.ldn;
 
   hostname = "nixos";
 
@@ -39,8 +39,8 @@ let
   #   file = "${secretsPath}/dondozo-main-user-pw.age";
   # };
 
-  hostAddress = "${subnet.ipv4}.10";
-  hostAddress6 = "${subnet.ipv6}::10";
+  hostAddress = "${subnet.ipv4}.50";
+  hostAddress6 = "${subnet.ipv6}::50";
 in
 {
   imports =
@@ -71,7 +71,7 @@ in
 
     networking = {
       hostName = hostname;
-      hostId = "c8f36183";
+      hostId = "b4f8d231";
 
       useDHCP = false;
 
