@@ -17,14 +17,12 @@ in
       type = types.str;
       default = "ashley";
     };
+
+    mainUserDescription = mkOption {
+      type = types.str;
+      default = "Ashley";
+    };
   };
-
-  # Tell agenix which private keys to use for decryption
-  age.identityPaths = [
-    "/home/${config.common.mainUsername}/.ssh/id_ed25519"     # User SSH key
-    # "/etc/ssh/ssh_host_ed25519_key"          # Host SSH key
-  ];
-
 
   config = {
     # Common packages installed on all machines
@@ -35,6 +33,13 @@ in
       htop
       wget
       util-linux
+      age
+    ];
+
+      # Tell agenix which private keys to use for decryption
+    age.identityPaths = [
+      "/home/${config.common.mainUsername}/.ssh/id_ed25519"     # User SSH key
+      # "/etc/ssh/ssh_host_ed25519_key"          # Host SSH key
     ];
 
     # Common services
@@ -54,6 +59,14 @@ in
       openssh.authorizedKeys.keys = config.common.sshKeys;
     };
 
+    users.users."${config.common.mainUsername}" = {
+      isNormalUser = true;
+      description = config.common.mainUserDescription;
+      extraGroups = [ "networkmanager" "wheel" "sudo" ];
+      packages = with pkgs; [];
+      openssh.authorizedKeys.keys = config.common.sshKeys;
+    };
+
     # enable nix flakes
     nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
@@ -61,7 +74,7 @@ in
     system.stateVersion = "24.11";
 
     # enable firewall
-    networking.firewall.enable = true;
+    networking.firewall.enable = true; 
 
     # system locale settings
     i18n.defaultLocale = "en_GB.UTF-8";

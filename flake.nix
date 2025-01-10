@@ -27,13 +27,18 @@
         inherit system;
         modules = [
           ./modules/common.nix
-          ./modules/users-groups
-           ({ ... }: {
-            _module.args.secretsPath = ./secrets;
-          })
+          # ./modules/users-groups
+          #  ({ ... }: {
+          #   _module.args.secretsPath = ./secrets;
+          # })
           vscode-server.nixosModules.default
           agenix.nixosModules.default
           hostPath                 # Host-specific configuration.nix
+          ({ config, pkgs, inputs, ... }: {
+            environment.systemPackages = [
+              agenix.packages."${system}".default
+            ];
+          })
         ];
       };
     in {
@@ -42,6 +47,7 @@
         "dondozo" = makeHost ./hosts/dondozo/configuration.nix;
         "nixos" = makeHost ./hosts/lotad/configuration.nix;
         "lotad" = makeHost ./hosts/lotad/configuration.nix;
+        "castform" = makeHost ./hosts/castform/new-config.nix;
       };
     
       # MacOS configuration via nix-darwin

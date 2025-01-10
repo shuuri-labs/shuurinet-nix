@@ -104,15 +104,15 @@
       }
     ) config.host.user.users;
 
-    host.user.users.mainUser = {
-      username = config.host.user.mainUsername;
-      password = config.host.user.mainUserPassword;
-      userDescription = config.host.user.mainUserDescription;
-      home = "/home/${config.host.user.mainUsername}";
-      isNormalUser = true;
-      sudo = true; 
-      groups = ["networkmanager" "wheel" ];
-    };
+    # host.user.users.mainUser = {
+    #   username = config.host.user.mainUsername;
+    #   password = config.host.user.mainUserPassword;
+    #   userDescription = config.host.user.mainUserDescription;
+    #   home = "/home/${config.host.user.mainUsername}";
+    #   isNormalUser = true;
+    #   sudo = true; 
+    #   groups = ["networkmanager" "wheel" ];
+    # };
 
     users.users = lib.mapAttrs (name: user: 
       lib.recursiveUpdate {
