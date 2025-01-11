@@ -33,12 +33,12 @@ in
 {
   imports = [
     ./hardware-configuration.nix
-    ../../options-homelab
     ../../modules/zfs
     ../../modules/hdd-spindown
     ../../modules/intel-graphics
     ../../modules/power-saving
     ../../modules/intel-virtualization
+    ../../modules/media-server-2
   ];
 
   # Bootloader
@@ -126,4 +126,8 @@ in
   intelGraphics.enable = true;
   powersave.enable = true; 
   virtualization.intel.enable = true;
+
+  mediaServer.enable = true;
+  mediaServer.vpnConfinement.wireguardConfigFile = ../../secrets/wg-mullvad.conf;
+  mediaServer.vpnConfinement.lanSubnet = vars.network.subnet.ipv4;
 }

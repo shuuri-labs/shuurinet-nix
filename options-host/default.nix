@@ -2,5 +2,6 @@
 {
   imports = [
     ./paths.nix
+    ./access-groups.nix
   ];
 }

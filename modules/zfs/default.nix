@@ -27,17 +27,18 @@ in
 
     network.hostId = mkOption {
       type = types.str;
-      default = ""; #
+      default = null; 
       description = ''
-        config.networking.hostId option required for ZFS, generate with: head -c4 /dev/urandom | od -A none -t x4
+        'config.networking.hostId' option required for ZFS
+        generate with: head -c4 /dev/urandom | od -A none -t x4
       '';
     };
   };
   
-  config = mkIf (builtins.length cfg.pools > 0) {
+  config = mkIf (builtins.length cfg.pools > 0) { # TODO: add assertion for hostId
     networking.hostId = cfg.network.hostId; 
 
-    boot.kernelPackages = latestKernelPackage; # use function above to use latest kernel with ZFS support
+    boot.kernelPackages = latestKernelPackage; # use function in 'let' block to find and install/use latest kernel with ZFS support
 
     boot.supportedFilesystems = [ "zfs" ];
     boot.zfs.forceImportRoot = true; # force importing of pools last used with another machine/hostId

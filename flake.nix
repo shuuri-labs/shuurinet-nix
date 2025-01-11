@@ -16,9 +16,12 @@
 
     # Agenix for managing secrets
     agenix.url = "github:ryantm/agenix";
+
+    # Service-level VPN confinement
+    vpn-confinement.url = "github:Maroka-chan/VPN-Confinement";
   };
 
-  outputs = { self, nixpkgs, vscode-server, home-manager, nix-darwin, agenix, ... }:
+  outputs = { self, nixpkgs, vscode-server, home-manager, nix-darwin, agenix, vpn-confinement, ... }:
     let
       system = "x86_64-linux";
 
@@ -27,11 +30,13 @@
         inherit system;
         modules = [
           ./options-host
+          ./options-homelab
           ./modules/common
           # ./modules/users-groups
           #  ({ ... }: {
           #   _module.args.secretsPath = ./secrets;
           # })
+          vpn-confinement.nixosModules.default
           vscode-server.nixosModules.default
           agenix.nixosModules.default
           hostPath                 # Host-specific configuration.nix
