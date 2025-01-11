@@ -2,11 +2,11 @@
 { config, pkgs, lib, ... }:
 
 let
-  cfg = config.host.powersave;
+  cfg = config.powersave;
   inherit (lib) mkIf;
 in
 {
-  options.host.powersave = {
+  options.powersave = {
     enable = lib.mkOption {
       type = lib.types.bool;
       default = false; 

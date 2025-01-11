@@ -26,7 +26,8 @@
       makeHost = hostPath: nixpkgs.lib.nixosSystem {
         inherit system;
         modules = [
-          ./modules/common.nix
+          ./options-host
+          ./modules/common
           # ./modules/users-groups
           #  ({ ... }: {
           #   _module.args.secretsPath = ./secrets;

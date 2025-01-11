@@ -1,7 +1,10 @@
 { config, lib, pkgs, ... }:
 
+let
+  cfg = config.virtualization.intel; 
+in
 {
-  options.host.virtualization = {
+  options.virtualization.intel = {
     enable = lib.mkOption {
       type = lib.types.bool;
       default = true;
@@ -21,16 +24,16 @@
     };
   };
 
-  config = lib.mkIf config.host.virtualization.enable {
+  config = lib.mkIf cfg.enable {
     boot = {
       # Append required kernel parameters
-      kernelParams = config.host.virtualization.kernelParams;
+      kernelParams = cfg.kernelParams;
 
       # Load required kernel modules
       extraModprobeConfig = ''
         options vfio-pci ids=8086:1234,10de:1ae3
       '';
-      initrd.availableKernelModules = config.host.virtualization.extraModules;
+      initrd.availableKernelModules = cfg.extraModules;
     };
 
     # Required packages for virtualization

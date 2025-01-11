@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 
 {
   options.host.storage.paths = {
@@ -26,5 +26,11 @@
       type = lib.types.str;
       default = "/mnt/backups";
     };
+  };
+
+  config = {
+    systemd.tmpfiles.rules = lib.mapAttrsToList (name: path:
+      "d ${path} 0755 root root -"
+    ) config.host.storage.paths;
   };
 }

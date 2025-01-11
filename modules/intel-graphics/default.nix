@@ -1,10 +1,10 @@
 { config, lib, pkgs, ... }:
 
 let 
-  cfg = config.host.intelGraphics;
+  cfg = config.intelGraphics;
 in
 {
-  options.host.intelGraphics = {
+  options.intelGraphics = {
     enable = lib.mkOption {
       type = lib.types.bool;
       default = false;
