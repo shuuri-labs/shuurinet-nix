@@ -128,6 +128,7 @@ in
   virtualization.intel.enable = true;
 
   mediaServer.enable = true;
-  mediaServer.vpnConfinement.wireguardConfigFile = ../../secrets/wg-mullvad.conf;
+  mediaServer.vpnConfinement.wireguardConfigFile = "/home/ashley/shuurinet-nix/secrets/wg-mullvad.conf"; # TODO: encrypt with agenix?
   mediaServer.vpnConfinement.lanSubnet = vars.network.subnet.ipv4;
+  mediaServer.services.downloadDir = config.host.storage.paths.downloads;
 }

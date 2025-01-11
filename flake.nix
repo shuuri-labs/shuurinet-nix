@@ -19,6 +19,8 @@
 
     # Service-level VPN confinement
     vpn-confinement.url = "github:Maroka-chan/VPN-Confinement";
+
+    # secrets.url = "path:/home/ashley/shuurinet-nix/secrets";
   };
 
   outputs = { self, nixpkgs, vscode-server, home-manager, nix-darwin, agenix, vpn-confinement, ... }:

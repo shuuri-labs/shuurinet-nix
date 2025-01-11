@@ -76,6 +76,7 @@ in
     services = {
       transmission = {
         enable = true;
+        openFirewall = true;
         package = pkgs.transmission_4;
         settings = {
           download-dir = cfg.downloadDir;
@@ -98,7 +99,10 @@ in
         openFirewall = true; 
       };
 
-      bazarr.enable = true;
+      bazarr = {
+        enable = true;
+        openFirewall = true;
+      };
       
       jellyfin = {
         enable = true; 
