@@ -2,26 +2,24 @@
 
 let
   cfg = config.mediaServer;
-in {
-    imports = [
-    ./options.nix
-    ./wireguard-routing-container.nix
-    ./arr-transmission-containers.nix
-    # ./arr-ssd-caching.nix
-    ./jelly.nix
+  inherit (lib) types;
+in
+{
+  imports = [
+    ./vpn-confinement.nix
+    ./services.nix
   ];
 
   options.mediaServer = {
     enable = lib.mkOption {
-      type = lib.types.bool;
-      default = false;
-      description = "Enable media server services";
+      type = types.bool; 
+      default = false; 
+      description = ""; 
     };
   };
 
   config = lib.mkIf cfg.enable {
-    mediaServer.network.wg-mullvad.enable = true;
-    mediaServer.arrMission.enable = true;
-    mediaServer.arrMission.enableAnimeSonarr = true;
+    mediaServer.vpnConfinement.enable = true;
+    mediaServer.services.enable = true;
   };
 }

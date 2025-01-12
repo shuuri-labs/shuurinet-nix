@@ -28,8 +28,14 @@ in
     };
 
     lanSubnet = lib.mkOption {
-      type = types.str;
+      type = types.str; 
       default = "192.168.1";
+      description = "LAN subnet for host machine";
+    };
+
+    lanSubnet6 = lib.mkOption {
+      type = types.str;
+      default = "fd00::1";
       description = "LAN subnet for host machine";
     };
 
@@ -60,13 +66,14 @@ in
 
   config = lib.mkIf cfg.enable {
     # Service ports to forward out of VPN interface (transmission, bazarr, radarr, sonarr, prowlarr)
-    mediaServer.vpnConfinement.tcpPortsToForward = [ 9091 6767 7878 8989 9696 ];
+    # mediaServer.vpnConfinement.tcpPortsToForward = [ 9091 6767 7878 8989 9696 ];
 
     vpnNamespaces."${cfg.namespace}" = { # The name is limited to 7 characters
       enable = true;
       wireguardConfigFile = cfg.wireguardConfigFile;
       accessibleFrom = [
         "${cfg.lanSubnet}.0/24"
+        "${cfg.lanSubnet6}::/64"
       ];
       portMappings = [
         { from = 9091; to = 9091; protocol = "tcp"; }

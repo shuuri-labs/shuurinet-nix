@@ -16,6 +16,14 @@ in
             type = types.str;
             description = "IPv6 subnet";
           };
+          gateway = mkOption {
+            type = types.str;
+            description = "IPv4 gateway";
+          };
+          gateway6 = mkOption {
+            type = types.str;
+            description = "IPv6 gateway";
+          };
         };
       });
       default = {};  # Changed from [] to {}
@@ -28,14 +36,20 @@ in
       "bln" = {
         ipv4 = "192.168.11";
         ipv6 = "fd8f:2e0e:4eed";
+        gateway = "${config.homelab.networks.subnets.bln.ipv4}.1";
+        gateway6 = "${config.homelab.networks.subnets.bln.ipv6}::1";
       };
       "ldn" = {
         ipv4 = "10.11.20";
         ipv6 = " fd20:e376:b0a4";
+        gateway = "${config.homelab.networks.subnets.ldn.ipv4}.1";
+        gateway6 = "${config.homelab.networks.subnets.ldn.ipv6}::1";
       };
       "tats" = {
         ipv4 = "192.168.178";
         ipv6 = "";
+        gateway = "192.168.178.1";
+        gateway6 = "";
       };
     };
   };

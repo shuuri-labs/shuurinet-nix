@@ -14,6 +14,9 @@ let
 
       hostAddress = "${vars.network.subnet.ipv4}.121";
       hostAddress6 = "${vars.network.subnet.ipv6}::121";
+
+      # gateway = "${vars.network.subnet.ipv4}.1";
+      # gateway6 = "${vars.network.subnet.ipv6}::1";
     };
 
     zfs = {
@@ -29,6 +32,8 @@ let
   };
 
   modulesDir = "../../modules";
+
+  secretsAbsolutePath = "/home/ashley/shuurinet-nix/secrets"; # TODO: encrypt with agenix?
 in
 {
   imports = [
@@ -38,7 +43,7 @@ in
     ../../modules/intel-graphics
     ../../modules/power-saving
     ../../modules/intel-virtualization
-    ../../modules/media-server-2
+    ../../modules/media-server
   ];
 
   # Bootloader
@@ -51,7 +56,10 @@ in
 
   # Networking
   networking = {
+    useNetworkd = true;
+
     hostName = "castform";
+    enableIPv6 = true;
 
     # Bridge Definition
     bridges.${vars.network.bridge} = {
@@ -60,8 +68,6 @@ in
 
     # bridge interface config
     interfaces."${vars.network.bridge}" = {
-      useDHCP = false;
-
       ipv4 = {
         addresses = [{
           address = vars.network.hostAddress;
@@ -71,7 +77,7 @@ in
 
       ipv6 = {
         addresses = [{
-          address = vars.network.hostAddress6;  # Ensure proper IPv6 formatting
+          address = "2a01:c22:3451:bc00::121";  # Ensure proper IPv6 formatting
           prefixLength = 64;
         }];
       };
@@ -79,24 +85,21 @@ in
 
     # Default Gateways
     defaultGateway = {
-      address = "${vars.network.subnet.ipv4}.1";
+      address = vars.network.subnet.gateway;
       interface = vars.network.bridge;
     };
 
-    defaultGateway6 = {
-      address = "${vars.network.subnet.ipv6}::1";
-      interface = vars.network.bridge;
-    };
+   defaultGateway6 = {
+     address = "2a01:c22:3451:bc00::1";
+     interface = vars.network.bridge;
+   };
 
     # Nameservers
     nameservers = [ 
-      "${vars.network.subnet.ipv4}.1" 
-      "${vars.network.subnet.ipv6}::1"
+      vars.network.subnet.gateway
+      # "2a01:c22:3451:bc00::1"
     ];
   };
-
-  # Enable networking auto config for interfaces not manually configured
-  networking.networkmanager.enable = true;
 
   # Set your time zone.
   time.timeZone = "Europe/Berlin";
@@ -128,7 +131,8 @@ in
   virtualization.intel.enable = true;
 
   mediaServer.enable = true;
-  mediaServer.vpnConfinement.wireguardConfigFile = "/home/ashley/shuurinet-nix/secrets/wg-mullvad.conf"; # TODO: encrypt with agenix?
+  mediaServer.vpnConfinement.wireguardConfigFile = "${secretsAbsolutePath}/wg-mullvad.conf"; 
   mediaServer.vpnConfinement.lanSubnet = vars.network.subnet.ipv4;
+  mediaServer.vpnConfinement.lanSubnet6 = vars.network.subnet.ipv6;
   mediaServer.services.downloadDir = config.host.storage.paths.downloads;
 }

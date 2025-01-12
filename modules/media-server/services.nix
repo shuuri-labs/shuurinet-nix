@@ -60,9 +60,14 @@ in
         vpnNamespace = vpnConfinementNamespace;
       };
 
+      # sonarr-anime.vpnConfinement = {
+      #   enable = true; 
+      #   vpnNamespace = vpnConfinementNamespace;
+      # };
+
       bazarr.vpnConfinement = {
         enable = true; 
-        vpnNamespace = "wg-mv";
+        vpnNamespace = vpnConfinementNamespace;
       };
     };
 
@@ -77,17 +82,23 @@ in
       transmission = {
         enable = true;
         openFirewall = true;
+        openRPCPort = true;
         package = pkgs.transmission_4;
         settings = {
           download-dir = cfg.downloadDir;
           incomplete-dir-enabled = false;
-          "rpc-authentication-required" = false;
+          rpc-bind-address = "0.0.0.0";
+          rpc-whitelist-enabled = false;
+          "rpc-authentication-required" = false; # TODO enable and add pw secret
           "ratio-limit-enabled" = true;
           "ratio-limit" = 2.0;
         };
       };
 
-      prowlarr.enable = true;
+      prowlarr = {
+        enable = true;
+        openFirewall = true;
+      };
 
       radarr = {
         enable = true; 
@@ -98,6 +109,37 @@ in
         enable = true; 
         openFirewall = true; 
       };
+
+      # TODO: Implement
+      # sonarr-anime = lib.mkIf enableAnimeSonarr {
+      #   enable = true;
+      #   package = pkgs.sonarr; # Use the same package
+      #   user = "sonarr"
+      #   stateDir = "/var/lib/sonarr-anime"; # Separate state directory
+      #   openFirewall = true; # Open the firewall for the custom port
+
+      #   # Define a custom systemd service
+      #   systemd.services.sonarr-anime = {
+      #     enable = true;
+      #     description = "Sonarr Anime Instance";
+      #     after = ["network.target"];
+      #     serviceConfig = {
+      #       ExecStart = "${pkgs.sonarr}/bin/Sonarr --nobrowser -data=/var/lib/sonarr-anime";
+      #       Restart = "always";
+      #       User = "sonarr";
+      #     };
+      #   };
+
+      #   # Customize the port for the second instance
+      #   nginx = {
+      #     enable = true;
+      #     virtualHosts."192.168.11.121:8990" = {
+      #       locations."/" = {
+      #         proxyPass = "http://127.0.0.1:8990";
+      #       };
+      #     };
+      #   };
+      # };
 
       bazarr = {
         enable = true;
