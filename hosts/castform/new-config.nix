@@ -131,7 +131,7 @@ in
 
   # Media Server
   mediaServer.enable = true;
-  mediaServer.vpnConfinement.wireguardConfigFile = "${secretsAbsolutePath}/wg-mullvad.conf"; 
+  mediaServer.vpnConfinement.wireguardConfigFileEncrypted = "${secretsAbsolutePath}/wg-mullvad.conf.age"; 
   mediaServer.vpnConfinement.lanSubnet = vars.network.subnet.ipv4;
   mediaServer.vpnConfinement.lanSubnet6 = vars.network.subnet.ipv6;
 

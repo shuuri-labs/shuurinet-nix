@@ -5,13 +5,8 @@ let
 
   cfg = config.mediaServer.vpnConfinement;
 
-  # Function to map ports to portMappings
-  generatePortMappings = portsToForward: protocol:
-    lib.concatMap (port: {
-      from = port;
-      to = port;
-      protocol = protocol;
-    }) portsToForward;
+  wireguardConfDirectory = "/var/vpn-confinement";
+  decryptedConfigFilePath = "${wireguardConfDirectory}/${cfg.namespace}.conf";
 in
 {
   options.mediaServer.vpnConfinement = {
@@ -21,10 +16,10 @@ in
       description = "Enable VPN confinement service";
     };
 
-    wireguardConfigFile = lib.mkOption {
+    wireguardConfigFileEncrypted = lib.mkOption {
       type = types.path; 
       default = "/secrets/wg0.conf";
-      description = "Wireguard config file path";
+      description = "Agenix encrypted wireguard config file path";
     };
 
     lanSubnet = lib.mkOption {
@@ -65,9 +60,29 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    # Create directory to place decrypted wireguard config
+    systemd.tmpfiles.rules = [
+      "d ${wireguardConfDirectory} 0755 root root"
+    ];
+
+    # Decrypt wireguard config file
+    age.secrets = {
+      wireguard = {
+        file = cfg.wireguardConfigFileEncrypted;
+        path = decryptedConfigFilePath;
+        owner = "root";
+        group = "root";
+        mode = "0600";
+      };
+    };
+
+    # Ensure wg interface only comes up after secrets are decrypted
+    systemd.services."${cfg.namespace}".after = [ "agenix.secrets-writer.service" ];
+
+    # Create vpn namespace
     vpnNamespaces."${cfg.namespace}" = {
       enable = true;
-      wireguardConfigFile = cfg.wireguardConfigFile;
+      wireguardConfigFile = decryptedConfigFilePath;
       accessibleFrom = [
         "192.168.0.0/16"
       ];
