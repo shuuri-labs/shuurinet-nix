@@ -103,13 +103,9 @@ in
   # Set your time zone.
   time.timeZone = "Europe/Berlin";
 
-  # Define a user account. Don't forget to set a password with ‘passwd’.
-  users.users.ashley = {
-    isNormalUser = true;
-    description = "Ashley";
-    extraGroups = [ "networkmanager" "wheel" ];
-    packages = with pkgs; [];
-  };
+  # set a unique main user pw (main user created in common module)
+  age.secrets.castform-main-user-password.file = "${secretsAbsolutePath}/castform-main-user-password.age";
+  users.users."${config.common.mainUsername}".passwordFile = config.age.secrets.castform-main-user-password.path;
 
   # import ZFS pools
   host.zfs.pools = vars.zfs.pools;
