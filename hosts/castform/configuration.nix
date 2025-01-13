@@ -2,154 +2,141 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, secretsPath, ... }:
+{ config, pkgs, ... }:
 
 let
-  mountedPools = {
-    bulkStorage = {
-      name = "castform-rust";
-      path = "/castform-rust";
-      driveIds = [ ];
+  vars = {
+    network = {
+      interfaces = [ "enp0s31f6" ]; 
+      bridge = "br0";
+
+      subnet = config.homelab.networks.subnets.bln;
+
+      hostAddress = "${vars.network.subnet.ipv4}.121";
+      hostAddress6 = "${vars.network.subnet.ipv6}::121";
     };
 
-    fastStorage = {
-      name = "castform-rust";
-      path = "/castform-rust";
-      driveIds = [];
+    zfs = {
+      pools = [ "castform-rust" ];
+      network.hostId = "c8f36183"; 
     };
 
-    editingStorage = {
-      name = "castform-rust";
-      path = "/castform-rust";
-      driveIds = [];
+    paths = {
+      bulkStorage = "/castform-rust";
     };
+
+    disksToSpindown = [ "ata-WDC_WD10EZEX-07WN4A0_WD-WCC6Y3ESH5SP" ];
   };
 
-  vars.network = {
-    interface = "enp0s31f6";
-    interfaces = [ "enp0s31f6" ]; 
-    bridge = "br0";
-  };
+  modulesDir = "../../modules";
 
-  subnet = config.homelab.networks.subnets.bln;
-
-  hostname = "nixos";
-
-  # age.secrets.dondozo-main-user-pw = {
-  #   file = "${secretsPath}/dondozo-main-user-pw.age";
-  # };
-
-  hostAddress = "${subnet.ipv4}.10";
-  hostAddress6 = "${subnet.ipv6}::10";
+  secretsAbsolutePath = "/home/ashley/shuurinet-nix/secrets"; # TODO: encrypt with agenix?
 in
 {
-  imports =
-  [ # Include the results of the hardware scan.
+  imports = [
     ./hardware-configuration.nix
-    ../../modules/host/drives-filesystems
-    ../../modules/host/hardware/intel-graphics.nix
-    ../../modules/host/hardware/intel-virtualisation.nix
-    ../../modules/host/hardware/power-saving.nix
-    ../../modules/networks.nix
-    ../../modules/media-server
-  ];  
+  ];
 
-  config = {
-    # ======== Bootloader ======== 
-    
-    boot.loader.grub = {
-      enable = true;
-      device = [ "nodev"];
-      useOSProber = true;
+  # Bootloader
+  boot.loader.grub.enable = true;
+  # Allow GRUB to write to EFI variables
+  boot.loader.efi.canTouchEfiVariables = true;
+  # Specify the target for GRUB installation
+  boot.loader.grub.efiSupport = true;
+  boot.loader.grub.device = "nodev"; # For UEFI systems
+
+  # Networking
+  networking = {
+    hostName = "castform";
+
+    useNetworkd = true;
+    enableIPv6 = true;
+
+    # Bridge Definition
+    bridges.${vars.network.bridge} = {
+      interfaces = vars.network.interfaces;
     };
 
-    # ======== System ======== 
-
-    time.timeZone = "Europe/Berlin";
-
-    # ======== Networking ======== 
-
-    networking = {
-      hostName = hostname;
-      hostId = "c8f36183";
-
-      useDHCP = false;
-
-      # Bridge Definition
-      bridges.${vars.network.bridge} = {
-        interfaces = vars.network.interfaces;
+    # bridge interface config
+    interfaces."${vars.network.bridge}" = {
+      ipv4 = {
+        addresses = [{
+          address = vars.network.hostAddress;
+          prefixLength = 24;
+        }];
       };
 
-      # bridge interface config
-      interfaces."${vars.network.bridge}" = {
-        ipv4 = {
-          addresses = [{
-            address = hostAddress;
-            prefixLength = 24;
-          }];
-        };
-
-        ipv6 = {
-          addresses = [{
-            address = hostAddress6;  # Ensure proper IPv6 formatting
-            prefixLength = 64;
-          }];
-        };
+      ipv6 = {
+        addresses = [{
+          address = vars.network.hostAddress6; 
+          prefixLength = 64;
+        }];
       };
-
-      # Default Gateways
-      defaultGateway = {
-        address = "${subnet.ipv4}.1";
-        interface = vars.network.interface;
-      };
-
-      defaultGateway6 = {
-        address = "${subnet.ipv6}::1";
-        interface = vars.network.interface;
-      };
-
-      # Nameservers
-      nameservers = [ "${subnet.ipv4}.1" ];
-
-      networkmanager.enable = true; # required for automatic management of interfaces not defined above, e.g. wg interfaces
     };
 
-    # ======== Host settings - found in /modules/host ======== 
-
-    age.secrets.dondozo-main-user-pw = {
-      file = "${secretsPath}/dondozo-main-user-pw.age";
-      owner = "root";
-      group = "root";
-      mode = "0400";
+    # Default Gateways
+    defaultGateway = {
+      address = vars.network.subnet.gateway;
+      interface = vars.network.bridge;
     };
 
-    host.user.mainUserPassword = config.age.secrets.dondozo-main-user-pw.path;
-    host.user.sshKeys = config.common.sshKeys;
+   defaultGateway6 = {
+     address = vars.network.subnet.gateway6;
+     interface = vars.network.bridge;
+   };
 
+    # Nameservers
+    nameservers = [ 
+      vars.network.subnet.gateway
+      # vars.network.subnet.gateway6 # doesn't seem to be needed, might break if added!
+    ];
 
-    # ZFS 
-    host.zfs.mountedPools = mountedPools;
-
-    # Storage paths
-    host.storage.paths = {
-      media = "${mountedPools.bulkStorage.path}/media";
-      downloads = "${mountedPools.fastStorage.path}/downloads";
-      arrMedia = "${mountedPools.fastStorage.path}/arrMedia";
-      documents = "${mountedPools.fastStorage.path}/documents";
-      backups = "${mountedPools.fastStorage.path}/backups";
-    };
-
-    host.hddSpindown.disksToSpindown = mountedPools.bulkStorage.driveIds;
-    host.virtualization.enable = true;
-    host.intelGraphics.enable = true;
-    host.powersave.enable = true;
-    
-    # ======== Applications and Services ======== 
-
-    # Media Server
-    mediaServer.enable = true;
-    mediaServer.container.network.interfaceExternal = vars.network.bridge;
-    mediaServer.container.network.hostAddress = hostAddress;
-    mediaServer.container.network.hostAddress6 = hostAddress6;
+    networkmanager.enable = true;
   };
+
+  # Set your time zone.
+  time.timeZone = "Europe/Berlin";
+
+  # set a unique main user pw (main user created in common module)
+  age.secrets.castform-main-user-password.file = "${secretsAbsolutePath}/castform-main-user-password.age";
+  users.users."${config.common.mainUsername}".passwordFile = config.age.secrets.castform-main-user-password.path;
+
+  # import ZFS pools
+  host.zfs.pools = vars.zfs.pools;
+  host.zfs.network.hostId = vars.zfs.network.hostId;
+
+  # Host paths
+  host.storage.paths = {
+    media = "${vars.paths.bulkStorage}/media";
+    arrMedia = "${vars.paths.bulkStorage}/arrMedia";
+    downloads = "${vars.paths.bulkStorage}/downloads";
+    documents = "${vars.paths.bulkStorage}/documents";
+    backups = "${vars.paths.bulkStorage}/backups";
+  };
+
+  hddSpindown.disks = vars.disksToSpindown;
+  intelGraphics.enable = true;
+  powersave.enable = true; 
+  virtualization.intel.enable = true;
+
+  # Media Server
+  mediaServer.enable = true;
+  mediaServer.vpnConfinement.wireguardConfigFileEncrypted = "${secretsAbsolutePath}/wg-mullvad.conf.age"; 
+  mediaServer.vpnConfinement.lanSubnet = vars.network.subnet.ipv4;
+  mediaServer.vpnConfinement.lanSubnet6 = vars.network.subnet.ipv6;
+
+  mediaServer.paths.media = config.host.storage.paths.media;
+  mediaServer.paths.arrMedia = config.host.storage.paths.arrMedia;
+  mediaServer.paths.mediaGroup = config.host.accessGroups.media.name;
+
+  mediaServer.services.downloadDir = config.host.storage.paths.downloads;
+  mediaServer.services.transmissionAccessGroups = [ config.host.accessGroups.downloads.name ];
+  mediaServer.services.radarrSonarrAccessGroups = [ 
+    config.host.accessGroups.arrMedia.name 
+    config.host.accessGroups.media.name 
+    config.host.accessGroups.downloads.name    
+  ];
+
+  networking.wireguard.enable = true; # Enables WireGuard
+  environment.systemPackages = with pkgs; [ wireguard-tools ]; # Installs wg and wg-quick
 }

@@ -34,11 +34,11 @@
 
             mkdir -p "$DEST_DIR"
 
-            ${pkgs.inotify-tools}/bin/inotifywait -m -e create -e moved_to --format "%w%f" "$WATCH_DIR" | while read NEWFILE
+            ${pkgs.inotify-tools}/bin/inotifywait -m -e create -e moved_to -e modify --format "%w%f" "$WATCH_DIR" | while read CHANGED_FILE
             do
-                echo "$(date): Detected new file $NEWFILE" >> "$LOG_FILE"
-                ${pkgs.rsync}/bin/rsync -av --ignore-existing "$NEWFILE" "$DEST_DIR/"
-                echo "$(date): Copied $NEWFILE to $DEST_DIR" >> "$LOG_FILE"
+                echo "$(date): Detected change in $CHANGED_FILE" >> "$LOG_FILE"
+                ${pkgs.rsync}/bin/rsync -av "$CHANGED_FILE" "$DEST_DIR/"
+                echo "$(date): Synced $CHANGED_FILE to $DEST_DIR" >> "$LOG_FILE"
             done
           ''}'";
           Restart = "always";
@@ -57,20 +57,10 @@
   };
 }
 
+
 ### flake.nix (add to existing modules in outputs section)
 
-modules = [
-  ./modules/arr-ssd-caching.nix     # The real-time sync module
-];
 
-### configuration.nix
 
-realTimeSync = {
-    enable = true;
-    pairs = [
-      { source = "/home/user/downloads1"; dest = "/mnt/hdd/archive1"; }
-      { source = "/home/user/downloads2"; dest = "/mnt/hdd/archive2"; }
-    ];
-};
 
 

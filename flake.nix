@@ -19,8 +19,6 @@
 
     # Service-level VPN confinement
     vpn-confinement.url = "github:Maroka-chan/VPN-Confinement";
-
-    # secrets.url = "path:/home/ashley/shuurinet-nix/secrets";
   };
 
   outputs = { self, nixpkgs, vscode-server, home-manager, nix-darwin, agenix, vpn-confinement, ... }:
@@ -34,10 +32,12 @@
           ./options-host
           ./options-homelab
           ./modules/common
-          # ./modules/users-groups
-          #  ({ ... }: {
-          #   _module.args.secretsPath = ./secrets;
-          # })
+          ./modules/zfs
+          ./modules/hdd-spindown
+          ./modules/intel-graphics
+          ./modules/power-saving
+          ./modules/intel-virtualization
+          ./modules/media-server
           vpn-confinement.nixosModules.default
           vscode-server.nixosModules.default
           agenix.nixosModules.default
@@ -55,7 +55,7 @@
         "dondozo" = makeHost ./hosts/dondozo/configuration.nix;
         "nixos" = makeHost ./hosts/lotad/configuration.nix;
         "lotad" = makeHost ./hosts/lotad/configuration.nix;
-        "castform" = makeHost ./hosts/castform/new-config.nix;
+        "castform" = makeHost ./hosts/castform/configuration.nix;
       };
     
       # MacOS configuration via nix-darwin
