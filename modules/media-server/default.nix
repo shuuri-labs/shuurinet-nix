@@ -7,6 +7,7 @@ in
 {
   imports = [
     ./vpn-confinement.nix
+    ./create-directories.nix
     ./services.nix
   ];
 

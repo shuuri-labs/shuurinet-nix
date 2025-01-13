@@ -14,9 +14,6 @@ let
 
       hostAddress = "${vars.network.subnet.ipv4}.121";
       hostAddress6 = "${vars.network.subnet.ipv6}::121";
-
-      # gateway = "${vars.network.subnet.ipv4}.1";
-      # gateway6 = "${vars.network.subnet.ipv6}::1";
     };
 
     zfs = {
@@ -56,9 +53,9 @@ in
 
   # Networking
   networking = {
-    useNetworkd = true;
-
     hostName = "castform";
+
+    useNetworkd = true;
     enableIPv6 = true;
 
     # Bridge Definition
@@ -77,7 +74,7 @@ in
 
       ipv6 = {
         addresses = [{
-          address = "2a01:c22:3451:bc00::121";  # Ensure proper IPv6 formatting
+          address = vars.network.hostAddress6; 
           prefixLength = 64;
         }];
       };
@@ -90,15 +87,17 @@ in
     };
 
    defaultGateway6 = {
-     address = "2a01:c22:3451:bc00::1";
+     address = vars.network.subnet.gateway6;
      interface = vars.network.bridge;
    };
 
     # Nameservers
     nameservers = [ 
       vars.network.subnet.gateway
-      # "2a01:c22:3451:bc00::1"
+      # vars.network.subnet.gateway6 # doesn't seem to be needed, might break if added!
     ];
+
+    networkmanager.enable = true;
   };
 
   # Set your time zone.
@@ -130,9 +129,24 @@ in
   powersave.enable = true; 
   virtualization.intel.enable = true;
 
+  # Media Server
   mediaServer.enable = true;
   mediaServer.vpnConfinement.wireguardConfigFile = "${secretsAbsolutePath}/wg-mullvad.conf"; 
   mediaServer.vpnConfinement.lanSubnet = vars.network.subnet.ipv4;
   mediaServer.vpnConfinement.lanSubnet6 = vars.network.subnet.ipv6;
+
+  mediaServer.paths.media = config.host.storage.paths.media;
+  mediaServer.paths.arrMedia = config.host.storage.paths.arrMedia;
+  mediaServer.paths.mediaGroup = config.host.accessGroups.media.name;
+
   mediaServer.services.downloadDir = config.host.storage.paths.downloads;
+  mediaServer.services.transmissionAccessGroups = [ config.host.accessGroups.downloads.name ];
+  mediaServer.services.radarrSonarrAccessGroups = [ 
+    config.host.accessGroups.arrMedia.name 
+    config.host.accessGroups.media.name 
+    config.host.accessGroups.downloads.name    
+  ];
+
+  networking.wireguard.enable = true; # Enables WireGuard
+  environment.systemPackages = with pkgs; [ wireguard-tools ]; # Installs wg and wg-quick
 }

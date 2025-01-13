@@ -42,7 +42,7 @@ in
     namespace = lib.mkOption {
       type = types.str; 
       default = "wg";
-      description = "VPN namespace";
+      description = "VPN namespace. Limited to 7 characters";
     };
 
     tcpPortsToForward = lib.mkOption {
@@ -65,27 +65,19 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    # Service ports to forward out of VPN interface (transmission, bazarr, radarr, sonarr, prowlarr)
-    # mediaServer.vpnConfinement.tcpPortsToForward = [ 9091 6767 7878 8989 9696 ];
-
-    vpnNamespaces."${cfg.namespace}" = { # The name is limited to 7 characters
+    vpnNamespaces."${cfg.namespace}" = {
       enable = true;
       wireguardConfigFile = cfg.wireguardConfigFile;
       accessibleFrom = [
-        "${cfg.lanSubnet}.0/24"
-        "${cfg.lanSubnet6}::/64"
+        "192.168.0.0/16"
       ];
       portMappings = [
-        { from = 9091; to = 9091; protocol = "tcp"; }
-        { from = 6767; to = 6767; protocol = "tcp"; }
-        { from = 7878; to = 7878; protocol = "tcp"; }
-        { from = 8989; to = 8989; protocol = "tcp"; }
-        { from = 9696; to = 9696; protocol = "tcp"; }
-        # TODO: fix, portMappings = lib.concatMap [ ... ]
-        # (generatePortMappings cfg.tcpPortsToForward "tcp")
-        # (generatePortMappings cfg.udpPortsToForward "udp")
-        # (generatePortMappings cfg.bothPortsToForward "both")
+        { from = 9091; to = 9091; protocol = "tcp"; } # transmission
       ];
+      openVPNPorts = [{
+        port = 51413;
+        protocol = "both";
+      }];
     };
   };
 }

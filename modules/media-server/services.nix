@@ -38,34 +38,9 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    # create and enable VPN confinement services
+    # create and enable sonnar VPN confinement service
     systemd.services = {
       transmission.vpnConfinement = {
-        enable = true; 
-        vpnNamespace = vpnConfinementNamespace;
-      };
-
-      prowlarr.vpnConfinement = {
-        enable = true; 
-        vpnNamespace = vpnConfinementNamespace;
-      };
-
-      radarr.vpnConfinement = {
-        enable = true; 
-        vpnNamespace = vpnConfinementNamespace;
-      };
-
-      sonarr.vpnConfinement = {
-        enable = true; 
-        vpnNamespace = vpnConfinementNamespace;
-      };
-
-      # sonarr-anime.vpnConfinement = {
-      #   enable = true; 
-      #   vpnNamespace = vpnConfinementNamespace;
-      # };
-
-      bazarr.vpnConfinement = {
         enable = true; 
         vpnNamespace = vpnConfinementNamespace;
       };
@@ -81,13 +56,13 @@ in
     services = {
       transmission = {
         enable = true;
-        openFirewall = true;
-        openRPCPort = true;
+        # openFirewall = true;
+        # openRPCPort = true;
         package = pkgs.transmission_4;
         settings = {
           download-dir = cfg.downloadDir;
           incomplete-dir-enabled = false;
-          rpc-bind-address = "0.0.0.0";
+          rpc-bind-address = "192.168.15.1"; # address of interfaces created by VPN confinement module. arrs must point to this address, but can access via <host_address>:9091 from browser
           rpc-whitelist-enabled = false;
           "rpc-authentication-required" = false; # TODO enable and add pw secret
           "ratio-limit-enabled" = true;

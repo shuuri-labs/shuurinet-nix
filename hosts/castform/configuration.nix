@@ -110,6 +110,8 @@ in
 
       # Nameservers
       nameservers = [ "${subnet.ipv4}.1" ];
+
+      networkmanager.enable = true; # required for automatic management of interfaces not defined above, e.g. wg interfaces
     };
 
     # ======== Host settings - found in /modules/host ======== 

@@ -3,13 +3,10 @@
 with lib;
 
 let
-  # Helper function to set permissions for a path
   setPathPermissions = path: groupName: guestRead: {
     "${path}" = {
-      mode = if guestRead then "0755" else "0750";
+      mode = if guestRead then "0775" else "0770";  # Group write enabled
       group = groupName;
-      # Ensure group ownership and setgid bit
-      inherit groupName;
       setgid = true;
     };
   };
@@ -44,15 +41,12 @@ in
   };
 
   config = let
-    # Create a single attribute set of all path permissions
-    allPathPermissions = lib.foldl
-      (acc: group: acc // (lib.foldl
-        (pathAcc: path: pathAcc // (setPathPermissions path group.name group.guestRead))
-        {}
-        group.governedPaths
-      ))
-      {}
-      (builtins.attrValues config.host.accessGroups);
+    # Combine all path permissions into a single attribute set
+    allPathPermissions = lib.foldl' (acc: group:
+      lib.foldl' (pathAcc: path:
+        pathAcc // (setPathPermissions path group.name group.guestRead)
+      ) acc group.governedPaths
+    ) {} (builtins.attrValues config.host.accessGroups);
   in {
     host.accessGroups = {
       # Media 
@@ -102,6 +96,7 @@ in
       (path: conf: [
         "d ${path} ${conf.mode} root ${conf.group} - -"
         "z ${path} ${conf.mode} root ${conf.group} - -"
+        "a+g ${path}"  # Ensure setgid
       ])
       allPathPermissions
     );
