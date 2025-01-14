@@ -3,10 +3,13 @@
 
   inputs = {
     # core nixpkgs
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
+
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
 
     # Home Manager for user configurations
     home-manager.url = "github:nix-community/home-manager";
+    home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     # vscode server module for nixos 
     vscode-server.url = "github:nix-community/nixos-vscode-server";
@@ -38,13 +41,21 @@
           ./modules/power-saving
           ./modules/intel-virtualization
           ./modules/media-server
+          # ./modules/users
           vpn-confinement.nixosModules.default
           vscode-server.nixosModules.default
           agenix.nixosModules.default
+          home-manager.nixosModules.home-manager
+          {
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+            home-manager.users.ashley = import ./home.nix;
+          }
           hostPath                 # Host-specific configuration.nix
           ({ config, pkgs, inputs, ... }: {
             environment.systemPackages = [
               agenix.packages."${system}".default
+              home-manager
             ];
           })
         ];

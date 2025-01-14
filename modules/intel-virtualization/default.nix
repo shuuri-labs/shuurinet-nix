@@ -53,7 +53,7 @@ in
       };
     };
 
-    # PCIe passthrough configuration
+    # PCIe passthrough
     hardware.cpu.intel.updateMicrocode = true;
   };
 }

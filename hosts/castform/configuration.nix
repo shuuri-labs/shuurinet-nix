@@ -7,6 +7,7 @@
 let
   vars = {
     network = {
+      hostName = "castform";
       interfaces = [ "enp0s31f6" ]; 
       bridge = "br0";
 
@@ -30,7 +31,7 @@ let
 
   modulesDir = "../../modules";
 
-  secretsAbsolutePath = "/home/ashley/shuurinet-nix/secrets"; # TODO: encrypt with agenix?
+  secretsAbsolutePath = "/home/ashley/shuurinet-nix/secrets"; 
 in
 {
   imports = [
@@ -47,7 +48,7 @@ in
 
   # Networking
   networking = {
-    hostName = "castform";
+    hostName = vars.network.hostName;
 
     useNetworkd = true;
     enableIPv6 = true;
@@ -91,15 +92,25 @@ in
       # vars.network.subnet.gateway6 # doesn't seem to be needed, might break if added!
     ];
 
+    # Required for automatic management of interfaces not configured above, including wireguard interfaces
     networkmanager.enable = true;
   };
 
   # Set your time zone.
   time.timeZone = "Europe/Berlin";
 
+  
+  age.secrets = {
+    castform-main-user-password.file = "${secretsAbsolutePath}/castform-main-user-password.age";
+
+    mullvad-wireguard-config.file = "${secretsAbsolutePath}/wg-mullvad-user.age"; # TODO: check if vpn-confinement needs .conf file, use this instead if not
+    
+    ashley-samba-user-pw.file = "${secretsAbsolutePath}/samba-ashley-password.age";
+    media-samba-user-pw.file = "${secretsAbsolutePath}/samba-media-password.age";
+  };
+
   # set a unique main user pw (main user created in common module)
-  age.secrets.castform-main-user-password.file = "${secretsAbsolutePath}/castform-main-user-password.age";
-  users.users."${config.common.mainUsername}".passwordFile = config.age.secrets.castform-main-user-password.path;
+  users.users."${config.common.mainUsername}".hashedPasswordFile = config.age.secrets.castform-main-user-password.path;
 
   # import ZFS pools
   host.zfs.pools = vars.zfs.pools;
@@ -137,6 +148,42 @@ in
     config.host.accessGroups.downloads.name    
   ];
 
-  networking.wireguard.enable = true; # Enables WireGuard
-  environment.systemPackages = with pkgs; [ wireguard-tools ]; # Installs wg and wg-quick
+  # Samba
+  sambaProvisioner.enable = true;
+  sambaProvisioner.users = [
+    { name = "ashley"; passwordFile = config.age.secrets.ashley-samba-user-pw.path; }
+    { name = "media"; passwordFile = config.age.secrets.ashley-media-user-pw.path; } 
+  ];
+
+  services.samba.settings = {
+    global = {
+      "invalid users" = [
+        "root"
+      ];
+      "passwd program" = "/run/wrappers/bin/passwd %u";
+      security = "user";
+
+      "server string" = vars.network.hostName;
+	    "fruit:encoding" = "native";
+	    "fruit:metadata" = "stream";
+	    "fruit:zero_file_id" = "yes";
+	    "fruit:nfs_aces" = "no";
+	    "vfs objects" = "catia fruit streams_xattr";
+	    "veto files" = "/._*/.DS_Store/.Trashes/.TemporaryItems/"; # fix for MacOS "The operation can’t be completed because the item is in use" error
+	    "delete veto files" = "yes";
+    };
+
+    castform-rust = {
+      browseable = "yes";
+      comment = "Castform Rust Pool";
+      "guest ok" = "no";
+      path = "/castform-rust";
+      writable = "yes";
+      browseable = "yes";
+      public = "yes";
+      "read only" = "no";
+      "valid users" = [ config.sambaProvisioner.users.ashley.name ];
+    };
+  };
+
 }
