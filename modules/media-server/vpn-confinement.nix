@@ -4,9 +4,6 @@ let
   inherit (lib) mkOption types;
 
   cfg = config.mediaServer.vpnConfinement;
-
-  wireguardConfDirectory = "/var/vpn-confinement";
-  decryptedConfigFilePath = "${wireguardConfDirectory}/${cfg.namespace}.conf";
 in
 {
   options.mediaServer.vpnConfinement = {
@@ -16,7 +13,7 @@ in
       description = "Enable VPN confinement service";
     };
 
-    wireguardConfigFileEncrypted = lib.mkOption {
+    wireguardConfigFile = lib.mkOption {
       type = types.path; 
       default = "/secrets/wg0.conf";
       description = "Agenix encrypted wireguard config file path";
@@ -60,29 +57,10 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    # Create directory to place decrypted wireguard config
-    systemd.tmpfiles.rules = [
-      "d ${wireguardConfDirectory} 0755 root root"
-    ];
-
-    # Decrypt wireguard config file
-    age.secrets = {
-      wireguard = {
-        file = cfg.wireguardConfigFileEncrypted;
-        path = decryptedConfigFilePath;
-        owner = "root";
-        group = "root";
-        mode = "0600";
-      };
-    };
-
-    # Ensure wg interface only comes up after secrets are decrypted
-    systemd.services."${cfg.namespace}".after = [ "agenix.secrets-writer.service" ];
-
     # Create vpn namespace
     vpnNamespaces."${cfg.namespace}" = {
       enable = true;
-      wireguardConfigFile = decryptedConfigFilePath;
+      wireguardConfigFile = cfg.wireguardConfigFile;
       accessibleFrom = [
         "192.168.0.0/16"
       ];

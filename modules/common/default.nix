@@ -15,10 +15,12 @@ in
   };
 
   config = {
+    security.sudo.enable = true;
+
     users.users.ashley = {
       isNormalUser = true;
       description = "Ashley";
-      extraGroups = [ "networkmanager" "wheel" "sudo" ];
+      extraGroups = [ "networkmanager" "wheel" ]; # wheel = sudo for nixos
       openssh.authorizedKeys.keys = config.common.sshKeys;
     };
 

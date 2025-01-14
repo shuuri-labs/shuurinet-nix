@@ -103,14 +103,14 @@ in
   age.secrets = {
     castform-main-user-password.file = "${secretsAbsolutePath}/castform-main-user-password.age";
 
-    mullvad-wireguard-config.file = "${secretsAbsolutePath}/wg-mullvad-user.age"; # TODO: check if vpn-confinement needs .conf file, use this instead if not
+    mullvad-wireguard-config.file = "${secretsAbsolutePath}/wg-mullvad.conf.age"; # TODO: check if vpn-confinement needs .conf file, use this instead if not
     
     ashley-samba-user-pw.file = "${secretsAbsolutePath}/samba-ashley-password.age";
     media-samba-user-pw.file = "${secretsAbsolutePath}/samba-media-password.age";
   };
 
   # set a unique main user pw (main user created in common module)
-  users.users."${config.common.mainUsername}".hashedPasswordFile = config.age.secrets.castform-main-user-password.path;
+  users.users.ashley.hashedPasswordFile = config.age.secrets.castform-main-user-password.path;
 
   # import ZFS pools
   host.zfs.pools = vars.zfs.pools;
@@ -132,7 +132,7 @@ in
 
   # Media Server
   mediaServer.enable = true;
-  mediaServer.vpnConfinement.wireguardConfigFileEncrypted = "${secretsAbsolutePath}/wg-mullvad.conf.age"; 
+  mediaServer.vpnConfinement.wireguardConfigFile = config.age.secrets.mullvad-wireguard-config.path; 
   mediaServer.vpnConfinement.lanSubnet = vars.network.subnet.ipv4;
   mediaServer.vpnConfinement.lanSubnet6 = vars.network.subnet.ipv6;
 
@@ -150,39 +150,22 @@ in
 
   # Samba
   sambaProvisioner.enable = true;
+  sambaProvisioner.hostName = vars.network.hostName;
   sambaProvisioner.users = [
     { name = "ashley"; passwordFile = config.age.secrets.ashley-samba-user-pw.path; }
-    { name = "media"; passwordFile = config.age.secrets.ashley-media-user-pw.path; } 
+    { name = "media"; passwordFile = config.age.secrets.media-samba-user-pw.path; } 
   ];
 
   services.samba.settings = {
-    global = {
-      "invalid users" = [
-        "root"
-      ];
-      "passwd program" = "/run/wrappers/bin/passwd %u";
-      security = "user";
-
-      "server string" = vars.network.hostName;
-	    "fruit:encoding" = "native";
-	    "fruit:metadata" = "stream";
-	    "fruit:zero_file_id" = "yes";
-	    "fruit:nfs_aces" = "no";
-	    "vfs objects" = "catia fruit streams_xattr";
-	    "veto files" = "/._*/.DS_Store/.Trashes/.TemporaryItems/"; # fix for MacOS "The operation can’t be completed because the item is in use" error
-	    "delete veto files" = "yes";
-    };
-
     castform-rust = {
       browseable = "yes";
       comment = "Castform Rust Pool";
       "guest ok" = "no";
       path = "/castform-rust";
       writable = "yes";
-      browseable = "yes";
       public = "yes";
       "read only" = "no";
-      "valid users" = [ config.sambaProvisioner.users.ashley.name ];
+      "valid users" = "ashley"; # todo: dynamic based on user definitions above
     };
   };
 

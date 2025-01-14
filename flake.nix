@@ -41,6 +41,7 @@
           ./modules/power-saving
           ./modules/intel-virtualization
           ./modules/media-server
+          ./modules/smb-provisioner
           # ./modules/users
           vpn-confinement.nixosModules.default
           vscode-server.nixosModules.default

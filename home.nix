@@ -12,7 +12,7 @@
     shellAliases = {
       nxrb = "sudo nixos-rebuild switch --flake /home/ashley/shuurinet-nix" ; # TODO - change/symlink default rebuild path so I don't have to specify
       lservices = "systemctl list-units --type=service --state=running";
-      laservcies = "systemctl list-units --type=service";
+      laservices = "systemctl list-units --type=service";
     };
   };
 
