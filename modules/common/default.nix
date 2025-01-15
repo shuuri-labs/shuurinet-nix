@@ -17,14 +17,16 @@ in
   config = {
     security.sudo.enable = true;
 
+    # Add ssh keys for root user
+    users.users.root.openssh.authorizedKeys.keys = config.common.sshKeys;
+
+    # Create main user + enable home-manager
     users.users.ashley = {
       isNormalUser = true;
       description = "Ashley";
       extraGroups = lib.mkAfter [ "networkmanager" "wheel" ]; # wheel = sudo for nixos
       openssh.authorizedKeys.keys = config.common.sshKeys;
     };
-
-    users.users.root.openssh.authorizedKeys.keys = config.common.sshKeys;
 
     # Common packages installed on all machines
     environment.systemPackages = with pkgs; [
@@ -39,6 +41,7 @@ in
       pciutils # lspci
       ethtool
       iperf3
+      home-manager
     ];
 
     # Tell agenix which private keys to use for decryption
@@ -53,8 +56,6 @@ in
     # Enable automatic usage of generated ssh keys
     programs.ssh.startAgent = true;
 
-    # Enable unfree packages
-    nixpkgs.config.allowUnfree = true;
 
     # enable vscode connection
     services.vscode-server.enable = true;

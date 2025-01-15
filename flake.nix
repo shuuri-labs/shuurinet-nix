@@ -24,9 +24,35 @@
     vpn-confinement.url = "github:Maroka-chan/VPN-Confinement";
   };
 
-  outputs = { self, nixpkgs, vscode-server, home-manager, nix-darwin, agenix, vpn-confinement, ... }:
+  outputs = { self, nixpkgs, nixpkgs-unstable, vscode-server, home-manager, nix-darwin, agenix, vpn-confinement, ... }:
     let
-      system = "x86_64-linux";
+      system = "x86_64-linux";  
+      
+      pkgs-unstable = import nixpkgs-unstable {
+        inherit system;
+        inherit (nixpkgsConfig) config;
+      };
+      
+      # Create an overlay that pulls specific packages from unstable
+      overlay-unstable = final: prev: {
+        sonarr = pkgs-unstable.sonarr;
+        radarr = pkgs-unstable.radarr;
+        prowlarr = pkgs-unstable.prowlarr;
+        netbird = pkgs-unstable.netbird;
+      };
+
+      # Configure permittedInsecurePackages for both stable and unstable (for sonarr)
+      nixpkgsConfig = {
+        config = {
+          permittedInsecurePackages = [
+            "aspnetcore-runtime-6.0.36"
+            "aspnetcore-runtime-wrapped-6.0.36"
+            "dotnet-sdk-6.0.428"
+            "dotnet-sdk-wrapped-6.0.428"
+          ];
+          allowUnfree = true;
+        };
+      };
 
       # Helper function to create a NixOS configuration for a host
       makeHost = hostPath: nixpkgs.lib.nixosSystem {
@@ -42,22 +68,26 @@
           ./modules/intel-virtualization
           ./modules/media-server
           ./modules/smb-provisioner
-          # ./modules/users
           vpn-confinement.nixosModules.default
           vscode-server.nixosModules.default
           agenix.nixosModules.default
           home-manager.nixosModules.home-manager
-          {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.users.ashley = import ./home.nix;
-          }
           hostPath                 # Host-specific configuration.nix
           ({ config, pkgs, inputs, ... }: {
+            # Overlay and package config
+            nixpkgs.overlays = [ overlay-unstable ];
+            nixpkgs.config = nixpkgsConfig.config;
+            
+            # System packages - for command line tools
             environment.systemPackages = [
               agenix.packages."${system}".default
               home-manager
             ];
+
+            # Home manager config
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+            home-manager.users.ashley = import ./home.nix;
           })
         ];
       };

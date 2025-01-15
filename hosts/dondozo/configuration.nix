@@ -5,115 +5,173 @@
 { config, pkgs, ... }:
 
 let
-  mountedPools = {
-    bulkStorage = {
-      name = "shuurinet-rust";
-      path = "/shuurinet-rust";
-      driveIds = ["ata-ST16000NM000D-3PC101_ZVTAVSGR" "ata-ST16000NM000D-3PC101_ZVTBH31T"];
+  vars = {
+    network = {
+      hostName = "dondozo";
+      interfaces = [ "enp0s31f6" ]; 
+      bridge = "br0";
+
+      subnet = config.homelab.networks.subnets.bln;
+
+      hostAddress = "${vars.network.subnet.ipv4}.10";
+      hostAddress6 = "${vars.network.subnet.ipv6}::10";
     };
 
-    fastStorage = {
-      name = "shuurinet-nvme";
-      path = "/shuurinet-nvme";
-      driveIds = [];
+    zfs = {
+      pools = [ "castform-rust" ];
+      network.hostId = "45072e28";  # generate with head -c4 /dev/urandom | od -An -tx4 | tr -d ' '
     };
 
-    editingStorage = {
-      name = "shuurinet-editing";
-      path = "/shuurinet-editing";
-      driveIds = [];
+    paths = {
+      bulkStorage = "/shuurinet-rust";
+      fastStorage = "/shuurinet-nvme-data";
+      editing = "/shuurinet-nvme-editing";
     };
+
+    disksToSpindown = [ "ata-WDC_WD10EZEX-07WN4A0_WD-WCC6Y3ESH5SP" ];
   };
 
-  vars.network = {
-    interfaces = [ "eno1" "enp2s0f0np0" ]; 
-    brige = br0;
-  };
+  modulesDir = "../../modules";
 
-  subnet = config.homelab.networks.subnets.bln;
+  secretsAbsolutePath = "/home/ashley/shuurinet-nix/secrets"; 
 in
 {
+  imports = [
+    ./hardware-configuration.nix
+  ];
 
-config = {
-  imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-      ../../modules/host/drives-filesystems
-      ../../modules/host/hardware
-      ../../modules/networks.nix
-      ../../modules/users-groups
-      ../../modules/media-server
-    ];  
+  # Bootloader
+  boot.loader.grub.enable = true;
+  # Allow GRUB to write to EFI variables
+  boot.loader.efi.canTouchEfiVariables = true;
+  # Specify the target for GRUB installation
+  boot.loader.grub.efiSupport = true;
+  boot.loader.grub.device = "nodev"; # For UEFI systems
 
-  # ======== Bootloader ======== 
-
-  boot.loader.grub = {
-    enable = true;
-    device = "/dev/sda";
-    useOSProber = true;
-  };
-
-  # ======== System ======== 
-
-  time.timeZone = "Europe/Berlin";
-
-  # ======== Networking ======== 
-
+  # Networking
   networking = {
-    enable = true;
-    hostName = "dondozo";
+    hostName = vars.network.hostName;
 
+    useNetworkd = true;
+    enableIPv6 = true;
+
+    # Bridge Definition
     bridges.${vars.network.bridge} = {
       interfaces = vars.network.interfaces;
     };
 
-    interfaces.br0 = {
-      useDHCP = false; 
-      ipv4.addresses = [
-        {
-          address = "${subnet.ipv4}.10";
-          prefixLength = 24;         # Subnet mask (24 = 255.255.255.0)
-        }
-      ];
-      ipv4.gateway = "${subnet.ipv4}.1";
+    # bridge interface config
+    interfaces."${vars.network.bridge}" = {
+      ipv4 = {
+        addresses = [{
+          address = vars.network.hostAddress;
+          prefixLength = 24;
+        }];
+      };
 
-      ipv6.addresses = [
-        {
-          address = "${subnet.ipv6}::10";
-          prefixLength = 64;         # Standard IPv6 subnet prefix length
-        }
-      ];
-      ipv6.gateway = "${subnet.ipv6}::1";
+      ipv6 = {
+        addresses = [{
+          address = vars.network.hostAddress6; 
+          prefixLength = 64;
+        }];
+      };
     };
 
-    nameservers = [ "${subnet.ipv4}.1"];
+    # Default Gateways
+    defaultGateway = {
+      address = vars.network.subnet.gateway;
+      interface = vars.network.bridge;
+    };
+
+   defaultGateway6 = {
+     address = vars.network.subnet.gateway6;
+     interface = vars.network.bridge;
+   };
+
+    # Nameservers
+    nameservers = [ 
+      vars.network.subnet.gateway
+      # vars.network.subnet.gateway6 # doesn't seem to be needed, might break if added!
+    ];
+
+    # Required for automatic management of interfaces not configured above, including wireguard interfaces
+    networkmanager.enable = true;
   };
 
-  # ======== Host settings - found in /modules/host ======== 
+  # Set your time zone.
+  time.timeZone = "Europe/Berlin";
 
-  host.user.mainUserPassword = pkgs.agenix.decryptFile ./secrets/dondozo-main-user-pw.age;
-
-  # ZFS 
-  host.zfs.mountedPools = mountedPools;
-
-  # Storage paths
-  host.storage.paths = {
-    media = "${mountedPools.bulkStorage.path}/media";
-    downloads = "${mountedPools.fastStorage.path}/downloads";
-    arrMedia = "${mountedPools.fastStorage.path}/arrMedia";
-    documents = "${mountedPools.fastStorage.path}/documents";
-    backups = "${mountedPools.fastStorage.path}/backups";
-  };
-
-  host.hddSpindown.disksToSpindown = mountedPools.bulkStorage.driveIds;
-  host.virtualization.enable = true;
-  host.intelGraphics.enable = true;
-  host.powersave.enable = true;
   
-  # ======== Applications and Services ======== 
+  age.secrets = {
+    castform-main-user-password.file = "${secretsAbsolutePath}/castform-main-user-password.age";
+
+    mullvad-wireguard-config.file = "${secretsAbsolutePath}/wg-mullvad.conf.age"; # TODO: check if vpn-confinement needs .conf file, use this instead if not
+    
+    ashley-samba-user-pw.file = "${secretsAbsolutePath}/samba-ashley-password.age";
+    media-samba-user-pw.file = "${secretsAbsolutePath}/samba-media-password.age";
+  };
+
+  # set a unique main user pw (main user created in common module)
+  users.users.ashley.hashedPasswordFile = config.age.secrets.castform-main-user-password.path;
+
+  # import ZFS pools
+  host.zfs.pools = vars.zfs.pools;
+  host.zfs.network.hostId = vars.zfs.network.hostId;
+
+  # Host paths
+  host.storage.paths = {
+    media = "${vars.paths.bulkStorage}/media";
+    arrMedia = "${vars.paths.bulkStorage}/arrMedia";
+    downloads = "${vars.paths.fastStorage}/downloads";
+    documents = "${vars.paths.fastStorage}/documents";
+    backups = "${vars.paths.fastStorage}/backups";
+  };
+
+  hddSpindown.disks = vars.disksToSpindown;
+  intelGraphics.enable = true;
+  powersave.enable = true; 
+  virtualization.intel.enable = true;
 
   # Media Server
   mediaServer.enable = true;
-  mediaServer.enableIntelGraphics = true;
-};
+  mediaServer.vpnConfinement.wireguardConfigFile = config.age.secrets.mullvad-wireguard-config.path; 
+  mediaServer.vpnConfinement.lanSubnet = vars.network.subnet.ipv4;
+  mediaServer.vpnConfinement.lanSubnet6 = vars.network.subnet.ipv6;
+
+  mediaServer.paths.media = config.host.storage.paths.media;
+  mediaServer.paths.arrMedia = config.host.storage.paths.arrMedia;
+  mediaServer.paths.mediaGroup = config.host.accessGroups.media.name;
+
+  mediaServer.services.downloadDir = config.host.storage.paths.downloads; 
+  mediaServer.services.downloadDirAccessGroup = config.host.accessGroups.downloads.name;
+  mediaServer.services.mediaDirAccessGroup = config.host.accessGroups.media.name;
+  mediaServer.services.arrMediaDirAccessGroup = config.host.accessGroups.arrMedia.name;
+
+  # Samba
+  sambaProvisioner.enable = true;
+  sambaProvisioner.hostName = vars.network.hostName;
+  sambaProvisioner.users = [
+    { name = "ashley"; 
+      passwordFile = config.age.secrets.ashley-samba-user-pw.path; 
+    }
+    { 
+      name = "media"; 
+      passwordFile = config.age.secrets.media-samba-user-pw.path; 
+      createHostUser = true; # samba needs a user to exist for the samba users to be created
+      extraGroups = [ config.host.accessGroups.media.name config.host.accessGroups.arrMedia.name ]; 
+    } 
+  ];
+
+  services.samba.settings = {
+    shuurinet-rust = {
+      browseable = "yes";
+      comment = "${vars.network.hostName} Rust Pool";
+      "guest ok" = "no";
+      path = vars.paths.bulkStorage;
+      writable = "yes";
+      public = "yes";
+      "read only" = "no";
+      "valid users" = "ashley media"; # todo: dynamic based on user definitions above
+    };
+  };
 }

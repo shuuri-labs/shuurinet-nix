@@ -19,7 +19,7 @@ let
 
     zfs = {
       pools = [ "castform-rust" ];
-      network.hostId = "c8f36183"; 
+      network.hostId = "c8f36183"; # generate with head -c4 /dev/urandom | od -An -tx4 | tr -d ' '
     };
 
     paths = {
@@ -156,16 +156,16 @@ in
       name = "media"; 
       passwordFile = config.age.secrets.media-samba-user-pw.path; 
       createHostUser = true; # samba needs a user to exist for the samba users to be created
-      extraGroups = [ "mediaDirAccess" "arrMediaDirAccess" ]; 
+      extraGroups = [ config.host.accessGroups.media.name config.host.accessGroups.arrMedia.name ]; 
     } 
   ];
 
   services.samba.settings = {
     castform-rust = {
       browseable = "yes";
-      comment = "Castform Rust Pool";
+      comment = "${vars.network.hostName} Rust Pool";
       "guest ok" = "no";
-      path = "/castform-rust";
+      path = vars.paths.bulkStorage;
       writable = "yes";
       public = "yes";
       "read only" = "no";
