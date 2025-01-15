@@ -20,7 +20,7 @@ in
     users.users.ashley = {
       isNormalUser = true;
       description = "Ashley";
-      extraGroups = [ "networkmanager" "wheel" ]; # wheel = sudo for nixos
+      extraGroups = lib.mkAfter [ "networkmanager" "wheel" ]; # wheel = sudo for nixos
       openssh.authorizedKeys.keys = config.common.sshKeys;
     };
 
@@ -58,6 +58,12 @@ in
 
     # enable vscode connection
     services.vscode-server.enable = true;
+
+    # enable cursor vscode server
+    programs.nix-ld.enable = true;
+    programs.nix-ld.libraries = with pkgs; [
+      nodejs
+    ];
 
     # add ssh auth keys for root user and 'ashley' use
 

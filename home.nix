@@ -11,6 +11,7 @@
     enable = true;
     shellAliases = {
       nxrb = "sudo nixos-rebuild switch --flake /home/ashley/shuurinet-nix" ; # TODO - change/symlink default rebuild path so I don't have to specify
+      cdnx = "cd /home/ashley/shuurinet-nix";
       lservices = "systemctl list-units --type=service --state=running";
       laservices = "systemctl list-units --type=service";
     };

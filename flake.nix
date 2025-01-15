@@ -32,9 +32,9 @@
       makeHost = hostPath: nixpkgs.lib.nixosSystem {
         inherit system;
         modules = [
+          ./modules/common
           ./options-host
           ./options-homelab
-          ./modules/common
           ./modules/zfs
           ./modules/hdd-spindown
           ./modules/intel-graphics

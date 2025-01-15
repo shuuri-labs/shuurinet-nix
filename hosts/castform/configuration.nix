@@ -140,20 +140,24 @@ in
   mediaServer.paths.arrMedia = config.host.storage.paths.arrMedia;
   mediaServer.paths.mediaGroup = config.host.accessGroups.media.name;
 
-  mediaServer.services.downloadDir = config.host.storage.paths.downloads;
-  mediaServer.services.transmissionAccessGroups = [ config.host.accessGroups.downloads.name ];
-  mediaServer.services.radarrSonarrAccessGroups = [ 
-    config.host.accessGroups.arrMedia.name 
-    config.host.accessGroups.media.name 
-    config.host.accessGroups.downloads.name    
-  ];
+  mediaServer.services.downloadDir = config.host.storage.paths.downloads; 
+  mediaServer.services.downloadDirAccessGroup = config.host.accessGroups.downloads.name;
+  mediaServer.services.mediaDirAccessGroup = config.host.accessGroups.media.name;
+  mediaServer.services.arrMediaDirAccessGroup = config.host.accessGroups.arrMedia.name;
 
   # Samba
   sambaProvisioner.enable = true;
   sambaProvisioner.hostName = vars.network.hostName;
   sambaProvisioner.users = [
-    { name = "ashley"; passwordFile = config.age.secrets.ashley-samba-user-pw.path; }
-    { name = "media"; passwordFile = config.age.secrets.media-samba-user-pw.path; } 
+    { name = "ashley"; 
+      passwordFile = config.age.secrets.ashley-samba-user-pw.path; 
+    }
+    { 
+      name = "media"; 
+      passwordFile = config.age.secrets.media-samba-user-pw.path; 
+      createHostUser = true; # samba needs a user to exist for the samba users to be created
+      extraGroups = [ "mediaDirAccess" "arrMediaDirAccess" ]; 
+    } 
   ];
 
   services.samba.settings = {
@@ -165,8 +169,7 @@ in
       writable = "yes";
       public = "yes";
       "read only" = "no";
-      "valid users" = "ashley"; # todo: dynamic based on user definitions above
+      "valid users" = "ashley media"; # todo: dynamic based on user definitions above
     };
   };
-
 }

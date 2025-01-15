@@ -34,6 +34,16 @@ in {
             example = "/secrets/ashley.txt";
             description = "File path containing the user's password.";
           };
+          createHostUser = lib.mkOption {
+            type = lib.types.bool;
+            default = false;
+            description = "Whether to create a corresponding system user.";
+          };
+          extraGroups = lib.mkOption {
+            type = lib.types.listOf lib.types.str;
+            default = [];
+            description = "Extra groups to add to the new user.";
+          };
         };
       });
       default = [];
@@ -71,55 +81,36 @@ in {
       openFirewall = true;
     };
 
-    # systemd.services.sambaUserProvisioner = {
-    #   description = "Provision Samba Users";
-    #   wantedBy = [ "multi-user.target" ];
-    #   after = [ "samba-smbd.service" ]; # Ensure it runs after Samba starts (bit hacky)
-    #   serviceConfig = {
-    #     ExecStart = let
-    #       userCommands = lib.concatMapStringsSep "\n" (u: ''
-    #         if ! pdbedit -L -u "${u.name}" &>/dev/null; then
-    #           echo "Creating Samba user: ${u.name}"
-    #           smbpasswd -a "${u.name}" < "${u.passwordFile}"
-    #         else
-    #           echo "Samba user '${u.name}' already exists; skipping."
-    #         fi
-    #       '') cfg.users;
-    #     in ''
-    #       /usr/bin/env bash -c '
-    #       set -euo pipefail
-    #       ${userCommands}
-    #       '
-    #     '';
-    #     Type = "oneshot"; # Run only once
-    #   };
-    # };
+    # Create the users if specified that they don't already exist - samba needs a linux user to exist to create the samba equivalent
+    users.users = lib.listToAttrs (map (u: {
+      name = u.name;
+      value = {
+        isNormalUser = true;
+        description = "${u.name} samba user";
+        shell = pkgs.shadow;
+        extraGroups = u.extraGroups;
+      };
+    }) (lib.filter (u: u.createHostUser) cfg.users));  
 
+    # SAMBA User Provisioning - if user already exists, set password for both 'password' and 'confirmation' prompts
     systemd.services.sambaUserProvisioner = {
       description = "Provision Samba Users";
       wantedBy = [ "multi-user.target" ];
-      # after = [ "samba.service" ];
+      enable = true;
+      after = [ "samba-smbd.service" ];
       serviceConfig = let
         userCommands = lib.concatMapStringsSep "\n" (u: ''
-          echo "Ensuring Samba user '${u.name}' exists..."
-          if ! pdbedit -L -u "${u.name}" &>/dev/null; then
-            echo "Creating Samba user: ${u.name}"
-            # Read the decrypted secret at runtime:
-            pass=$(cat "${u.passwordFile}")
-            # Feed it twice to smbpasswd for password + confirmation:
-            (echo "$pass"; echo "$pass") | smbpasswd -s -a "${u.name}"
-          else
-            echo "Samba user '${u.name}' already exists; skipping."
-          fi
+          echo "Setting password for Samba user '${u.name}'..."
+          pass=$(cat "${u.passwordFile}")
+          (echo "$pass"; echo "$pass") | smbpasswd -s -a "${u.name}"
         '') cfg.users;
       in {
-        ExecStart = ''
-          /usr/bin/env bash -c '
+        Type = "oneshot";
+        ExecStart = pkgs.writeShellScript "provision-samba-users" ''
+          export PATH=${lib.makeBinPath [ pkgs.samba ]}:$PATH
           set -euo pipefail
           ${userCommands}
-          '
         '';
-        Type = "oneshot";
       };
     };
   };
