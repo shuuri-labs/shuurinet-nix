@@ -1,7 +1,10 @@
 { config, pkgs, lib, ... }:
 
+let
+  cfg = config.mediaServer.directorySync;
+in
 {
-  options.realTimeSync = {
+  options.mediaServer.directorySync = {
     enable = lib.mkOption {
       type = lib.types.bool;
       default = false;
@@ -17,10 +20,10 @@
     };
   };
 
-  config = lib.mkIf config.realTimeSync.enable {
+  config = lib.mkIf cfg.enable {
     # Dynamically create a systemd service for each source/destination pair
     systemd.services = lib.genAttrs
-      (map (pair: builtins.hashString "md5" pair.source) config.realTimeSync.pairs)
+      (map (pair: builtins.hashString "md5" pair.source) cfg.pairs)
       (pair: {
         description = "Real-time sync from ${pair.source} to ${pair.dest}";
         wantedBy = [ "multi-user.target" ];
@@ -44,7 +47,7 @@
           Restart = "always";
           RestartSec = "10s";
         };
-      }) config.realTimeSync.pairs;
+      }) cfg.pairs;
 
     # Ensure required packages are available
     environment.systemPackages = with pkgs; [
@@ -53,7 +56,7 @@
     ];
 
     # Create destination directories using tmpfiles
-    systemd.tmpfiles.rules = map (pair: "d ${pair.dest} 0755 root root -") config.realTimeSync.pairs;
+    systemd.tmpfiles.rules = map (pair: "d ${pair.dest} 0755 root root -") cfg.pairs;
   };
 }
 

@@ -38,6 +38,11 @@ in
       });
       default = {};
     };
+
+    mainUserName = mkOption {
+      type = types.str;
+      default = "ashley";
+    };
   };
 
   config = let
@@ -90,6 +95,10 @@ in
     users.groups = lib.mapAttrs (name: group: {
       inherit (group) name gid;
     }) config.host.accessGroups;
+
+    # Add the main user to all access groups
+    users.users.${config.host.mainUserName}.extraGroups = 
+      lib.mkAfter (lib.mapAttrsToList (key: group: group.name) config.host.accessGroups);
 
     # Set path permissions only if governedPaths is not empty
     systemd.tmpfiles.rules = lib.flatten (lib.mapAttrsToList

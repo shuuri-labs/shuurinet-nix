@@ -20,6 +20,7 @@ in
     hardware.graphics = {
       enable = true;
       extraPackages = with pkgs; [
+        intel-gpu-tools # for monitoring e.g. intel_gpu_top
         intel-media-driver
         intel-vaapi-driver
         vaapiVdpau
