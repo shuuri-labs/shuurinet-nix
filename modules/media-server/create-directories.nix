@@ -68,6 +68,7 @@ in
     };
   };
 
+  # TODO: move this logic or refactor. will cause a new build to fail if the paths are not set
   # config = let
   #   # Each key in this set is just a label (e.g., "media", "movies"),
   #   # and the value is an attrset containing { path, mode, group, setgid }.
