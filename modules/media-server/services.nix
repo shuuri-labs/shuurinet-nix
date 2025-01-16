@@ -24,16 +24,27 @@ in
       description = ""; 
     };
 
-    transmissionAccessGroups = lib.mkOption {
-      type = types.listOf types.str; 
-      default = [] ; 
+    mediaDirAccessGroup = lib.mkOption {
+      type = types.str;
+      default = "mediaDirAccess";
       description = "";
     };
 
-    radarrSonarrAccessGroups = lib.mkOption {
-      type = types.listOf types.str;
-      default = [];
+    arrMediaDirAccessGroup = lib.mkOption {
+      type = types.str;
+      default = "arrMediaDirAccess";
       description = "";
+    };
+
+    downloadDirAccessGroup = lib.mkOption {
+      type = types.str;
+      default = "downloadDirAccess";
+      description = "";
+    };
+
+    mainUserName = lib.mkOption {
+      type = types.str;
+      default = "ashley";
     };
   };
 
@@ -76,12 +87,14 @@ in
       };
 
       radarr = {
-        enable = true; 
+        enable = true;
+        group = cfg.mediaDirAccessGroup;
         openFirewall = true; 
       };
 
       sonarr = {
         enable = true; 
+        group = cfg.mediaDirAccessGroup;
         openFirewall = true; 
       };
 
@@ -90,6 +103,7 @@ in
       #   enable = true;
       #   package = pkgs.sonarr; # Use the same package
       #   user = "sonarr"
+      #   group = cfg.mediaDirAccessGroup;
       #   stateDir = "/var/lib/sonarr-anime"; # Separate state directory
       #   openFirewall = true; # Open the firewall for the custom port
 
@@ -132,11 +146,15 @@ in
       };
     };
 
+    # Add systemd service overrides - folders must be writable by the group, not just the user
+    systemd.services.radarr.serviceConfig.UMask = "0002";
+    systemd.services.sonarr.serviceConfig.UMask = "0002";
+
     # Add extra groups to the existing Sonarr and Radarr users
     users.users = {
-      sonarr.extraGroups = cfg.radarrSonarrAccessGroups;
-      radarr.extraGroups = cfg.radarrSonarrAccessGroups;
-      transmission.extraGroups = cfg.transmissionAccessGroups;
+      sonarr.extraGroups = [ cfg.arrMediaDirAccessGroup cfg.downloadDirAccessGroup ];
+      radarr.extraGroups = [ cfg.arrMediaDirAccessGroup cfg.downloadDirAccessGroup ];
+      transmission.extraGroups = [ cfg.downloadDirAccessGroup ];
     };
   };
 }
