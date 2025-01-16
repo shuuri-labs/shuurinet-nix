@@ -41,7 +41,6 @@ in
       pciutils # lspci
       ethtool
       iperf3
-      home-manager
     ];
 
     # Tell agenix which private keys to use for decryption
