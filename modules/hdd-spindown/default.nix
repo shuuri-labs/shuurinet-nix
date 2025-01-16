@@ -38,9 +38,14 @@ in
       after       = [ "local-fs.target" ];
       serviceConfig = {
         Type = "oneshot";
-        ExecStart = lib.concatMapStringsSep ";" (disk: 
-          "${pkgs.hdparm}/sbin/hdparm -B 127 -S ${cfg.spinDownTime} /dev/disk/by-id/${disk}"
-        ) cfg.disks;
+        # Create a script that runs hdparm for each disk
+        ExecStart = let
+          script = pkgs.writeShellScript "hdparm-spindown" ''
+            ${lib.concatMapStringsSep "\n" (disk: ''
+              ${pkgs.hdparm}/bin/hdparm -B 127 -S ${cfg.spinDownTime} /dev/disk/by-id/${disk}
+            '') cfg.disks}
+          '';
+        in "${script}";
       };
     };
   };

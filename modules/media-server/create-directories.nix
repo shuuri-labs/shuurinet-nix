@@ -68,28 +68,28 @@ in
     };
   };
 
-  config = let
-    # Each key in this set is just a label (e.g., "media", "movies"),
-    # and the value is an attrset containing { path, mode, group, setgid }.
-    allPathPermissions = {
-      media    = setPathPermissions config.mediaServer.paths.media    config.mediaServer.paths.mediaGroup true;
-      movies   = setPathPermissions config.mediaServer.paths.movies   config.mediaServer.paths.mediaGroup true;
-      tv       = setPathPermissions config.mediaServer.paths.tv       config.mediaServer.paths.mediaGroup true;
-      anime    = setPathPermissions config.mediaServer.paths.anime    config.mediaServer.paths.mediaGroup true;
-      arrMedia = setPathPermissions config.mediaServer.paths.arrMedia config.mediaServer.paths.mediaGroup true;
-      arrMovies= setPathPermissions config.mediaServer.paths.arrMovies config.mediaServer.paths.mediaGroup true;
-      arrTv    = setPathPermissions config.mediaServer.paths.arrTv    config.mediaServer.paths.mediaGroup true;
-      arrAnime = setPathPermissions config.mediaServer.paths.arrAnime config.mediaServer.paths.mediaGroup true;
-    };
-  in {
-    # Generate tmpfiles rules from allPathPermissions
-    systemd.tmpfiles.rules = lib.flatten (lib.mapAttrsToList
-      (name: conf: [
-        # 'd' = create directory if it doesn't exist; 'z' = apply SELinux label
-        "d ${conf.path} ${conf.mode} root ${conf.group} - -"
-        "z ${conf.path} ${conf.mode} root ${conf.group} - -"
-      ])
-      allPathPermissions
-    );
-  };
+  # config = let
+  #   # Each key in this set is just a label (e.g., "media", "movies"),
+  #   # and the value is an attrset containing { path, mode, group, setgid }.
+  #   allPathPermissions = {
+  #     media    = setPathPermissions config.mediaServer.paths.media    config.mediaServer.paths.mediaGroup true;
+  #     movies   = setPathPermissions config.mediaServer.paths.movies   config.mediaServer.paths.mediaGroup true;
+  #     tv       = setPathPermissions config.mediaServer.paths.tv       config.mediaServer.paths.mediaGroup true;
+  #     anime    = setPathPermissions config.mediaServer.paths.anime    config.mediaServer.paths.mediaGroup true;
+  #     arrMedia = setPathPermissions config.mediaServer.paths.arrMedia config.mediaServer.paths.mediaGroup true;
+  #     arrMovies= setPathPermissions config.mediaServer.paths.arrMovies config.mediaServer.paths.mediaGroup true;
+  #     arrTv    = setPathPermissions config.mediaServer.paths.arrTv    config.mediaServer.paths.mediaGroup true;
+  #     arrAnime = setPathPermissions config.mediaServer.paths.arrAnime config.mediaServer.paths.mediaGroup true;
+  #   };
+  # in {
+  #   # Generate tmpfiles rules from allPathPermissions
+  #   systemd.tmpfiles.rules = lib.flatten (lib.mapAttrsToList
+  #     (name: conf: [
+  #       # 'd' = create directory if it doesn't exist; 'z' = apply SELinux label
+  #       "d ${conf.path} ${conf.mode} root ${conf.group} - -"
+  #       "z ${conf.path} ${conf.mode} root ${conf.group} - -"
+  #     ])
+  #     allPathPermissions
+  #   );
+  # };
 }
