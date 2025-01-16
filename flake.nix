@@ -7,8 +7,11 @@
 
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
 
+    disko.url = "github:nix-community/disko";
+    disko.inputs.nixpkgs.follows = "nixpkgs";
+
     # Home Manager for user configurations
-    home-manager.url = "github:nix-community/home-manager";
+    home-manager.url = "github:nix-community/home-manager/release-24.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     # vscode server module for nixos 
@@ -24,7 +27,18 @@
     vpn-confinement.url = "github:Maroka-chan/VPN-Confinement";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, vscode-server, home-manager, nix-darwin, agenix, vpn-confinement, ... }:
+  outputs = { 
+              self, 
+              nixpkgs, 
+              nixpkgs-unstable, 
+              vscode-server, 
+              home-manager, 
+              nix-darwin, 
+              agenix, 
+              vpn-confinement, 
+              disko,
+              ... 
+            }:
     let
       system = "x86_64-linux";  
       
@@ -54,53 +68,82 @@
         };
       };
 
-      # Helper function to create a NixOS configuration for a host
-      makeHost = hostPath: nixpkgs.lib.nixosSystem {
+      # Modified makeHost function to accept additional modules
+      makeHost = { hostPath, extraModules ? [] }: nixpkgs.lib.nixosSystem {
         inherit system;
         modules = [
           ./modules/common
           ./options-host
           ./options-homelab
-          ./modules/zfs
-          ./modules/hdd-spindown
-          ./modules/intel-graphics
-          ./modules/power-saving
-          ./modules/intel-virtualization
-          ./modules/media-server
-          ./modules/smb-provisioner
-          vpn-confinement.nixosModules.default
           vscode-server.nixosModules.default
           agenix.nixosModules.default
           home-manager.nixosModules.home-manager
+          disko.nixosModules.disko
           hostPath                 # Host-specific configuration.nix
           ({ config, pkgs, inputs, ... }: {
-            # Overlay and package config
             nixpkgs.overlays = [ overlay-unstable ];
             nixpkgs.config = nixpkgsConfig.config;
             
-            # System packages - for command line tools
             environment.systemPackages = [
               agenix.packages."${system}".default
               home-manager
             ];
 
-            # Home manager config
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users.ashley = import ./home.nix;
           })
-        ];
+        ] 
+        # Append the host-specific modules
+        ++ extraModules;
       };
     in {
-      # NixOS configurations for various hosts
+      # NixOS configurations for various hosts with specific modules
       nixosConfigurations = {
-        "dondozo" = makeHost ./hosts/dondozo/configuration.nix;
-        "nixos" = makeHost ./hosts/lotad/configuration.nix;
-        "lotad" = makeHost ./hosts/lotad/configuration.nix;
-        "castform" = makeHost ./hosts/castform/configuration.nix;
+        "dondozo" = makeHost {
+          hostPath = ./hosts/dondozo/configuration.nix;
+          extraModules = [
+            ./modules/zfs
+            ./modules/hdd-spindown
+            ./modules/intel-graphics
+            ./modules/power-saving
+            ./modules/intel-virtualization
+            ./modules/media-server
+            ./modules/smb-provisioner
+            vpn-confinement.nixosModules.default
+          ];
+        };
+        
+        "lotad" = makeHost {
+          hostPath = ./hosts/lotad/configuration.nix;
+          extraModules = [
+            ./modules/zfs
+            ./modules/hdd-spindown
+            ./modules/intel-graphics
+            ./modules/power-saving
+            ./modules/intel-virtualization
+            ./modules/media-server
+            ./modules/smb-provisioner
+            vpn-confinement.nixosModules.default
+          ];
+        };
+
+        "castform" = makeHost {
+          hostPath = ./hosts/castform/configuration.nix;
+          extraModules = [
+            ./modules/zfs
+            ./modules/hdd-spindown
+            ./modules/intel-graphics
+            ./modules/power-saving
+            ./modules/intel-virtualization
+            ./modules/media-server
+            ./modules/smb-provisioner
+            vpn-confinement.nixosModules.default
+          ];
+        };
       };
     
-      # MacOS configuration via nix-darwin
+    # MacOS configuration via nix-darwin
     #   darwinConfigurations."rotom" = nix-darwin.lib.darwinSystem {
     #   system = "arm64-darwin";
     #   modules = [

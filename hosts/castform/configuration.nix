@@ -29,8 +29,6 @@ let
     disksToSpindown = [ "ata-WDC_WD10EZEX-07WN4A0_WD-WCC6Y3ESH5SP" ];
   };
 
-  modulesDir = "../../modules";
-
   secretsAbsolutePath = "/home/ashley/shuurinet-nix/secrets"; 
 in
 {

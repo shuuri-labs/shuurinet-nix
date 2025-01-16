@@ -10,8 +10,10 @@
   programs.bash = {
     enable = true;
     shellAliases = {
-      nxrb = "sudo nixos-rebuild switch --flake /home/ashley/shuurinet-nix" ; # TODO - change/symlink default rebuild path so I don't have to specify
-      cdnx = "cd /home/ashley/shuurinet-nix";
+      nxrb = "sudo nixos-rebuild switch --flake ~/shuurinet-nix"; # must create symlink if not using default config dir
+      nfuu = "nix flake update --update-input nixpkgs-unstable";
+      nfus = "nix flake update";
+      cdnx = "cd ~/shuurinet-nix";
       lservices = "systemctl list-units --type=service --state=running";
       laservices = "systemctl list-units --type=service";
     };
@@ -28,7 +30,6 @@
   };
 
   home.stateVersion = "24.11";
-  # home.enableNixpkgsReleaseCheck = false;
 
   home.packages = with pkgs; [
     netbird
