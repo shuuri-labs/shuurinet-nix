@@ -103,6 +103,7 @@
         "dondozo" = makeHost {
           hostPath = ./hosts/dondozo/configuration.nix;
           extraModules = [
+            ./modules/homepage-dashboard
             ./modules/zfs
             ./modules/hdd-spindown
             ./modules/intel-graphics
@@ -131,6 +132,7 @@
         "castform" = makeHost {
           hostPath = ./hosts/castform/configuration.nix;
           extraModules = [
+            ./modules/homepage-dashboard
             ./modules/zfs
             ./modules/hdd-spindown
             ./modules/intel-graphics
