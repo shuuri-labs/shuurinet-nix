@@ -41,7 +41,7 @@ in
     boot.kernelPackages = latestKernelPackage; # use function in 'let' block to find and install/use latest kernel with ZFS support
 
     boot.supportedFilesystems = [ "zfs" ];
-    boot.zfs.forceImportRoot = true; # force importing of pools last used with another machine/hostId
+    boot.zfs.forceImportAll = true; # force importing of pools last used with another machine/hostId
 
     boot.zfs.extraPools = cfg.pools; # use extraPools instead of pools, pools wasn't automounting @ boot for some reason
     services.zfs.autoScrub.enable = true;
