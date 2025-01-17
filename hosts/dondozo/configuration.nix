@@ -127,7 +127,7 @@ in
     editing = "${vars.paths.editingStorage}/editing";
   };
 
-  hddSpindown.disks = vars.disksToSpindown;
+  # hddSpindown.disks = vars.disksToSpindown;
   intelGraphics.enable = true;
   powersave.enable = true; 
   virtualization.intel.enable = true;
@@ -203,5 +203,10 @@ in
       "read only" = "no";
       "valid users" = "ashley media"; 
     };
+  };
+
+  services.iperf3 = {
+    enable = true;
+    openFirewall = true;
   };
 }
