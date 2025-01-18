@@ -125,6 +125,7 @@ in
 
   hddSpindown.disks = vars.disksToSpindown;
   intelGraphics.enable = true;
+  intelGraphics.i915.guc_value = "2";
   powersave.enable = true; 
   virtualization.intel.enable = true;
 
@@ -169,5 +170,17 @@ in
       "read only" = "no";
       "valid users" = "ashley media"; # todo: dynamic based on user definitions above
     };
+  };
+
+    diskCare = {
+    enableTrim = true;
+    disksToSmartMonitor = [
+      {
+        device = "/dev/disk/by-id/ata-SanDisk_SDSSDH3_250G_214676446013"; # boot drive
+      }
+      {
+        device = "/dev/disk/by-id/ata-WDC_WD10EZEX-07WN4A0_WD-WCC6Y3ESH5SP"; # drive 1
+      }
+    ];
   };
 }

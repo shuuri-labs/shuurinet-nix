@@ -28,7 +28,7 @@ let
       editingStorage = "/shuurinet-nvme-editing";
     };
 
-    disksToSpindown = [ "ata-ST16000NM000D-3PC101_ZVTAVSGR" "ata-ST16000NM000D-3PC101_ZVTBH31T" ];
+    # disksToSpindown = [ "ata-ST16000NM000D-3PC101_ZVTAVSGR" "ata-ST16000NM000D-3PC101_ZVTBH31T" ];
   };
 
   secretsAbsolutePath = "/home/ashley/shuurinet-nix/secrets"; 
@@ -129,6 +129,7 @@ in
 
   # hddSpindown.disks = vars.disksToSpindown;
   intelGraphics.enable = true;
+  # intelGraphics.i915.guc_value = "3";
   powersave.enable = true; 
   virtualization.intel.enable = true;
 
@@ -208,5 +209,44 @@ in
   services.iperf3 = {
     enable = true;
     openFirewall = true;
+  };
+
+  services.homepage-dashboard.widgets =
+  [{
+    resources = {
+      cpu = true;
+      disk = [ "/" "/shuurinet-rust" "/shuurinet-nvme-data" "/shuurinet-nvme-editing" ];
+      memory = true;
+      units = "metric";
+      uptime = true;
+    };
+  }
+  {
+    search = {
+      provider = "duckduckgo";
+      target = "_blank";
+    };
+  }];
+
+  # TODO: move to own 'disk care' module
+  diskCare = {
+    enableTrim = true;
+    disksToSmartMonitor = [
+      {
+        device = "/dev/disk/by-id/ata-CT1000MX500SSD1_2410E89DFB65"; # boot drive
+      }
+      {
+        device = "/dev/disk/by-id/nvme-SHPP41-2000GM_ADC8N569313409716"; # nvme 1
+      }
+      {
+        device = "/dev/disk/by-id/nvme-SHPP41-2000GM_ADC8N56931450976D"; # nvme 2
+      }
+      {
+        device = "/dev/disk/by-id/ata-ST16000NM000D-3PC101_ZVTAVSGR"; # HDD 1
+      }
+      {
+        device = "/dev/disk/by-id/ata-ST16000NM000D-3PC101_ZVTBH31T"; # HDD 2
+      }
+    ];
   };
 }

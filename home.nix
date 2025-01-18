@@ -16,6 +16,7 @@
       cdnx = "cd ~/shuurinet-nix";
       lservices = "systemctl list-units --type=service --state=running";
       laservices = "systemctl list-units --type=service";
+      igtop = "nix-shell -p intel-gpu-tools --run \"sudo intel_gpu_top\"";
     };
   };
 

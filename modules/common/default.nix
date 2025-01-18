@@ -20,6 +20,9 @@ in
     # Add ssh keys for root user
     users.users.root.openssh.authorizedKeys.keys = config.common.sshKeys;
 
+    # Disable root login over ssh
+    services.openssh.settings.PermitRootLogin = "no";
+
     # Create main user + enable home-manager
     users.users.ashley = {
       isNormalUser = true;
@@ -41,6 +44,7 @@ in
       pciutils # lspci
       ethtool
       iperf3
+      smartmontools
     ];
 
     # Tell agenix which private keys to use for decryption
