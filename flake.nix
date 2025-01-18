@@ -111,6 +111,7 @@
             ./modules/intel-virtualization
             ./modules/media-server
             ./modules/smb-provisioner
+            ./modules/disk-care
             vpn-confinement.nixosModules.default
           ];
         };
@@ -140,6 +141,7 @@
             ./modules/intel-virtualization
             ./modules/media-server
             ./modules/smb-provisioner
+            ./modules/disk-care
             vpn-confinement.nixosModules.default
           ];
         };
