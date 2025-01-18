@@ -42,6 +42,8 @@ in
   };
 
   config = {
+    environment.systemPackages = with pkgs; [ smartmontools ];
+
     services.fstrim.enable = cfg.enableTrim;
 
     services.smartd = {

@@ -43,8 +43,6 @@ in
       wireguard-tools # may or may not be required for vpn confinement module
       pciutils # lspci
       ethtool
-      iperf3
-      smartmontools
     ];
 
     # Tell agenix which private keys to use for decryption
