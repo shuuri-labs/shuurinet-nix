@@ -112,6 +112,7 @@
             ./modules/media-server
             ./modules/smb-provisioner
             ./modules/disk-care
+            ./modules/iperf
             vpn-confinement.nixosModules.default
           ];
         };
@@ -142,6 +143,7 @@
             ./modules/media-server
             ./modules/smb-provisioner
             ./modules/disk-care
+            ./modules/iperf
             vpn-confinement.nixosModules.default
           ];
         };

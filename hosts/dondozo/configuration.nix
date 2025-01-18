@@ -206,11 +206,6 @@ in
     };
   };
 
-  services.iperf3 = {
-    enable = true;
-    openFirewall = true;
-  };
-
   services.homepage-dashboard.widgets =
   [{
     resources = {
