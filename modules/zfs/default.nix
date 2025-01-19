@@ -18,7 +18,7 @@ let
     )
   );
 
-  # script to set autotrim for SSD pools that support it
+  # script to set autotrim for SSD pools where config.host.zfs.pools.<pool>.autotrim is true
   zfsAutotrimScript = pkgs.writeScript "zfs-autotrim.sh" ''
     #!/bin/sh
     ${lib.concatMapStringsSep "\n" (pool: ''
