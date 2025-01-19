@@ -18,8 +18,22 @@ let
     };
 
     zfs = {
-      pools = [ "shuurinet-rust" "shuurinet-nvme-data" "shuurinet-nvme-editing"  ];
       network.hostId = "45072e28"; 
+
+      pools = {
+        rust = {
+          name = "shuurinet-rust";
+          autotrim = false;
+        };
+        nvmeData = {
+          name = "shuurinet-nvme-data";
+          autotrim = true;
+        };
+        nvmeEditing = {
+          name = "shuurinet-nvme-editing";
+          autotrim = true;
+        };
+      };
     };
 
     paths = {
