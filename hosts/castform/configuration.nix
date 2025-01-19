@@ -18,8 +18,14 @@ let
     };
 
     zfs = {
-      pools = [ "castform-rust" ];
-      network.hostId = "c8f36183"; # generate with head -c4 /dev/urandom | od -An -tx4 | tr -d ' '
+      network.hostId = "c8f36183"; 
+
+      pools = {
+        rust = {
+          name = "castform-rust";
+          autotrim = false;
+        };
+      };
     };
 
     paths = {

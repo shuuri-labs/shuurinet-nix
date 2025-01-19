@@ -4,6 +4,7 @@ let
   inherit (lib) mkOption mkIf types;
   cfg = config.host.zfs; 
 
+  # find the latest kernel package that supports ZFS (since it's not always supported by newest kernel)
   zfsCompatibleKernelPackages = lib.filterAttrs (
     name: kernelPackages:
     (builtins.match "linux_[0-9]+_[0-9]+" name) != null
@@ -16,13 +17,47 @@ let
       builtins.attrValues zfsCompatibleKernelPackages
     )
   );
+
+  # script to set autotrim for SSD pools that support it
+  zfsAutotrimScript = pkgs.writeScript "zfs-autotrim.sh" ''
+    #!/bin/sh
+    ${lib.concatMapStringsSep "\n" (pool: ''
+      if [ "${if pool.autotrim then "true" else "false"}" = "true" ]; then
+        ${pkgs.zfs}/bin/zpool set autotrim=on ${pool.name}
+      fi
+    '') (builtins.attrValues cfg.pools)}
+  '';
 in
 {
   options.host.zfs = {
     pools = mkOption {
-      type = types.listOf types.str; 
-      default = [];
-      description = "ZFS pools to import";
+      type = types.attrsOf (types.submodule {
+        options = {
+          name = mkOption {
+            type = types.str;
+            description = "Name of the ZFS pool";
+          };
+          autotrim = mkOption {
+            type = types.bool;
+            default = false;
+            description = ''
+              Enable autotrim for this pool. For supported SSDs only.
+            '';
+          };
+        };
+      });
+      default = {};
+      description = "ZFS pools configuration";
+      example = {
+        rpool = {
+          name = "rpool";
+          autotrim = true;
+        };
+        backup = {
+          name = "backup";
+          autotrim = false;
+        };
+      };
     };
 
     network.hostId = mkOption {
@@ -35,15 +70,28 @@ in
     };
   };
   
-  config = mkIf (builtins.length cfg.pools > 0) { # TODO: add assertion for hostId
+  config = mkIf (builtins.length (builtins.attrNames cfg.pools) > 0) {
     networking.hostId = cfg.network.hostId; 
 
-    boot.kernelPackages = latestKernelPackage; # use function in 'let' block to find and install/use latest kernel with ZFS support
+    boot.kernelPackages = latestKernelPackage;
 
     boot.supportedFilesystems = [ "zfs" ];
     boot.zfs.forceImportAll = true; # force importing of pools last used with another machine/hostId
 
-    boot.zfs.extraPools = cfg.pools; # use extraPools instead of pools, pools wasn't automounting @ boot for some reason
+    boot.zfs.extraPools = map (pool: pool.name) (builtins.attrValues cfg.pools);
+
     services.zfs.autoScrub.enable = true;
+    services.zfs.autoScrub.interval =  "Wed *-*-* 05:30:00"; # biweedkly every Weds @ 5:30am
+
+    # Systemd service to set autotrim
+    systemd.services.zfs-autotrim = {
+      description = "Set ZFS autotrim for specified pools";
+      after = [ "zfs-import.target" ];
+      wantedBy = [ "multi-user.target" ];
+      serviceConfig = {
+        ExecStart = "${zfsAutotrimScript}";
+        Type = "oneshot";
+      };
+    };
   };
 }

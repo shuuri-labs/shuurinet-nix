@@ -44,6 +44,8 @@ in
   config = {
     environment.systemPackages = with pkgs; [ smartmontools ];
 
+    # automatically detects SSDs that support TRIM. Note that ZFS pools are extempt and need trim enabled on the pool level - 
+    # see 'zfs/default.nix' for more info.
     services.fstrim.enable = cfg.enableTrim;
 
     services.smartd = {
