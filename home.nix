@@ -17,6 +17,16 @@
       lservices = "systemctl list-units --type=service --state=running";
       laservices = "systemctl list-units --type=service";
       igtop = "nix-shell -p intel-gpu-tools --run \"sudo intel_gpu_top\"";
+      dhealth = ''
+        #!/bin/bash
+
+        # List all disk devices
+        for disk in $(lsblk -d -n -o NAME,TYPE | awk '$2 == "disk" {print $1}'); do
+          echo "SMART status for /dev/$disk:"
+          sudo smartctl -H /dev/$disk
+          echo
+        done
+      '';
     };
   };
 
