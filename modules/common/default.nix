@@ -15,68 +15,30 @@ in
   };
 
   config = {
+    nix.settings.experimental-features = [ "nix-command" "flakes" ];
+    system.stateVersion = "24.11";
+
     security.sudo.enable = true;
 
-    # Add ssh keys for root user
-    users.users.root.openssh.authorizedKeys.keys = config.common.sshKeys;
-
-    # Disable root login over ssh
-    services.openssh.settings.PermitRootLogin = "no";
-
-    # Create main user + enable home-manager
-    users.users.ashley = {
-      isNormalUser = true;
-      description = "Ashley";
-      extraGroups = lib.mkAfter [ "networkmanager" "wheel" ]; # wheel = sudo for nixos
-      openssh.authorizedKeys.keys = config.common.sshKeys;
+    services.openssh = {
+      enable = true;
+      # PasswordAuthentication = false;
+      settings.PermitRootLogin = "no";
     };
-
-    # Common packages installed on all machines
-    environment.systemPackages = with pkgs; [
-      curl
-      git
-      sudo 
-      htop
-      wget
-      util-linux
-      age
-      wireguard-tools # may or may not be required for vpn confinement module
-      pciutils # lspci
-      ethtool
-    ];
-
-    # Tell agenix which private keys to use for decryption
-    age.identityPaths = [
-      "/home/ashley/.ssh/id_ed25519"     # User SSH key
-      # "/etc/ssh/ssh_host_ed25519_key"          # Host SSH key
-    ];
-
-    # Common services
-    services.openssh.enable = true;
 
     # Enable automatic usage of generated ssh keys
     programs.ssh.startAgent = true;
 
+    users = {
+      users.root.openssh.authorizedKeys.keys = config.common.sshKeys;
 
-    # enable vscode connection
-    services.vscode-server.enable = true;
-
-    # enable cursor vscode server
-    programs.nix-ld.enable = true;
-    programs.nix-ld.libraries = with pkgs; [
-      nodejs
-    ];
-
-    # add ssh auth keys for root user and 'ashley' use
-
-    # enable nix flakes
-    nix.settings.experimental-features = [ "nix-command" "flakes" ];
-
-    # set version
-    system.stateVersion = "24.11";
-
-    # enable firewall
-    networking.firewall.enable = true; 
+      users.ashley = {
+        isNormalUser = true;
+        description = "Ashley";
+        extraGroups = lib.mkAfter [ "networkmanager" "wheel" ]; # wheel = sudo for nixos
+        openssh.authorizedKeys.keys = config.common.sshKeys;
+      };
+    };
 
     # system locale settings
     i18n.defaultLocale = "en_GB.UTF-8";
@@ -99,7 +61,33 @@ in
     };
     console.keyMap = "uk";
 
-    # may or may not be required for vpn confinement module.
-    networking.wireguard.enable = true;  
+    networking.firewall.enable = true; 
+
+    environment.systemPackages = with pkgs; [
+      curl
+      git
+      sudo 
+      htop
+      wget
+      util-linux
+      age
+      wireguard-tools
+      pciutils # lspci
+      ethtool
+    ];
+
+    # Tell agenix which private keys to use for decryption
+    age.identityPaths = [
+      "/home/ashley/.ssh/id_ed25519"     # User SSH key
+      # "/etc/ssh/ssh_host_ed25519_key"          # Host SSH key
+    ];
+
+    # enable vscode connection
+    services.vscode-server.enable = true;
+    # enable cursor vscode server
+    programs.nix-ld.enable = true;
+    programs.nix-ld.libraries = with pkgs; [
+      nodejs
+    ];
   };
 }

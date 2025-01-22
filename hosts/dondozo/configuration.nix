@@ -64,9 +64,8 @@ in
   # Networking
   networking = {
     hostName = vars.network.hostName;
-
-    useNetworkd = true;
     enableIPv6 = true;
+    networkmanager.enable = true; # Required for auto management of interfaces not explicitly configured, including wireguard interfaces
 
     # Bridge Definition
     bridges.${vars.network.bridge} = {
@@ -96,19 +95,15 @@ in
       interface = vars.network.bridge;
     };
 
-   defaultGateway6 = {
-     address = vars.network.subnet.gateway6;
-     interface = vars.network.bridge;
-   };
+    defaultGateway6 = {
+      address = vars.network.subnet.gateway6;
+      interface = vars.network.bridge;
+    };
 
-    # Nameservers
     nameservers = [ 
       vars.network.subnet.gateway
       # vars.network.subnet.gateway6 # doesn't seem to be needed, might break if added!
     ];
-
-    # Required for automatic management of interfaces not configured above, including wireguard interfaces
-    networkmanager.enable = true;
   };
 
   # Set your time zone.
@@ -117,9 +112,7 @@ in
   
   age.secrets = {
     castform-main-user-password.file = "${secretsAbsolutePath}/castform-main-user-password.age";
-
     mullvad-wireguard-config.file = "${secretsAbsolutePath}/wg-mullvad.conf.age"; # TODO: check if vpn-confinement needs .conf file, use this instead if not
-    
     ashley-samba-user-pw.file = "${secretsAbsolutePath}/samba-ashley-password.age";
     media-samba-user-pw.file = "${secretsAbsolutePath}/samba-media-password.age";
   };
