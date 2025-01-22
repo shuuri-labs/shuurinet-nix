@@ -53,66 +53,19 @@ in
     ./disk-config.nix
   ];
 
-  # Bootloader
-  boot.loader.grub.enable = true;
-  # Allow GRUB to write to EFI variables
-  boot.loader.efi.canTouchEfiVariables = true;
-  # Specify the target for GRUB installation
-  boot.loader.grub.efiSupport = true;
-  boot.loader.grub.device = "nodev"; # For UEFI systems
-
-  # Networking
-  networking = {
-    hostName = vars.network.hostName;
-    enableIPv6 = true;
-    networkmanager.enable = true; # Required for auto management of interfaces not explicitly configured, including wireguard interfaces
-
-    # Bridge Definition
-    bridges.${vars.network.bridge} = {
-      interfaces = vars.network.interfaces;
-    };
-
-    # bridge interface config
-    interfaces."${vars.network.bridge}" = {
-      ipv4 = {
-        addresses = [{
-          address = vars.network.hostAddress;
-          prefixLength = 24;
-        }];
-      };
-
-      ipv6 = {
-        addresses = [{
-          address = vars.network.hostAddress6; 
-          prefixLength = 64;
-        }];
-      };
-    };
-
-    # Default Gateways
-    defaultGateway = {
-      address = vars.network.subnet.gateway;
-      interface = vars.network.bridge;
-    };
-
-    defaultGateway6 = {
-      address = vars.network.subnet.gateway6;
-      interface = vars.network.bridge;
-    };
-
-    nameservers = [ 
-      vars.network.subnet.gateway
-      # vars.network.subnet.gateway6 # doesn't seem to be needed, might break if added!
-    ];
-  };
-
-  # Set your time zone.
   time.timeZone = "Europe/Berlin";
 
-  
+  # Bootloader
+  host.uefi-boot.enable = true;
+
+  # Networking
+  static-ip-network-config = {
+    network-config = vars.network;
+  };
+
   age.secrets = {
     castform-main-user-password.file = "${secretsAbsolutePath}/castform-main-user-password.age";
-    mullvad-wireguard-config.file = "${secretsAbsolutePath}/wg-mullvad.conf.age"; # TODO: check if vpn-confinement needs .conf file, use this instead if not
+    mullvad-wireguard-config.file = "${secretsAbsolutePath}/wg-mullvad.conf.age";
     ashley-samba-user-pw.file = "${secretsAbsolutePath}/samba-ashley-password.age";
     media-samba-user-pw.file = "${secretsAbsolutePath}/samba-media-password.age";
   };
@@ -136,7 +89,6 @@ in
 
   # hddSpindown.disks = vars.disksToSpindown;
   intelGraphics.enable = true;
-  # intelGraphics.i915.guc_value = "3";
   powersave.enable = true; 
   virtualization.intel.enable = true;
 
