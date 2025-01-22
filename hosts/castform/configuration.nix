@@ -51,11 +51,12 @@ in
   boot.loader.grub.device = "nodev"; # For UEFI systems
 
   # Networking
+  # Networking
   networking = {
     hostName = vars.network.hostName;
-
-    useNetworkd = true;
     enableIPv6 = true;
+    networkmanager.enable = true; # Required for auto management of interfaces not explicitly configured, including wireguard interfaces
+    useNetworkd = false;
 
     # Bridge Definition
     bridges.${vars.network.bridge} = {
@@ -85,30 +86,23 @@ in
       interface = vars.network.bridge;
     };
 
-   defaultGateway6 = {
-     address = vars.network.subnet.gateway6;
-     interface = vars.network.bridge;
-   };
+    defaultGateway6 = {
+      address = vars.network.subnet.gateway6;
+      interface = vars.network.bridge;
+    };
 
-    # Nameservers
     nameservers = [ 
       vars.network.subnet.gateway
       # vars.network.subnet.gateway6 # doesn't seem to be needed, might break if added!
     ];
-
-    # Required for automatic management of interfaces not configured above, including wireguard interfaces
-    networkmanager.enable = true;
   };
 
   # Set your time zone.
   time.timeZone = "Europe/Berlin";
 
-  
   age.secrets = {
     castform-main-user-password.file = "${secretsAbsolutePath}/castform-main-user-password.age";
-
-    mullvad-wireguard-config.file = "${secretsAbsolutePath}/wg-mullvad.conf.age"; # TODO: check if vpn-confinement needs .conf file, use this instead if not
-    
+    mullvad-wireguard-config.file = "${secretsAbsolutePath}/wg-mullvad.conf.age";
     ashley-samba-user-pw.file = "${secretsAbsolutePath}/samba-ashley-password.age";
     media-samba-user-pw.file = "${secretsAbsolutePath}/samba-media-password.age";
   };
@@ -119,6 +113,18 @@ in
   # import ZFS pools
   host.zfs.pools = vars.zfs.pools;
   host.zfs.network.hostId = vars.zfs.network.hostId;
+
+  diskCare = {
+    enableTrim = true;
+    disksToSmartMonitor = [
+      {
+        device = "/dev/disk/by-id/ata-SanDisk_SDSSDH3_250G_214676446013"; # boot drive
+      }
+      {
+        device = "/dev/disk/by-id/ata-WDC_WD10EZEX-07WN4A0_WD-WCC6Y3ESH5SP"; # drive 1
+      }
+    ];
+  };
 
   # Host paths
   host.storage.paths = {
@@ -176,17 +182,5 @@ in
       "read only" = "no";
       "valid users" = "ashley media"; # todo: dynamic based on user definitions above
     };
-  };
-
-    diskCare = {
-    enableTrim = true;
-    disksToSmartMonitor = [
-      {
-        device = "/dev/disk/by-id/ata-SanDisk_SDSSDH3_250G_214676446013"; # boot drive
-      }
-      {
-        device = "/dev/disk/by-id/ata-WDC_WD10EZEX-07WN4A0_WD-WCC6Y3ESH5SP"; # drive 1
-      }
-    ];
   };
 }
