@@ -2,10 +2,10 @@
 let
   inherit (lib) mkOption types;
 
-  cfg = config.static-ip-network-config;
+  cfg = config.host.static-ip-network-config;
 in
 {
-  options.static-ip-network-config = {
+  options.host.static-ip-network-config = {
     network-config = mkOption {
       type = types.submodule {
         options = {
