@@ -59,7 +59,7 @@ in
   host.uefi-boot.enable = true;
 
   # Networking
-  static-ip-network-config = {
+  host.static-ip-network-config = {
     network-config = vars.network;
   };
 
