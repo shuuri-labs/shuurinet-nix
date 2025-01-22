@@ -42,6 +42,8 @@ in
     ./hardware-configuration.nix
   ];
 
+  time.timeZone = "Europe/Berlin";
+
   # Bootloader
   host.uefi-boot.enable = true;
 
@@ -50,11 +52,9 @@ in
     network-config = vars.network;
   };
 
-  # Set your time zone.
-  time.timeZone = "Europe/Berlin";
-
   age.secrets = {
     castform-main-user-password.file = "${secretsAbsolutePath}/castform-main-user-password.age";
+    mullvad-wireguard-config.file = "${secretsAbsolutePath}/wg-mullvad.conf.age";
     mullvad-wireguard-config.file = "${secretsAbsolutePath}/wg-mullvad.conf.age";
     ashley-samba-user-pw.file = "${secretsAbsolutePath}/samba-ashley-password.age";
     media-samba-user-pw.file = "${secretsAbsolutePath}/samba-media-password.age";
@@ -66,6 +66,18 @@ in
   # import ZFS pools
   host.zfs.pools = vars.zfs.pools;
   host.zfs.network.hostId = vars.zfs.network.hostId;
+
+  diskCare = {
+    enableTrim = true;
+    disksToSmartMonitor = [
+      {
+        device = "/dev/disk/by-id/ata-SanDisk_SDSSDH3_250G_214676446013"; # boot drive
+      }
+      {
+        device = "/dev/disk/by-id/ata-WDC_WD10EZEX-07WN4A0_WD-WCC6Y3ESH5SP"; # drive 1
+      }
+    ];
+  };
 
   # Host paths
   host.storage.paths = {
@@ -123,17 +135,5 @@ in
       "read only" = "no";
       "valid users" = "ashley media"; # todo: dynamic based on user definitions above
     };
-  };
-
-    diskCare = {
-    enableTrim = true;
-    disksToSmartMonitor = [
-      {
-        device = "/dev/disk/by-id/ata-SanDisk_SDSSDH3_250G_214676446013"; # boot drive
-      }
-      {
-        device = "/dev/disk/by-id/ata-WDC_WD10EZEX-07WN4A0_WD-WCC6Y3ESH5SP"; # drive 1
-      }
-    ];
   };
 }
