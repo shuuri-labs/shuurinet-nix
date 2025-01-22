@@ -113,6 +113,8 @@
             ./modules/smb-provisioner
             ./modules/disk-care
             ./modules/iperf
+            ./modules/static-ip-network-config
+            ./modules/uefi-boot
             vpn-confinement.nixosModules.default
           ];
         };
@@ -144,6 +146,8 @@
             ./modules/smb-provisioner
             ./modules/disk-care
             ./modules/iperf
+            ./modules/static-ip-network-config
+            ./modules/uefi-boot
             vpn-confinement.nixosModules.default
           ];
         };
