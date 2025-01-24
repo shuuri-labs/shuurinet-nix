@@ -68,12 +68,14 @@ in
       git
       sudo 
       htop
+      iotop
       wget
       util-linux
       age
       wireguard-tools
       pciutils # lspci
       ethtool
+      sysstat
     ];
 
     # Tell agenix which private keys to use for decryption

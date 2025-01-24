@@ -76,10 +76,10 @@ in {
     };
 
     # advertise to windows clients
-    services.samba-wsdd = {
-      enable = true;
-      openFirewall = true;
-    };
+    # services.samba-wsdd = {
+    #   enable = true;
+    #   openFirewall = true;
+    # };
 
     # Create the users if specified that they don't already exist - samba needs a linux user to exist to create the samba equivalent
     users.users = lib.listToAttrs (map (u: {

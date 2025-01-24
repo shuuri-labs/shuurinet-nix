@@ -35,7 +35,7 @@ in
     homelab.networks.subnets = {
       "bln" = {
         ipv4 = "192.168.11";
-        ipv6 = "2a01:c22:3451:bc00";
+        ipv6 = "fd8f:2e0e:4eed";
         gateway = "${config.homelab.networks.subnets.bln.ipv4}.1";
         gateway6 = "${config.homelab.networks.subnets.bln.ipv6}::1";
       };

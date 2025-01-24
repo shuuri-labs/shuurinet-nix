@@ -9,8 +9,9 @@ let
     network = {
       hostName = "dondozo";
       interfaces = [ "enp2s0f1np1" "eno1"]; # TODO: check if eno1 is BMC port
+      unmanagedInterfaces = vars.network.interfaces ++ [ vars.network.bridge "eno2" ];
       bridge = "br0";
-
+      
       subnet = config.homelab.networks.subnets.bln;
 
       hostAddress = "${vars.network.subnet.ipv4}.10";
@@ -85,6 +86,27 @@ in
     documents = "${vars.paths.fastStorage}/documents";
     backups = "${vars.paths.fastStorage}/backups";
     editing = "${vars.paths.editingStorage}/editing";
+  };
+
+  diskCare = {
+    enableTrim = true;
+    disksToSmartMonitor = [
+      {
+        device = "/dev/disk/by-id/ata-CT1000MX500SSD1_2410E89DFB65"; # boot drive
+      }
+      {
+        device = "/dev/disk/by-id/nvme-SHPP41-2000GM_ADC8N569313409716"; # nvme 1
+      }
+      {
+        device = "/dev/disk/by-id/nvme-SHPP41-2000GM_ADC8N56931450976D"; # nvme 2
+      }
+      {
+        device = "/dev/disk/by-id/ata-ST16000NM000D-3PC101_ZVTAVSGR"; # HDD 1
+      }
+      {
+        device = "/dev/disk/by-id/ata-ST16000NM000D-3PC101_ZVTBH31T"; # HDD 2
+      }
+    ];
   };
 
   # hddSpindown.disks = vars.disksToSpindown;
@@ -181,26 +203,4 @@ in
       target = "_blank";
     };
   }];
-
-  # TODO: move to own 'disk care' module
-  diskCare = {
-    enableTrim = true;
-    disksToSmartMonitor = [
-      {
-        device = "/dev/disk/by-id/ata-CT1000MX500SSD1_2410E89DFB65"; # boot drive
-      }
-      {
-        device = "/dev/disk/by-id/nvme-SHPP41-2000GM_ADC8N569313409716"; # nvme 1
-      }
-      {
-        device = "/dev/disk/by-id/nvme-SHPP41-2000GM_ADC8N56931450976D"; # nvme 2
-      }
-      {
-        device = "/dev/disk/by-id/ata-ST16000NM000D-3PC101_ZVTAVSGR"; # HDD 1
-      }
-      {
-        device = "/dev/disk/by-id/ata-ST16000NM000D-3PC101_ZVTBH31T"; # HDD 2
-      }
-    ];
-  };
 }
