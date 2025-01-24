@@ -1,12 +1,12 @@
 { config, lib, ... }:
 let
   inherit (lib) mkOption types;
-
-  cfg = config.host.static-ip-network-config;
+  inherit (import ../../lib/network-config.nix { inherit lib; }) networkSubnet;
+  cfg = config.host.staticIpNetworkConfig;
 in
 {
-  options.host.static-ip-network-config = {
-    network-config = mkOption {
+  options.host.staticIpNetworkConfig = {
+    networkConfig = mkOption {
       type = types.submodule {
         options = {
           hostName = mkOption {
@@ -33,11 +33,8 @@ in
           };
 
           subnet = mkOption {
-            type = types.attrs;
-            description = ''Network subnet configuration including: 
-             gateway, gateway6, ipv4, ipv6
-             see options-homelab/networks.nix (perhaps try to decouple in future)
-            '';
+            type = networkSubnet;
+            description = "Network subnet configuration";
           };
 
           hostAddress = mkOption {
@@ -56,13 +53,13 @@ in
 
   config = {
     networking = {
-      hostName = cfg.network-config.hostName;
+      hostName = cfg.networkConfig.hostName;
       enableIPv6 = true;
       
       # Enable networkmanager to configure interfaces that require auto configuration
       networkmanager = {
         enable = true;
-        unmanaged = cfg.network-config.unmanagedInterfaces;
+        unmanaged = cfg.networkConfig.unmanagedInterfaces;
       };
     };
 
@@ -72,7 +69,7 @@ in
       # Define the bridge netdev
       netdevs."50-br0" = {
         netdevConfig = {
-          Name = cfg.network-config.bridge;
+          Name = cfg.networkConfig.bridge;
           Kind = "bridge";
         };
       };
@@ -83,15 +80,15 @@ in
         value = {
           matchConfig.Name = iface;
           networkConfig = {
-            Bridge = cfg.network-config.bridge;
+            Bridge = cfg.networkConfig.bridge;
             # Ensure interface is managed by systemd-networkd
             ConfigureWithoutCarrier = true;
           };
         };
-      }) cfg.network-config.interfaces) // {
+      }) cfg.networkConfig.interfaces) // {
         # Bridge interface configuration
         "50-br0" = {
-          matchConfig.Name = cfg.network-config.bridge;
+          matchConfig.Name = cfg.networkConfig.bridge;
           networkConfig = {
             DHCP = "no";
             IPv6AcceptRA = true;  # Enable SLAAC for global address
@@ -99,13 +96,14 @@ in
             ConfigureWithoutCarrier = true;
           };
           address = [
-            cfg.network-config.hostAddress
-            cfg.network-config.hostAddress6
+            cfg.networkConfig.hostAddress
+            cfg.networkConfig.hostAddress6
           ];
           routes = [{ 
-            Gateway = cfg.network-config.subnet.gateway;
+            Gateway = cfg.networkConfig.subnet.gateway;
+            # ipv6 gateway/dns will be configured automatically by SLAAC
           }];
-          dns = [ cfg.network-config.subnet.gateway ];
+          dns = [ cfg.networkConfig.subnet.gateway ];
         };
       };
     };

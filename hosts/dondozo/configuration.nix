@@ -8,9 +8,9 @@ let
   vars = {
     network = {
       hostName = "dondozo";
-      interfaces = [ "enp2s0f1np1" "eno1"]; # TODO: check if eno1 is BMC port
-      unmanagedInterfaces = vars.network.interfaces ++ [ vars.network.bridge "eno2" ];
+      interfaces = [ "enp2s0f1np1" "eno1"];
       bridge = "br0";
+      unmanagedInterfaces = vars.network.interfaces ++ [ vars.network.bridge "eno2" ];
       
       subnet = config.homelab.networks.subnets.bln;
 
@@ -60,8 +60,8 @@ in
   host.uefi-boot.enable = true;
 
   # Networking
-  host.static-ip-network-config = {
-    network-config = vars.network;
+  host.staticIpNetworkConfig = {
+    networkConfig = vars.network;
   };
 
   age.secrets = {
@@ -132,6 +132,7 @@ in
   # Samba
   sambaProvisioner.enable = true;
   sambaProvisioner.hostName = vars.network.hostName;
+  sambaProvisioner.hostIp = "${vars.network.hostAddress}/32";
   sambaProvisioner.users = [
     { name = "ashley"; 
       passwordFile = config.age.secrets.ashley-samba-user-pw.path; 

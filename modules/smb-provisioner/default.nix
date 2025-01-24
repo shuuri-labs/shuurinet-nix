@@ -21,6 +21,12 @@ in {
       '';
     };
 
+    hostIp = lib.mkOption {
+      type = lib.types.str;
+      default = "0.0.0.0/0";
+      description = "IP address to advertise.";
+    };
+
     users = lib.mkOption {
       type = lib.types.listOf (lib.types.submodule {
         options = {
@@ -63,6 +69,9 @@ in {
         ];
         "passwd program" = "/run/wrappers/bin/passwd %u";
         security = "user";
+        # Bind only to IPv4
+        "bind interfaces only" = "yes";
+        "interfaces" = [ cfg.hostIp ]; 
 
         "server string" = cfg.hostName;
         "fruit:encoding" = "native";
@@ -76,10 +85,10 @@ in {
     };
 
     # advertise to windows clients
-    # services.samba-wsdd = {
-    #   enable = true;
-    #   openFirewall = true;
-    # };
+    services.samba-wsdd = {
+      enable = true;
+      openFirewall = true;
+    };
 
     # Create the users if specified that they don't already exist - samba needs a linux user to exist to create the samba equivalent
     users.users = lib.listToAttrs (map (u: {
