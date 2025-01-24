@@ -20,6 +20,12 @@ in
             description = "Interfaces to be used for the host machine";
           };
 
+          unmanagedInterfaces = mkOption {
+            type = types.listOf types.str;
+            default = [];
+            description = "Interfaces to be unmanaged by networkmanager";
+          };
+
           bridge = mkOption {
             type = types.str;
             default = "br0";
@@ -52,41 +58,58 @@ in
     networking = {
       hostName = cfg.network-config.hostName;
       enableIPv6 = true;
-      networkmanager.enable = true;
-
-      bridges.${cfg.network-config.bridge} = {
-        interfaces = cfg.network-config.interfaces;
+      
+      networkmanager = {
+        enable = true;
+        unmanaged = cfg.network-config.unmanagedInterfaces;
       };
+    };
 
-      interfaces.${cfg.network-config.bridge} = {
-        ipv4 = {
-          addresses = [{
-            address = cfg.network-config.hostAddress;
-            prefixLength = 24;
-          }];
-        };
+    systemd.network = {
+      enable = true;
 
-        ipv6 = {
-          addresses = [{
-            address = cfg.network-config.hostAddress6; 
-            prefixLength = 64;
-          }];
+      # Define the bridge netdev
+      netdevs."50-br0" = {
+        netdevConfig = {
+          Name = cfg.network-config.bridge;
+          Kind = "bridge";
         };
       };
 
-      defaultGateway = {
-        address = cfg.network-config.subnet.gateway;
-        interface = cfg.network-config.bridge;
+      # Configure each ethernet port to be part of the bridge
+      networks = lib.listToAttrs (map (iface: {
+        name = "50-${iface}";
+        value = {
+          matchConfig.Name = iface;
+          networkConfig = {
+            Bridge = cfg.network-config.bridge;
+            # Ensure interface is managed by systemd-networkd
+            ConfigureWithoutCarrier = true;
+          };
+        };
+      }) cfg.network-config.interfaces) // {
+        # Bridge interface configuration
+        "50-br0" = {
+          matchConfig.Name = cfg.network-config.bridge;
+          networkConfig = {
+            DHCP = "no";
+            IPv6AcceptRA = true;  # Enable SLAAC for global address
+            IPv6LinkLocalAddressGenerationMode = "eui64";
+            ConfigureWithoutCarrier = true;
+          };
+          address = [
+            cfg.network-config.hostAddress
+            cfg.network-config.hostAddress6
+          ];
+          routes = [
+            { 
+              Gateway = cfg.network-config.subnet.gateway;
+            }
+          ];
+          # DNS settings
+          dns = [ cfg.network-config.subnet.gateway ];
+        };
       };
-
-      defaultGateway6 = {
-        address = cfg.network-config.subnet.gateway6;
-        interface = cfg.network-config.bridge;
-      };
-
-      nameservers = [ 
-        cfg.network-config.subnet.gateway
-      ];
     };
   };
 }
