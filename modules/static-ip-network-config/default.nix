@@ -59,6 +59,7 @@ in
       hostName = cfg.network-config.hostName;
       enableIPv6 = true;
       
+      # Enable networkmanager to configure interfaces that require auto configuration
       networkmanager = {
         enable = true;
         unmanaged = cfg.network-config.unmanagedInterfaces;
@@ -101,12 +102,9 @@ in
             cfg.network-config.hostAddress
             cfg.network-config.hostAddress6
           ];
-          routes = [
-            { 
-              Gateway = cfg.network-config.subnet.gateway;
-            }
-          ];
-          # DNS settings
+          routes = [{ 
+            Gateway = cfg.network-config.subnet.gateway;
+          }];
           dns = [ cfg.network-config.subnet.gateway ];
         };
       };
