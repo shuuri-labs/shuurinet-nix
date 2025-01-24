@@ -96,8 +96,8 @@ in
             ConfigureWithoutCarrier = true;
           };
           address = [
-            cfg.networkConfig.hostAddress
-            cfg.networkConfig.hostAddress6
+            "${cfg.networkConfig.hostAddress}/24"
+            "${cfg.networkConfig.hostAddress6}/64"
           ];
           routes = [{ 
             Gateway = cfg.networkConfig.subnet.gateway;
