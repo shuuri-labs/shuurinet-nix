@@ -35,7 +35,7 @@ in
       users.ashley = {
         isNormalUser = true;
         description = "Ashley";
-        extraGroups = lib.mkAfter [ "networkmanager" "wheel" ]; # wheel = sudo for nixos
+        extraGroups = [ "networkmanager" "wheel" ]; # wheel = sudo for nixos
         openssh.authorizedKeys.keys = config.common.sshKeys;
       };
     };
@@ -76,6 +76,7 @@ in
       pciutils # lspci
       ethtool
       sysstat
+      intel-gpu-tools
     ];
 
     # Tell agenix which private keys to use for decryption

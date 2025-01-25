@@ -56,7 +56,7 @@ in
       hostName = cfg.networkConfig.hostName;
       enableIPv6 = true;
       
-      # Enable networkmanager to configure interfaces that require auto configuration
+      # Enable networkmanager to configure interfaces that require auto configuration (like wireguard)
       networkmanager = {
         enable = true;
         unmanaged = cfg.networkConfig.unmanagedInterfaces;
