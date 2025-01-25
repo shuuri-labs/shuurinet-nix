@@ -98,7 +98,7 @@ in
 
     # Add the main user to all access groups
     users.users.${config.host.mainUserName}.extraGroups = 
-      lib.mkAfter (lib.mapAttrsToList (key: group: group.name) config.host.accessGroups);
+       (lib.mapAttrsToList (key: group: group.name) config.host.accessGroups);
 
     # Set path permissions only if governedPaths is not empty
     systemd.tmpfiles.rules = lib.flatten (lib.mapAttrsToList
