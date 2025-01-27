@@ -22,7 +22,6 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-
     boot.kernelParams = [
       "i915.enable_guc=${cfg.i915.guc_value}"
     ];

@@ -37,7 +37,7 @@
   programs.git = {
     enable = true;
     userName = "Ashley Mensah";
-    userEmail = "ashleyamo982@gmail.com"; # TODO: encrypt
+    userEmail = "mail@shuurilabs.com";
   };
 
   home.sessionVariables = {
