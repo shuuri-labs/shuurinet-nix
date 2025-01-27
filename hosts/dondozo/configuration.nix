@@ -1,6 +1,6 @@
 # Edit this configuration file to define what should be installed on
 # your system.  Help is available in the configuration.nix(5) man page
-# and in the NixOS manual (accessible by running ‘nixos-help’).
+# and in the NixOS manual (accessible by running 'nixos-help').
 
 { config, pkgs, ... }:
 
@@ -8,9 +8,10 @@ let
   vars = {
     network = {
       hostName = "dondozo";
-      interfaces = [ "enp2s0f1np1" "eno1"]; # TODO: check if eno1 is BMC port
+      interfaces = [ "enp2s0f1np1" "eno1"];
       bridge = "br0";
-
+      unmanagedInterfaces = vars.network.interfaces ++ [ vars.network.bridge "eno2" ];
+      
       subnet = config.homelab.networks.subnets.bln;
 
       hostAddress = "${vars.network.subnet.ipv4}.10";
@@ -59,8 +60,8 @@ in
   host.uefi-boot.enable = true;
 
   # Networking
-  host.static-ip-network-config = {
-    network-config = vars.network;
+  host.staticIpNetworkConfig = {
+    networkConfig = vars.network;
   };
 
   age.secrets = {
@@ -71,7 +72,9 @@ in
   };
 
   # set a unique main user pw (main user created in common module)
-  users.users.ashley.hashedPasswordFile = config.age.secrets.castform-main-user-password.path;
+  users.users.ashley = {
+    hashedPasswordFile = config.age.secrets.castform-main-user-password.path;
+  };
 
   # import ZFS pools
   host.zfs.pools = vars.zfs.pools;
@@ -85,6 +88,27 @@ in
     documents = "${vars.paths.fastStorage}/documents";
     backups = "${vars.paths.fastStorage}/backups";
     editing = "${vars.paths.editingStorage}/editing";
+  };
+
+  diskCare = {
+    enableTrim = true;
+    disksToSmartMonitor = [
+      {
+        device = "/dev/disk/by-id/ata-CT1000MX500SSD1_2410E89DFB65"; # boot drive
+      }
+      {
+        device = "/dev/disk/by-id/nvme-SHPP41-2000GM_ADC8N569313409716"; # nvme 1
+      }
+      {
+        device = "/dev/disk/by-id/nvme-SHPP41-2000GM_ADC8N56931450976D"; # nvme 2
+      }
+      {
+        device = "/dev/disk/by-id/ata-ST16000NM000D-3PC101_ZVTAVSGR"; # HDD 1
+      }
+      {
+        device = "/dev/disk/by-id/ata-ST16000NM000D-3PC101_ZVTBH31T"; # HDD 2
+      }
+    ];
   };
 
   # hddSpindown.disks = vars.disksToSpindown;
@@ -110,6 +134,7 @@ in
   # Samba
   sambaProvisioner.enable = true;
   sambaProvisioner.hostName = vars.network.hostName;
+  sambaProvisioner.hostIp = "${vars.network.hostAddress}/32";
   sambaProvisioner.users = [
     { name = "ashley"; 
       passwordFile = config.age.secrets.ashley-samba-user-pw.path; 
@@ -181,26 +206,4 @@ in
       target = "_blank";
     };
   }];
-
-  # TODO: move to own 'disk care' module
-  diskCare = {
-    enableTrim = true;
-    disksToSmartMonitor = [
-      {
-        device = "/dev/disk/by-id/ata-CT1000MX500SSD1_2410E89DFB65"; # boot drive
-      }
-      {
-        device = "/dev/disk/by-id/nvme-SHPP41-2000GM_ADC8N569313409716"; # nvme 1
-      }
-      {
-        device = "/dev/disk/by-id/nvme-SHPP41-2000GM_ADC8N56931450976D"; # nvme 2
-      }
-      {
-        device = "/dev/disk/by-id/ata-ST16000NM000D-3PC101_ZVTAVSGR"; # HDD 1
-      }
-      {
-        device = "/dev/disk/by-id/ata-ST16000NM000D-3PC101_ZVTBH31T"; # HDD 2
-      }
-    ];
-  };
 }

@@ -10,6 +10,7 @@ let
       hostName = "castform";
       interfaces = [ "enp0s31f6" ]; 
       bridge = "br0";
+      unmanagedInterfaces = vars.network.interfaces ++ [ vars.network.bridge ];
 
       subnet = config.homelab.networks.subnets.bln;
 
@@ -48,8 +49,8 @@ in
   host.uefi-boot.enable = true;
 
   # Networking
-  host.static-ip-network-config = {
-    network-config = vars.network;
+  host.staticIpNetworkConfig = {
+    networkConfig = vars.network;
   };
 
   age.secrets = {
@@ -112,6 +113,7 @@ in
   # Samba
   sambaProvisioner.enable = true;
   sambaProvisioner.hostName = vars.network.hostName;
+  sambaProvisioner.hostIp = "${vars.network.hostAddress}/32";
   sambaProvisioner.users = [
     { name = "ashley"; 
       passwordFile = config.age.secrets.ashley-samba-user-pw.path; 

@@ -27,13 +27,17 @@
           echo
         done
       '';
+      itp = "sudo iotop -o -P"; # check which processes are using the most disk I/O (all disks)
+      grbg = "sudo nix-collect-garbage -d";
+      lsgen = "sudo nix-env --list-generations --profile /nix/var/nix/profiles/system";
+      nxrlbk = "sudo nixos-rebuild switch --flake ~/shuurinet-nix --rollback";
     };
   };
 
   programs.git = {
     enable = true;
     userName = "Ashley Mensah";
-    userEmail = "ashleyamo982@gmail.com"; # TODO: encrypt
+    userEmail = "mail@shuurilabs.com";
   };
 
   home.sessionVariables = {
