@@ -1,12 +1,12 @@
 { config, lib, ... }:
 let
   inherit (lib) mkOption types;
-
-  cfg = config.host.static-ip-network-config;
+  inherit (import ../../lib/network-config.nix { inherit lib; }) networkSubnet;
+  cfg = config.host.staticIpNetworkConfig;
 in
 {
-  options.host.static-ip-network-config = {
-    network-config = mkOption {
+  options.host.staticIpNetworkConfig = {
+    networkConfig = mkOption {
       type = types.submodule {
         options = {
           hostName = mkOption {
@@ -20,6 +20,12 @@ in
             description = "Interfaces to be used for the host machine";
           };
 
+          unmanagedInterfaces = mkOption {
+            type = types.listOf types.str;
+            default = [];
+            description = "Interfaces to be unmanaged by networkmanager";
+          };
+
           bridge = mkOption {
             type = types.str;
             default = "br0";
@@ -27,11 +33,8 @@ in
           };
 
           subnet = mkOption {
-            type = types.attrs;
-            description = ''Network subnet configuration including: 
-             gateway, gateway6, ipv4, ipv6
-             see options-homelab/networks.nix (perhaps try to decouple in future)
-            '';
+            type = networkSubnet;
+            description = "Network subnet configuration";
           };
 
           hostAddress = mkOption {
@@ -50,43 +53,59 @@ in
 
   config = {
     networking = {
-      hostName = cfg.network-config.hostName;
+      hostName = cfg.networkConfig.hostName;
       enableIPv6 = true;
-      networkmanager.enable = true;
-
-      bridges.${cfg.network-config.bridge} = {
-        interfaces = cfg.network-config.interfaces;
+      
+      # Enable networkmanager to configure interfaces that require auto configuration (like wireguard)
+      networkmanager = {
+        enable = true;
+        unmanaged = cfg.networkConfig.unmanagedInterfaces;
       };
+    };
 
-      interfaces.${cfg.network-config.bridge} = {
-        ipv4 = {
-          addresses = [{
-            address = cfg.network-config.hostAddress;
-            prefixLength = 24;
-          }];
-        };
+    systemd.network = {
+      enable = true;
 
-        ipv6 = {
-          addresses = [{
-            address = cfg.network-config.hostAddress6; 
-            prefixLength = 64;
-          }];
+      # Define the bridge netdev
+      netdevs."50-br0" = {
+        netdevConfig = {
+          Name = cfg.networkConfig.bridge;
+          Kind = "bridge";
         };
       };
 
-      defaultGateway = {
-        address = cfg.network-config.subnet.gateway;
-        interface = cfg.network-config.bridge;
+      # Configure each ethernet port to be part of the bridge
+      networks = lib.listToAttrs (map (iface: {
+        name = "50-${iface}";
+        value = {
+          matchConfig.Name = iface;
+          networkConfig = {
+            Bridge = cfg.networkConfig.bridge;
+            # Ensure interface is managed by systemd-networkd
+            ConfigureWithoutCarrier = true;
+          };
+        };
+      }) cfg.networkConfig.interfaces) // {
+        # Bridge interface configuration
+        "50-br0" = {
+          matchConfig.Name = cfg.networkConfig.bridge;
+          networkConfig = {
+            DHCP = "no";
+            IPv6AcceptRA = true;  # Enable SLAAC for global address
+            IPv6LinkLocalAddressGenerationMode = "eui64";
+            ConfigureWithoutCarrier = true;
+          };
+          address = [
+            "${cfg.networkConfig.hostAddress}/24"
+            "${cfg.networkConfig.hostAddress6}/64"
+          ];
+          routes = [{ 
+            Gateway = cfg.networkConfig.subnet.gateway;
+            # ipv6 gateway/dns will be configured automatically by SLAAC
+          }];
+          dns = [ cfg.networkConfig.subnet.gateway ];
+        };
       };
-
-      defaultGateway6 = {
-        address = cfg.network-config.subnet.gateway6;
-        interface = cfg.network-config.bridge;
-      };
-
-      nameservers = [ 
-        cfg.network-config.subnet.gateway
-      ];
     };
   };
 }

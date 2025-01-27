@@ -21,6 +21,12 @@ in {
       '';
     };
 
+    hostIp = lib.mkOption {
+      type = lib.types.str;
+      default = "0.0.0.0/0";
+      description = "IP address to advertise.";
+    };
+
     users = lib.mkOption {
       type = lib.types.listOf (lib.types.submodule {
         options = {
@@ -63,6 +69,10 @@ in {
         ];
         "passwd program" = "/run/wrappers/bin/passwd %u";
         security = "user";
+        # Bind only to IPv4 - NOTE: not advertising on IPv6 means share won't show up on 'Network' tab on Mac OS
+        # need to connect to server's IPv4 manually
+        # "bind interfaces only" = "yes";
+        # "interfaces" = [ cfg.hostIp ]; 
 
         "server string" = cfg.hostName;
         "fruit:encoding" = "native";

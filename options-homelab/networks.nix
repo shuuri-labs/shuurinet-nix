@@ -2,30 +2,12 @@
 
 let
   inherit (lib) mkOption mkEnableOption types;
+  inherit (import ../lib/network-config.nix { inherit lib; }) networkSubnet;
 in
 {
   options.homelab.networks = {
     subnets = mkOption {
-      type = types.attrsOf (types.submodule { 
-        options = {
-          ipv4 = mkOption {
-            type = types.str;
-            description = "IPv4 subnet";
-          };
-          ipv6 = mkOption {
-            type = types.str;
-            description = "IPv6 subnet";
-          };
-          gateway = mkOption {
-            type = types.str;
-            description = "IPv4 gateway";
-          };
-          gateway6 = mkOption {
-            type = types.str;
-            description = "IPv6 gateway";
-          };
-        };
-      });
+      type = types.attrsOf networkSubnet;
       default = {}; 
       description = "Set of subnets to be used in the network";
     };
@@ -35,7 +17,7 @@ in
     homelab.networks.subnets = {
       "bln" = {
         ipv4 = "192.168.11";
-        ipv6 = "2a01:c22:3451:bc00";
+        ipv6 = "fd8f:2e0e:4eed";
         gateway = "${config.homelab.networks.subnets.bln.ipv4}.1";
         gateway6 = "${config.homelab.networks.subnets.bln.ipv6}::1";
       };
