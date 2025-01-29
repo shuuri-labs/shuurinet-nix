@@ -61,19 +61,13 @@ in
         governedPaths = [ config.host.storage.paths.media ];
         guestRead = true;
       };
-      arrMedia = {
-        name = "arrMediaDirAccess";
-        gid = 502;
-        governedPaths = [ config.host.storage.paths.arrMedia ]; 
-        guestRead = true;
-      };
+      # Downloads
       downloads = {
         name = "downloadsDirAccess";
         gid = 503;
         governedPaths = [ config.host.storage.paths.downloads ];
         guestRead = true;
       };
-
       # Documents 
       documents = {
         name = "documentsAccess";
@@ -81,7 +75,6 @@ in
         governedPaths = [ config.host.storage.paths.documents ];
         guestRead = false;
       };
-
       # Backups
       backups = {
         name = "backups";

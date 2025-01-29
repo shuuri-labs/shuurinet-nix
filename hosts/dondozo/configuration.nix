@@ -69,6 +69,20 @@ in
     mullvad-wireguard-config.file = "${secretsAbsolutePath}/wg-mullvad.conf.age";
     ashley-samba-user-pw.file = "${secretsAbsolutePath}/samba-ashley-password.age";
     media-samba-user-pw.file = "${secretsAbsolutePath}/samba-media-password.age";
+    # dondozo-homepage-vars.file = "${secretsAbsolutePath}/dondozo-homepage-vars.age";
+    dondozo-homepage-vars = {
+      file = "${secretsAbsolutePath}/dondozo-homepage-vars.age";
+      owner = "root";
+      group = "root";
+      mode = "444";
+    };
+    
+    # dndzo-homepage-vars = {
+    #   file = "${secretsAbsolutePath}/dndzo-homepage-vars.age";
+    #   owner = "root";
+    #   group = "users";
+    #   mode = "400";
+    # };
   };
 
   # set a unique main user pw (main user created in common module)
@@ -83,7 +97,6 @@ in
   # Host paths
   host.storage.paths = {
     media = "${vars.paths.bulkStorage}/media";
-    arrMedia = "${vars.paths.fastStorage}/media";
     downloads = "${vars.paths.fastStorage}/downloads";
     documents = "${vars.paths.fastStorage}/documents";
     backups = "${vars.paths.fastStorage}/backups";
@@ -123,13 +136,11 @@ in
   mediaServer.vpnConfinement.lanSubnet6 = vars.network.subnet.ipv6;
 
   mediaServer.paths.media = config.host.storage.paths.media;
-  mediaServer.paths.arrMedia = config.host.storage.paths.arrMedia;
   mediaServer.paths.mediaGroup = config.host.accessGroups.media.name;
 
   mediaServer.services.downloadDir = config.host.storage.paths.downloads; 
   mediaServer.services.downloadDirAccessGroup = config.host.accessGroups.downloads.name;
   mediaServer.services.mediaDirAccessGroup = config.host.accessGroups.media.name;
-  mediaServer.services.arrMediaDirAccessGroup = config.host.accessGroups.arrMedia.name;
 
   # Samba
   sambaProvisioner.enable = true;
@@ -143,7 +154,7 @@ in
       name = "media"; 
       passwordFile = config.age.secrets.media-samba-user-pw.path; 
       createHostUser = true; # samba needs a user to exist for the samba users to be created
-      extraGroups = [ config.host.accessGroups.media.name config.host.accessGroups.arrMedia.name ]; 
+      extraGroups = [ config.host.accessGroups.media.name ]; 
     } 
   ];
 
@@ -190,20 +201,135 @@ in
     };
   };
 
-  services.homepage-dashboard.widgets =
-  [{
-    resources = {
-      cpu = true;
-      disk = [ "/" "/shuurinet-rust" "/shuurinet-nvme-data" "/shuurinet-nvme-editing" ];
-      memory = true;
-      units = "metric";
-      uptime = true;
+  services.homepage-dashboard = {
+    environmentFile = config.age.secrets.dondozo-homepage-vars.path;
+    settings = {
+      title = "dondozo dashboard";
+      layout = [ 
+        {
+          Monitoring = { style = "row"; columns = 3; };
+        }
+        {
+          Media = { style = "row"; columns = 2; };
+        }
+        {
+          Downloads = { style = "row"; columns = 1; };
+        }
+      ];
+      statusStyle = "dot";
     };
-  }
-  {
-    search = {
-      provider = "duckduckgo";
-      target = "_blank";
-    };
-  }];
+    widgets = [
+      {
+        resources = {
+          cpu = true;
+          disk = [ "/" vars.paths.bulkStorage vars.paths.fastStorage vars.paths.editingStorage ];
+          memory = true;
+          units = "metric";
+          uptime = true;
+        };
+      }
+      {
+        search = {
+          provider = "duckduckgo";
+          target = "_blank";
+        };
+      }
+    ];
+    services = [
+      {
+        Media = [
+          {
+            Jellyfin = {
+              icon = "jellyfin.png";
+              href = "http://${vars.network.hostAddress}:8096";
+              siteMonitor = "http://${vars.network.hostAddress}:8096";
+              description = "Media Server";
+              widget = {
+                type = "jellyfin";
+                url = "http://${vars.network.hostAddress}:8096";
+                key = "{{HOMEPAGE_VAR_JELLYFIN_API_KEY}}";
+              };
+            };
+          }
+          {
+            Jellyseerr = {
+              icon = "jellyseerr.png";
+              href = "http://${vars.network.hostAddress}:5055";
+              siteMonitor = "http://${vars.network.hostAddress}:5055";
+              description = "Media Requests";
+              widget = {
+                type = "jellyseerr";
+                url = "http://${vars.network.hostAddress}:5055";
+                key = "{{HOMEPAGE_VAR_JELLYSEERR_API_KEY}}";
+              };
+            };
+          }
+          {
+            sonarr = {
+              icon = "sonarr.png";
+              href = "http://${vars.network.hostAddress}:8989";
+              description = "Media Management";
+              siteMonitor = "http://${vars.network.hostAddress}:8989";
+              widget = {
+                type = "sonarr";
+                url = "http://${vars.network.hostAddress}:8989";
+                key = "{{HOMEPAGE_VAR_SONARR_API_KEY}}";
+              };
+            };
+          }
+          {
+            radarr = {
+              icon = "radarr.png";
+              href = "http://${vars.network.hostAddress}:7878";
+              description = "Media Management";
+              siteMonitor = "http://${vars.network.hostAddress}:7878";
+              widget = {
+                type = "radarr";
+                url = "http://${vars.network.hostAddress}:7878";
+                key = "{{HOMEPAGE_VAR_RADARR_API_KEY}}";
+              };
+            };
+          }
+        ];
+      }
+      {
+        Downloads = [
+          {
+            transmission = {
+              icon = "transmission.png";
+              href = "http://192.168.11.10:9091";
+              siteMonitor = "http://192.168.15.1:9091";
+              widget = {
+                type = "transmission";
+                url = "http://192.168.15.1:9091";
+              };
+            };
+          }
+        ];
+      }
+      {
+        Monitoring = [
+          {
+            "Power Usage" = {
+              icon = "home-assistant.png";
+              href = "http://10.10.33.231";
+              siteMonitor = "http://192.168.11.127:8123";
+              widget = {
+                type = "homeassistant";
+                url = "http://192.168.11.127:8123";
+                key = "{{HOMEPAGE_VAR_HOMEASSISTANT_API_KEY}}";
+                custom = [
+                  {
+                    state = "sensor.server_plug_switch_0_power";
+                    label = "Server Plug";
+                  }
+                ];
+              };
+            };
+          }
+        ];
+      }
+    ];
+  };
 }
+

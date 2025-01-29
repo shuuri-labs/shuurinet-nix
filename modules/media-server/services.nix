@@ -30,12 +30,6 @@ in
       description = "";
     };
 
-    arrMediaDirAccessGroup = lib.mkOption {
-      type = types.str;
-      default = "arrMediaDirAccess";
-      description = "";
-    };
-
     downloadDirAccessGroup = lib.mkOption {
       type = types.str;
       default = "downloadDirAccess";
@@ -152,8 +146,8 @@ in
 
     # Add extra groups to the existing Sonarr and Radarr users
     users.users = {
-      sonarr.extraGroups = [ cfg.arrMediaDirAccessGroup cfg.downloadDirAccessGroup ];
-      radarr.extraGroups = [ cfg.arrMediaDirAccessGroup cfg.downloadDirAccessGroup ];
+      sonarr.extraGroups = [ cfg.downloadDirAccessGroup ];
+      radarr.extraGroups = [ cfg.downloadDirAccessGroup ];
       transmission.extraGroups = [ cfg.downloadDirAccessGroup ];
     };
   };

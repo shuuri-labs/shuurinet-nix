@@ -115,6 +115,7 @@
             ./modules/iperf
             ./modules/static-ip-network-config
             ./modules/uefi-boot
+            ./modules/monitoring
             vpn-confinement.nixosModules.default
           ];
         };

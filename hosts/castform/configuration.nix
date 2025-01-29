@@ -83,7 +83,6 @@ in
   # Host paths
   host.storage.paths = {
     media = "${vars.paths.bulkStorage}/media";
-    arrMedia = "${vars.paths.bulkStorage}/arrMedia";
     downloads = "${vars.paths.bulkStorage}/downloads";
     documents = "${vars.paths.bulkStorage}/documents";
     backups = "${vars.paths.bulkStorage}/backups";
@@ -102,13 +101,11 @@ in
   mediaServer.vpnConfinement.lanSubnet6 = vars.network.subnet.ipv6;
 
   mediaServer.paths.media = config.host.storage.paths.media;
-  mediaServer.paths.arrMedia = config.host.storage.paths.arrMedia;
   mediaServer.paths.mediaGroup = config.host.accessGroups.media.name;
 
   mediaServer.services.downloadDir = config.host.storage.paths.downloads; 
   mediaServer.services.downloadDirAccessGroup = config.host.accessGroups.downloads.name;
   mediaServer.services.mediaDirAccessGroup = config.host.accessGroups.media.name;
-  mediaServer.services.arrMediaDirAccessGroup = config.host.accessGroups.arrMedia.name;
 
   # Samba
   sambaProvisioner.enable = true;
@@ -122,7 +119,7 @@ in
       name = "media"; 
       passwordFile = config.age.secrets.media-samba-user-pw.path; 
       createHostUser = true; # samba needs a user to exist for the samba users to be created
-      extraGroups = [ config.host.accessGroups.media.name config.host.accessGroups.arrMedia.name ]; 
+      extraGroups = [ config.host.accessGroups.media.name ]; 
     } 
   ];
 

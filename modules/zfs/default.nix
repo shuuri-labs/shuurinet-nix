@@ -80,8 +80,10 @@ in
 
     boot.zfs.extraPools = map (pool: pool.name) (builtins.attrValues cfg.pools);
 
-    services.zfs.autoScrub.enable = true;
-    services.zfs.autoScrub.interval =  "Wed *-*-* 05:30:00"; # biweedkly every Weds @ 5:30am
+    services.zfs.autoScrub = {
+      enable = true;
+      interval = "Wed *-*-01..07,15..21 05:30:00"; # biweekly (first wednesday between 1st and 7th, and 15th and 21st)
+    };
 
     # Systemd service to set autotrim
     systemd.services.zfs-autotrim = {
