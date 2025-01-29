@@ -23,11 +23,6 @@
         default = "/mnt/media";
       };
 
-      arrMedia = lib.mkOption {
-        type = lib.types.str;
-        default = "/mnt/arrMedia";
-      };
-
       editing = lib.mkOption {
         type = lib.types.str;
         default = "/mnt/editing";

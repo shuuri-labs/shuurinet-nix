@@ -42,30 +42,6 @@ in
       default = "${config.mediaServer.paths.media}/anime";
       description = "Directory for anime.";
     };
-
-    arrMedia = mkOption {
-      type = types.str;
-      default = "/mnt/arrMedia";
-      description = "Base directory for media managed by Arr apps.";
-    };
-
-    arrMovies = mkOption {
-      type = types.str;
-      default = "${config.mediaServer.paths.arrMedia}/movies";
-      description = "Directory for movies managed by Arr apps.";
-    };
-
-    arrTv = mkOption {
-      type = types.str;
-      default = "${config.mediaServer.paths.arrMedia}/tv";
-      description = "Directory for TV shows managed by Arr apps.";
-    };
-
-    arrAnime = mkOption {
-      type = types.str;
-      default = "${config.mediaServer.paths.arrMedia}/anime";
-      description = "Directory for anime managed by Arr apps.";
-    };
   };
 
   # TODO: move this logic or refactor. will cause a new build to fail if the paths are not set
@@ -77,10 +53,6 @@ in
   #     movies   = setPathPermissions config.mediaServer.paths.movies   config.mediaServer.paths.mediaGroup true;
   #     tv       = setPathPermissions config.mediaServer.paths.tv       config.mediaServer.paths.mediaGroup true;
   #     anime    = setPathPermissions config.mediaServer.paths.anime    config.mediaServer.paths.mediaGroup true;
-  #     arrMedia = setPathPermissions config.mediaServer.paths.arrMedia config.mediaServer.paths.mediaGroup true;
-  #     arrMovies= setPathPermissions config.mediaServer.paths.arrMovies config.mediaServer.paths.mediaGroup true;
-  #     arrTv    = setPathPermissions config.mediaServer.paths.arrTv    config.mediaServer.paths.mediaGroup true;
-  #     arrAnime = setPathPermissions config.mediaServer.paths.arrAnime config.mediaServer.paths.mediaGroup true;
   #   };
   # in {
   #   # Generate tmpfiles rules from allPathPermissions

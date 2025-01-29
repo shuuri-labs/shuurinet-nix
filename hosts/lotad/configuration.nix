@@ -132,7 +132,6 @@ in
     host.storage.paths = {
       media = "${mountedPools.bulkStorage.path}/media";
       downloads = "${mountedPools.fastStorage.path}/downloads";
-      arrMedia = "${mountedPools.fastStorage.path}/arrMedia";
       documents = "${mountedPools.fastStorage.path}/documents";
       backups = "${mountedPools.fastStorage.path}/backups";
     };
