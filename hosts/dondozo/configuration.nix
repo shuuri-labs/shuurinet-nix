@@ -69,20 +69,16 @@ in
     mullvad-wireguard-config.file = "${secretsAbsolutePath}/wg-mullvad.conf.age";
     ashley-samba-user-pw.file = "${secretsAbsolutePath}/samba-ashley-password.age";
     media-samba-user-pw.file = "${secretsAbsolutePath}/samba-media-password.age";
-    # dondozo-homepage-vars.file = "${secretsAbsolutePath}/dondozo-homepage-vars.age";
-    dondozo-homepage-vars = {
-      file = "${secretsAbsolutePath}/dondozo-homepage-vars.age";
-      owner = "root";
+    dondozo-homepage-vars.file = "${secretsAbsolutePath}/dondozo-homepage-vars.age";
+    # grafana-admin-password.file = "${secretsAbsolutePath}/grafana-admin-password.age";
+
+    grafana-admin-password = {
+      file = "${secretsAbsolutePath}/grafana-admin-password.age";
+      owner = "grafana";
       group = "root";
-      mode = "444";
+      mode = "440";
     };
     
-    # dndzo-homepage-vars = {
-    #   file = "${secretsAbsolutePath}/dndzo-homepage-vars.age";
-    #   owner = "root";
-    #   group = "users";
-    #   mode = "400";
-    # };
   };
 
   # set a unique main user pw (main user created in common module)
@@ -207,7 +203,7 @@ in
       title = "dondozo dashboard";
       layout = [ 
         {
-          Monitoring = { style = "row"; columns = 3; };
+          Monitoring = { style = "row"; columns = 2; };
         }
         {
           Media = { style = "row"; columns = 2; };
@@ -295,7 +291,7 @@ in
       {
         Downloads = [
           {
-            transmission = {
+            Transmission = {
               icon = "transmission.png";
               href = "http://192.168.11.10:9091";
               siteMonitor = "http://192.168.15.1:9091";
@@ -327,9 +323,26 @@ in
               };
             };
           }
+          {
+            Grafana = {
+              icon = "grafana.png";
+              href = "http://${vars.network.hostAddress}:${toString config.monitoring.grafana.port}";
+              siteMonitor = "http://${vars.network.hostAddress}:${toString config.monitoring.grafana.port}";
+              widget = {
+                type = "grafana";
+                url = "http://${vars.network.hostAddress}:${toString config.monitoring.grafana.port}";
+                username = "admin";
+                # password = "{{HOMEPAGE_VAR_GRAFANA_PASSWORD}}"; # TODO: fix don't forget to change environment variable
+              };
+            };
+          }
         ];
       }
     ];
   };
-}
 
+  monitoring.enable = true;
+  monitoring.grafana.adminPassword = "$__file{${config.age.secrets.grafana-admin-password.path}}";
+  monitoring.prometheus.job_name = "dondozo";
+  monitoring.loki.hostname = "dondozo";
+}
