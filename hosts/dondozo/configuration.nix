@@ -332,7 +332,7 @@ in
                 type = "grafana";
                 url = "http://${vars.network.hostAddress}:${toString config.monitoring.grafana.port}";
                 username = "admin";
-                # password = "{{HOMEPAGE_VAR_GRAFANA_PASSWORD}}"; # TODO: fix don't forget to change environment variable
+                # password = "{{HOMEPAGE_VAR_GRAFANA_PASSWORD}}"; # TODO: fix; don't forget to change environment variable
               };
             };
           }
