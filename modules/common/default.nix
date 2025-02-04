@@ -35,9 +35,12 @@ in
       users.ashley = {
         isNormalUser = true;
         description = "Ashley";
+        group = "ashley";
         extraGroups = [ "networkmanager" "wheel" ]; # wheel = sudo for nixos
         openssh.authorizedKeys.keys = config.common.sshKeys;
       };
+
+      groups.ashley = {};
     };
 
     # system locale settings

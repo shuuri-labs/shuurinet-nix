@@ -100,12 +100,12 @@ in
   mediaServer.vpnConfinement.lanSubnet = vars.network.subnet.ipv4;
   mediaServer.vpnConfinement.lanSubnet6 = vars.network.subnet.ipv6;
 
-  mediaServer.paths.media = config.host.storage.paths.media;
-  mediaServer.paths.mediaGroup = config.host.accessGroups.media.name;
+  mediaServer.mediaDir = config.host.storage.paths.media;
+  mediaServer.mediaGroup = config.host.storage.accessGroups.media.name;
 
   mediaServer.services.downloadDir = config.host.storage.paths.downloads; 
-  mediaServer.services.downloadDirAccessGroup = config.host.accessGroups.downloads.name;
-  mediaServer.services.mediaDirAccessGroup = config.host.accessGroups.media.name;
+  mediaServer.services.downloadDirAccessGroup = config.host.storage.accessGroups.downloads.name;
+  mediaServer.services.mediaDirAccessGroup = config.host.storage.accessGroups.media.name;
 
   # Samba
   sambaProvisioner.enable = true;
@@ -119,7 +119,7 @@ in
       name = "media"; 
       passwordFile = config.age.secrets.media-samba-user-pw.path; 
       createHostUser = true; # samba needs a user to exist for the samba users to be created
-      extraGroups = [ config.host.accessGroups.media.name ]; 
+      extraGroups = [ config.host.storage.accessGroups.media.name ]; 
     } 
   ];
 

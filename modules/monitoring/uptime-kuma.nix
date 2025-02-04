@@ -11,14 +11,14 @@ in
     };
   };
 
-  config = lib.mkIf cfg.enable {
-    services.uptime-kuma = {
-      enable = true;
-      settings = {
-        PORT = "3009";
-      };
-    };
+  # config = lib.mkIf cfg.enable {
+  #   services.uptime-kuma = {
+  #     enable = true;
+  #     settings = {
+  #       PORT = "3009";
+  #     };
+  #   };
 
-    networking.firewall.allowedTCPPorts = [ 3009 ];
-  };
+  #   networking.firewall.allowedTCPPorts = [ 3009 ];
+  # };
 }
