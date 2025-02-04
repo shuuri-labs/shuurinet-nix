@@ -70,15 +70,15 @@ in
     ashley-samba-user-pw.file = "${secretsAbsolutePath}/samba-ashley-password.age";
     media-samba-user-pw.file = "${secretsAbsolutePath}/samba-media-password.age";
     dondozo-homepage-vars.file = "${secretsAbsolutePath}/dondozo-homepage-vars.age";
-    # grafana-admin-password.file = "${secretsAbsolutePath}/grafana-admin-password.age";
-
+    
     grafana-admin-password = {
       file = "${secretsAbsolutePath}/grafana-admin-password.age";
       owner = "grafana";
       group = "root";
       mode = "440";
     };
-    
+
+    paperless-password.file = "${secretsAbsolutePath}/paperless-password.age";
   };
 
   # set a unique main user pw (main user created in common module)
@@ -96,7 +96,6 @@ in
     downloads = "${vars.paths.fastStorage}/downloads";
     documents = "${vars.paths.fastStorage}/documents";
     backups = "${vars.paths.fastStorage}/backups";
-    editing = "${vars.paths.editingStorage}/editing";
   };
 
   diskCare = {
@@ -131,12 +130,12 @@ in
   mediaServer.vpnConfinement.lanSubnet = vars.network.subnet.ipv4;
   mediaServer.vpnConfinement.lanSubnet6 = vars.network.subnet.ipv6;
 
-  mediaServer.paths.media = config.host.storage.paths.media;
-  mediaServer.paths.mediaGroup = config.host.accessGroups.media.name;
+  mediaServer.mediaDir = config.host.storage.paths.media;
+  mediaServer.mediaGroup = config.host.storage.accessGroups.media.name;
 
   mediaServer.services.downloadDir = config.host.storage.paths.downloads; 
-  mediaServer.services.downloadDirAccessGroup = config.host.accessGroups.downloads.name;
-  mediaServer.services.mediaDirAccessGroup = config.host.accessGroups.media.name;
+  mediaServer.services.downloadDirAccessGroup = config.host.storage.accessGroups.downloads.name;
+  mediaServer.services.mediaDirAccessGroup = config.host.storage.accessGroups.media.name;
 
   # Samba
   sambaProvisioner.enable = true;
@@ -150,7 +149,7 @@ in
       name = "media"; 
       passwordFile = config.age.secrets.media-samba-user-pw.path; 
       createHostUser = true; # samba needs a user to exist for the samba users to be created
-      extraGroups = [ config.host.accessGroups.media.name ]; 
+      extraGroups = [ config.host.storage.accessGroups.media.name ]; 
     } 
   ];
 
@@ -341,8 +340,17 @@ in
     ];
   };
 
-  monitoring.enable = true;
-  monitoring.grafana.adminPassword = "$__file{${config.age.secrets.grafana-admin-password.path}}";
-  monitoring.prometheus.job_name = "dondozo";
-  monitoring.loki.hostname = "dondozo";
+  monitoring = {
+    enable = true;
+    grafana.adminPassword = "$__file{${config.age.secrets.grafana-admin-password.path}}";
+    prometheus.job_name = "dondozo";
+    loki.hostname = "dondozo";
+  };
+
+  paperless-ngx = {
+    enable = true;
+    passwordFile = config.age.secrets.paperless-password.path;
+    documentsDir = config.host.storage.paths.documents;
+    documentsAccessGroup = config.host.storage.accessGroups.documents.name;
+  };
 }
