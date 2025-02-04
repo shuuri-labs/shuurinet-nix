@@ -32,7 +32,7 @@ in
     systemd.services.create-paperless-dirs = {
       description = "Create Paperless directories";
       wantedBy = [ "multi-user.target" ];
-      before = [ "paperless-scheduler.service" "systemd-tmpfiles-setup.service" ];
+      before = [ "paperless-scheduler.service" ];
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;

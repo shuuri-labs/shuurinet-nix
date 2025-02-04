@@ -40,10 +40,17 @@ in
   };
 
   config = {
-    systemd.tmpfiles.rules = lib.mapAttrsToList
-      (name: path: 
-        # Create directory if it doesn't exist with group write enabled
+    systemd.tmpfiles.rules = lib.flatten (lib.mapAttrsToList 
+      (name: path: [
+        # Create directory with initial permissions - media path should already exist (created in options-host)
         "d ${path} 0775 root ${cfg.mediaGroup} -"
-      ) (cfg.paths);
+        # Recursively set ownership
+        "R ${path} - - - - root:${cfg.mediaGroup}"
+        # Recursively set directory permissions
+        "z ${path}/ 0775 - - - -"
+        # Recursively set file permissions (664 for files)
+        "z ${path}/* 0664 - - - -"
+      ]) (cfg.paths)
+    );
   };
 }
