@@ -37,20 +37,33 @@ in
         description = "Directory for anime.";
       };
     };
+
+    hostMainStorageUser = mkOption {
+      type = types.str;
+      description = "The main user for the host.";
+    };
   };
 
   config = {
-    systemd.tmpfiles.rules = lib.flatten (lib.mapAttrsToList 
-      (name: path: [
-        # Create directory with initial permissions - media path should already exist (created in options-host)
-        "d ${path} 0775 root ${cfg.mediaGroup} -"
-        # Recursively set ownership
-        "R ${path} - - - - root:${cfg.mediaGroup}"
-        # Recursively set directory permissions
-        "z ${path}/ 0775 - - - -"
-        # Recursively set file permissions (664 for files)
-        "z ${path}/* 0664 - - - -"
-      ]) (cfg.paths)
-    );
+    systemd.services.media-server-permissions = {
+      description = "Set media server directory permissions";
+      wantedBy = [ "multi-user.target" ];
+      after = [ "systemd-users-groups.service" ];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        ExecStart = pkgs.writeShellScript "set-media-permissions" ''
+          # Create directories if they don't exist
+          ${builtins.concatStringsSep "\n" (lib.mapAttrsToList 
+            (name: path: ''
+              ${pkgs.coreutils}/bin/mkdir -p ${path}
+              ${pkgs.coreutils}/bin/chown -R ${cfg.hostMainStorageUser}:${cfg.mediaGroup} ${path}
+              ${pkgs.coreutils}/bin/chmod -R u=rwX,g=rwX,o=rX ${path}
+            '')
+            cfg.paths
+          )}
+        '';
+      };
+    };
   };
 }

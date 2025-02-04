@@ -105,7 +105,7 @@ in
     # Create directories if they don't exist and set group permissions
     systemd.tmpfiles.rules = lib.flatten (lib.mapAttrsToList 
       (name: group: map 
-        (path: "d ${path} 0${if group.guestRead then "775" else "770"} root ${group.name} -")
+        (path: "d ${path} 0${if group.guestRead then "775" else "770"} ${cfg.mainUserName} ${group.name} -")
         group.governedPaths
       )
       cfg.accessGroups
