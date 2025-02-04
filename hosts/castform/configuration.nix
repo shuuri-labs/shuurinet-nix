@@ -102,7 +102,8 @@ in
 
   mediaServer.mediaDir = config.host.storage.paths.media;
   mediaServer.mediaGroup = config.host.storage.accessGroups.media.name;
-
+  mediaServer.hostMainStorageUser = "ashley";
+  
   mediaServer.services.downloadDir = config.host.storage.paths.downloads; 
   mediaServer.services.downloadDirAccessGroup = config.host.storage.accessGroups.downloads.name;
   mediaServer.services.mediaDirAccessGroup = config.host.storage.accessGroups.media.name;

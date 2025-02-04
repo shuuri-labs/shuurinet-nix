@@ -25,6 +25,11 @@ in
       type = lib.types.str;
       description = "The group that has access to the documents directory";
     };
+
+    hostMainStorageUser = lib.mkOption {
+      type = lib.types.str;
+      description = "The main user for the host.";
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -40,10 +45,14 @@ in
           "${pkgs.coreutils}/bin/mkdir -p ${paperlessDir}"
           "${pkgs.coreutils}/bin/mkdir -p ${paperlessMediaDir}"
           "${pkgs.coreutils}/bin/mkdir -p ${paperlessConsumeDir}"
-          "${pkgs.coreutils}/bin/chown -R root:${cfg.documentsAccessGroup} ${paperlessDir}"
+          "${pkgs.coreutils}/bin/chown -R ${cfg.hostMainStorageUser}:${cfg.documentsAccessGroup} ${paperlessDir}"
         ];
       };
     };
+
+    environment.systemPackages = with pkgs; [
+      python312Packages.inotifyrecursive
+    ]; # paperless will fallback to a cpu expensive method of consume dir watching if this package is not installed
 
     services.paperless = {
       enable = true;
@@ -51,6 +60,14 @@ in
       passwordFile = cfg.passwordFile;
       mediaDir = paperlessMediaDir;
       consumptionDir = paperlessConsumeDir;
+
+      settings = {
+        PAPERLESS_OCR_LANGUAGE = "eng+deu";
+        PAPERLESS_ENABLE_HTTP_REMOTE_USER_API = true;
+        PAPERLESS_CONSUMER_IGNORE_PATTERN = [
+          ".DS_STORE/*"
+        ];
+      };
     };
 
     users.users."paperless".extraGroups = [ cfg.documentsAccessGroup ];

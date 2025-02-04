@@ -132,6 +132,7 @@ in
 
   mediaServer.mediaDir = config.host.storage.paths.media;
   mediaServer.mediaGroup = config.host.storage.accessGroups.media.name;
+  mediaServer.hostMainStorageUser = "ashley";
 
   mediaServer.services.downloadDir = config.host.storage.paths.downloads; 
   mediaServer.services.downloadDirAccessGroup = config.host.storage.accessGroups.downloads.name;
@@ -209,6 +210,9 @@ in
         }
         {
           Downloads = { style = "row"; columns = 1; };
+        }
+        {
+          Documents = { style = "row"; columns = 1; };
         }
       ];
       statusStyle = "dot";
@@ -337,6 +341,23 @@ in
           }
         ];
       }
+      {
+        Documents = [
+          {
+            Paperless = {
+              icon = "paperless.png";
+              href = "http://${vars.network.hostAddress}:28981";
+              siteMonitor = "http://${vars.network.hostAddress}:28981";
+              description = "Documents";
+              widget = {
+                type = "paperlessngx";
+                url = "http://${vars.network.hostAddress}:28981";
+                key = "{{HOMEPAGE_VAR_PAPERLESS_API_KEY}}"; 
+              };
+            };
+          }
+        ];
+      }
     ];
   };
 
@@ -352,5 +373,6 @@ in
     passwordFile = config.age.secrets.paperless-password.path;
     documentsDir = config.host.storage.paths.documents;
     documentsAccessGroup = config.host.storage.accessGroups.documents.name;
+    hostMainStorageUser = "ashley";
   };
 }
