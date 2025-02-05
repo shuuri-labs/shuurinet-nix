@@ -3,29 +3,45 @@
 with lib;
 
 let
-  cfg = config.host.storage;
+  cfg = config.host.vars.storage;
 in
 {
-  options.host.storage = {
+  options.host.vars.storage = {
     paths = {
+      bulkStorage = lib.mkOption {
+        type = lib.types.str;
+      };
+
+      fastStorage = lib.mkOption {
+        type = lib.types.str;
+        default = cfg.paths.bulkStorage;
+      };
+
+      editingStorage = lib.mkOption {
+        type = lib.types.str;
+        default = cfg.paths.bulkStorage;
+      };
+    };
+
+    directories = {
       documents = lib.mkOption {
         type = lib.types.str;
-        default = "/mnt/documents";
+        default = "${cfg.paths.fastStorage}/documents";
       };
     
       backups = lib.mkOption {
         type = lib.types.str;
-        default = "/mnt/backups";
+        default = "${cfg.paths.fastStorage}/backups";
       };
 
       downloads = lib.mkOption {
         type = lib.types.str;
-        default = "/mnt/downloads";
+        default = "${cfg.paths.fastStorage}/downloads";
       };
 
       media = lib.mkOption {
         type = lib.types.str;
-        default = "/mnt/media";
+        default = "${cfg.paths.bulkStorage}/media";
       };
     };
 
@@ -40,7 +56,7 @@ in
             type = types.int;
             description = "Group ID";
           };
-          governedPaths = mkOption {
+          governedDirectories = mkOption {
             type = types.listOf types.str;
             default = [];
             description = "Paths this group has access to";
@@ -55,7 +71,7 @@ in
       default = {};
     };
 
-    mainUserName = mkOption {
+    mainStorageUserName = mkOption {
       type = types.str;
       description = "The host's main user name";
       default = "ashley";
@@ -63,32 +79,32 @@ in
   };
 
   config = {
-     host.storage.accessGroups = {
+     host.vars.storage.accessGroups = {
       media = {
         name = "mediaDirAccess";
         gid = 501;
-        governedPaths = [ cfg.paths.media ];
+        governedDirectories = [ cfg.directories.media ];
         guestRead = true;
       };
 
       downloads = {
         name = "downloadsDirAccess";
         gid = 503;
-        governedPaths = [ cfg.paths.downloads ];
+        governedDirectories = [ cfg.directories.downloads ];
         guestRead = false;
       };
 
       documents = {
         name = "documentsAccess";
         gid = 504;
-        governedPaths = [ cfg.paths.documents ];
+        governedDirectories = [ cfg.directories.documents ];
         guestRead = false;
       };
 
       backups = {
         name = "backups";
         gid = 505;
-        governedPaths = [ cfg.paths.backups ];
+        governedDirectories = [ cfg.directories.backups ];
         guestRead = false;
       };
     };
@@ -99,14 +115,14 @@ in
     }) cfg.accessGroups;
 
     # Add the main user to all access groups
-    users.users.${cfg.mainUserName}.extraGroups = 
+    users.users.${cfg.mainStorageUserName}.extraGroups = 
        (lib.mapAttrsToList (key: group: group.name) cfg.accessGroups);
 
     # Create directories if they don't exist and set group permissions
     systemd.tmpfiles.rules = lib.flatten (lib.mapAttrsToList 
       (name: group: map 
-        (path: "d ${path} 0${if group.guestRead then "775" else "770"} ${cfg.mainUserName} ${group.name} -")
-        group.governedPaths
+        (directory: "d ${directory} 0${if group.guestRead then "775" else "770"} ${cfg.mainStorageUserName} ${group.name} -")
+        group.governedDirectories
       )
       cfg.accessGroups
     );

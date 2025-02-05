@@ -5,53 +5,50 @@
 { config, pkgs, ... }:
 
 let
-  vars = {
-    network = {
-      hostName = "castform";
-      interfaces = [ "enp0s31f6" ]; 
-      bridge = "br0";
-      unmanagedInterfaces = vars.network.interfaces ++ [ vars.network.bridge ];
-
-      subnet = config.homelab.networks.subnets.bln;
-
-      hostAddress = "${vars.network.subnet.ipv4}.121";
-      hostAddress6 = "${vars.network.subnet.ipv6}::121";
-    };
-
-    zfs = {
-      network.hostId = "c8f36183"; 
-
-      pools = {
-        rust = {
-          name = "castform-rust";
-          autotrim = false;
-        };
-      };
-    };
-
-    paths = {
-      bulkStorage = "/castform-rust";
-    };
-
-    disksToSpindown = [ "ata-WDC_WD10EZEX-07WN4A0_WD-WCC6Y3ESH5SP" ];
-  };
-
+  hostCfgVars = config.host.vars;
   secretsAbsolutePath = "/home/ashley/shuurinet-nix/secrets"; 
 in
 {
   imports = [
     ./hardware-configuration.nix
+    ./disk-config.nix
+    ./samba-config.nix
   ];
+
+  # -------------------------------- HOST VARIABLES --------------------------------
+  # See /options-host
+
+  host.vars = {
+    network = {
+      config = {
+        hostName = "castform";
+        interfaces = [ "enp0s31f6" ]; 
+        bridge = "br0";
+        unmanagedInterfaces = config.host.vars.network.config.interfaces ++ [ config.host.vars.network.config.bridge ];
+        subnet = config.homelab.networks.subnets.bln; # see options-homelab/networks.nix
+        hostIdentifier = "121";
+      };
+
+      staticIpConfig.enable = true;
+    };
+
+    storage = {
+      paths = {
+        bulkStorage = "/castform-rust";
+      };
+    };
+  };
+
+  # -------------------------------- SYSTEM CONFIGURATION --------------------------------
 
   time.timeZone = "Europe/Berlin";
 
   # Bootloader
   host.uefi-boot.enable = true;
 
-  # Networking
-  host.staticIpNetworkConfig = {
-    networkConfig = vars.network;
-  };
+  users.users.ashley.hashedPasswordFile = config.age.secrets.castform-main-user-password.path;
+
+  # -------------------------------- SECRETS --------------------------------
 
   age.secrets = {
     castform-main-user-password.file = "${secretsAbsolutePath}/castform-main-user-password.age";
@@ -61,12 +58,17 @@ in
     media-samba-user-pw.file = "${secretsAbsolutePath}/samba-media-password.age";
   };
 
-  # set a unique main user pw (main user created in common module)
-  users.users.ashley.hashedPasswordFile = config.age.secrets.castform-main-user-password.path;
+  # -------------------------------- DISK CONFIGURATION --------------------------------
 
-  # import ZFS pools
-  host.zfs.pools = vars.zfs.pools;
-  host.zfs.network.hostId = vars.zfs.network.hostId;
+  zfs = {
+    pools = {
+      rust = {
+        name = "castform-rust";
+        autotrim = false;
+      };
+    };
+    network.hostId = "c8f36183"; 
+  };
 
   diskCare = {
     enableTrim = true;
@@ -80,60 +82,36 @@ in
     ];
   };
 
-  # Host paths
-  host.storage.paths = {
-    media = "${vars.paths.bulkStorage}/media";
-    downloads = "${vars.paths.bulkStorage}/downloads";
-    documents = "${vars.paths.bulkStorage}/documents";
-    backups = "${vars.paths.bulkStorage}/backups";
-  };
+  # -------------------------------- MONITORING & DASHBOARD --------------------------------
 
-  hddSpindown.disks = vars.disksToSpindown;
+  homepage-dashboard.enable = true; # configured in ./homepage-config.nix
+
+  # -------------------------------- HARDWARE FEATURES --------------------------------
+
+  # Intel-specific & Power Saving
   intelGraphics.enable = true;
-  intelGraphics.i915.guc_value = "2";
   powersave.enable = true; 
   virtualization.intel.enable = true;
+  hddSpindown.disks = [ "ata-WDC_WD10EZEX-07WN4A0_WD-WCC6Y3ESH5SP" ];
+
+  # -------------------------------- FILE SERVER --------------------------------
+
+  # Samba - configured in ./samba-config.nix
+  sambaProvisioner.enable = true;
+
+  # -------------------------------- HOSTED SERVICES --------------------------------
 
   # Media Server
   mediaServer.enable = true;
   mediaServer.vpnConfinement.wireguardConfigFile = config.age.secrets.mullvad-wireguard-config.path; 
-  mediaServer.vpnConfinement.lanSubnet = vars.network.subnet.ipv4;
-  mediaServer.vpnConfinement.lanSubnet6 = vars.network.subnet.ipv6;
+  mediaServer.vpnConfinement.lanSubnet = hostCfgVars.network.config.subnet.ipv4;
+  mediaServer.vpnConfinement.lanSubnet6 = hostCfgVars.network.config.subnet.ipv6;
 
-  mediaServer.mediaDir = config.host.storage.paths.media;
-  mediaServer.mediaGroup = config.host.storage.accessGroups.media.name;
+  mediaServer.mediaDir = hostCfgVars.storage.directories.media;
+  mediaServer.mediaGroup = hostCfgVars.storage.accessGroups.media.name;
   mediaServer.hostMainStorageUser = "ashley";
-  
-  mediaServer.services.downloadDir = config.host.storage.paths.downloads; 
-  mediaServer.services.downloadDirAccessGroup = config.host.storage.accessGroups.downloads.name;
-  mediaServer.services.mediaDirAccessGroup = config.host.storage.accessGroups.media.name;
 
-  # Samba
-  sambaProvisioner.enable = true;
-  sambaProvisioner.hostName = vars.network.hostName;
-  sambaProvisioner.hostIp = "${vars.network.hostAddress}/32";
-  sambaProvisioner.users = [
-    { name = "ashley"; 
-      passwordFile = config.age.secrets.ashley-samba-user-pw.path; 
-    }
-    { 
-      name = "media"; 
-      passwordFile = config.age.secrets.media-samba-user-pw.path; 
-      createHostUser = true; # samba needs a user to exist for the samba users to be created
-      extraGroups = [ config.host.storage.accessGroups.media.name ]; 
-    } 
-  ];
-
-  services.samba.settings = {
-    castform-rust = {
-      browseable = "yes";
-      comment = "${vars.network.hostName} Rust Pool";
-      "guest ok" = "no";
-      path = vars.paths.bulkStorage;
-      writable = "yes";
-      public = "yes";
-      "read only" = "no";
-      "valid users" = "ashley media"; # todo: dynamic based on user definitions above
-    };
-  };
+  mediaServer.services.downloadDir = hostCfgVars.storage.directories.downloads; 
+  mediaServer.services.downloadDirAccessGroup = hostCfgVars.storage.accessGroups.downloads.name;
+  mediaServer.services.mediaDirAccessGroup = hostCfgVars.storage.accessGroups.media.name;
 }

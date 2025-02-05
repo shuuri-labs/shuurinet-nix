@@ -2,10 +2,6 @@
 
 let
   cfg = config.paperless-ngx;
-  
-  paperlessDir = "${cfg.documentsDir}/paperless";
-  paperlessMediaDir = "${paperlessDir}/media";
-  paperlessConsumeDir = "${paperlessDir}/consume";
 in
 {
   options.paperless-ngx = {
@@ -21,45 +17,67 @@ in
       description = "The host's documents directory within which to place the paperless directory";
     };
 
-    documentsAccessGroup = lib.mkOption {
-      type = lib.types.str;
-      description = "The group that has access to the documents directory";
-    };
-
     hostMainStorageUser = lib.mkOption {
       type = lib.types.str;
       description = "The main user for the host.";
+    };
+    
+    documentsAccessGroup = lib.mkOption {
+      type = lib.types.str;
+      description = "The host group with access to the documents directory";
+    };
+
+    paths = {
+      paperlessDir = lib.mkOption {
+        type = lib.types.str;
+        description = "The directory for paperless";
+        default = "${cfg.documentsDir}/paperless";
+      };
+      paperlessMediaDir = lib.mkOption {
+        type = lib.types.str;
+        description = "The directory for paperless media";
+        default = "${cfg.paths.paperlessDir}/media";
+      };
+      paperlessConsumeDir = lib. mkOption {
+        type = lib.types.str;
+        description = "The directory for paperless consume";
+        default = "${cfg.paths.paperlessDir}/consume";
+      };
     };
   };
 
   config = lib.mkIf cfg.enable {
     # create a service rather than using tmpfiles, because the paperless service also uses tmpfiles to own the dirs and causes conflicts
-    systemd.services.create-paperless-dirs = {
-      description = "Create Paperless directories";
+        systemd.services.create-paperless-dirs = {
+      description = "Create and own Paperless directories";
       wantedBy = [ "multi-user.target" ];
       before = [ "paperless-scheduler.service" ];
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;
-        ExecStart = [
-          "${pkgs.coreutils}/bin/mkdir -p ${paperlessDir}"
-          "${pkgs.coreutils}/bin/mkdir -p ${paperlessMediaDir}"
-          "${pkgs.coreutils}/bin/mkdir -p ${paperlessConsumeDir}"
-          "${pkgs.coreutils}/bin/chown -R ${cfg.hostMainStorageUser}:${cfg.documentsAccessGroup} ${paperlessDir}"
-        ];
+        ExecStart = pkgs.writeShellScript "create-paperless-dirs" ''
+          ${builtins.concatStringsSep "\n" (lib.mapAttrsToList 
+            (name: path: ''
+              ${pkgs.coreutils}/bin/mkdir -p ${path}
+              ${pkgs.coreutils}/bin/chown ${cfg.hostMainStorageUser}:${cfg.documentsAccessGroup} ${path}
+              ${pkgs.coreutils}/bin/chmod u=rwX,g=rwX,o=rX ${path}
+            '')
+            cfg.paths
+          )}
+        '';
       };
     };
 
     environment.systemPackages = with pkgs; [
       python312Packages.inotifyrecursive
-    ]; # paperless will fallback to a cpu expensive method of consume dir watching if this package is not installed
+    ]; # paperless will fallback to a cpu expensive method of dir watching if this package is not installed
 
     services.paperless = {
       enable = true;
       address = "0.0.0.0";
       passwordFile = cfg.passwordFile;
-      mediaDir = paperlessMediaDir;
-      consumptionDir = paperlessConsumeDir;
+      mediaDir = cfg.paths.paperlessMediaDir;
+      consumptionDir = cfg.paths.paperlessConsumeDir;
 
       settings = {
         PAPERLESS_OCR_LANGUAGE = "eng+deu";
