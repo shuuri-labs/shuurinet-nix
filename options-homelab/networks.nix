@@ -2,7 +2,7 @@
 
 let
   inherit (lib) mkOption mkEnableOption types;
-  inherit (import ../lib/network-config.nix { inherit lib; }) networkSubnet;
+  inherit (import ../lib/network-subnet.nix { inherit lib; }) networkSubnet;
 in
 {
   options.homelab.networks = {
@@ -23,7 +23,7 @@ in
       };
       "ldn" = {
         ipv4 = "10.11.20";
-        ipv6 = " fd20:e376:b0a4"; # TODO: change from link local to global
+        ipv6 = " fd20:e376:b0a4"; # TODO: change from link local
         gateway = "${config.homelab.networks.subnets.ldn.ipv4}.1";
         gateway6 = "${config.homelab.networks.subnets.ldn.ipv6}::1";
       };

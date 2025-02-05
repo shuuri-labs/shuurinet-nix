@@ -2,7 +2,7 @@
 
 let
   inherit (lib) mkOption mkIf types;
-  cfg = config.host.zfs; 
+  cfg = config.zfs; 
 
   # find the latest kernel package that supports ZFS (since it's not always supported by newest kernel)
   zfsCompatibleKernelPackages = lib.filterAttrs (
@@ -29,7 +29,7 @@ let
   '';
 in
 {
-  options.host.zfs = {
+  options.zfs = {
     pools = mkOption {
       type = types.attrsOf (types.submodule {
         options = {
@@ -82,7 +82,7 @@ in
 
     services.zfs.autoScrub = {
       enable = true;
-      interval = "Wed *-*-01..07,15..21 05:30:00"; # biweekly (first wednesday between 1st and 7th, and 15th and 21st)
+      interval = "Wed *-*-01..07,15..21 04:00:00"; # biweekly (first wednesday between 1st and 7th, and 15th and 21st) @ 4am
     };
 
     # Systemd service to set autotrim

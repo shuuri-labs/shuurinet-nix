@@ -113,7 +113,6 @@
             ./modules/smb-provisioner
             ./modules/disk-care
             ./modules/iperf
-            ./modules/static-ip-network-config
             ./modules/uefi-boot
             ./modules/monitoring
             ./modules/paperless-ngx
@@ -135,23 +134,8 @@
             ./modules/smb-provisioner
             ./modules/disk-care
             ./modules/iperf
-            ./modules/static-ip-network-config
             ./modules/uefi-boot
             ./modules/monitoring
-            vpn-confinement.nixosModules.default
-          ];
-        };
-
-        "lotad" = makeHost {
-          hostPath = ./hosts/lotad/configuration.nix;
-          extraModules = [
-            ./modules/zfs
-            ./modules/hdd-spindown
-            ./modules/intel-graphics
-            ./modules/power-saving
-            ./modules/intel-virtualization
-            ./modules/media-server
-            ./modules/smb-provisioner
             vpn-confinement.nixosModules.default
           ];
         };
