@@ -15,8 +15,14 @@ in
         name = "media"; 
         passwordFile = config.age.secrets.media-samba-user-pw.path; 
         createHostUser = true; # samba needs a user to exist for the samba users to be created
-        extraGroups = [ config.host.vars.storage.accessGroups.media.name ]; 
-      } 
+        extraGroups = [ hostCfgVars.storage.accessGroups.media.name ]; 
+      }
+      {
+        name = "home-assistant-backup";
+        passwordFile = config.age.secrets.home-assistant-backup-samba-user-pw.path;
+        createHostUser = true;
+        extraGroups = [ hostCfgVars.storage.accessGroups.backups.name ];
+      }
     ];
   };
 
@@ -60,6 +66,16 @@ in
       public = "yes";
       "read only" = "yes";
       "valid users" = "ashley media"; 
+    };
+    home-assistant-backup = {
+      browseable = "yes";
+      comment = "${hostCfgVars.network.config.hostName} Home Assistant Backups";
+      "guest ok" = "no";
+      path = "${hostCfgVars.storage.directories.backups}/home-assistant";
+      writable = "yes";
+      public = "yes";
+      "read only" = "no";
+      "valid users" = "ashley home-assistant-backup";
     };
   };
 }

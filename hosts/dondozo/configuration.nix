@@ -68,6 +68,7 @@ in
     };
 
     paperless-password.file = "${secretsAbsolutePath}/paperless-password.age";
+    home-assistant-backup-samba-user-pw.file = "${secretsAbsolutePath}/samba-home-assistant-backup-password.age";
   };
 
   # -------------------------------- DISK CONFIGURATION --------------------------------
