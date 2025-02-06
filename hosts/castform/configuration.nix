@@ -11,7 +11,7 @@ in
 {
   imports = [
     ./hardware-configuration.nix
-    ./disk-config.nix
+    # ./disk-config.nix
     ./samba-config.nix
   ];
 
@@ -53,7 +53,6 @@ in
   age.secrets = {
     castform-main-user-password.file = "${secretsAbsolutePath}/castform-main-user-password.age";
     mullvad-wireguard-config.file = "${secretsAbsolutePath}/wg-mullvad.conf.age";
-    mullvad-wireguard-config.file = "${secretsAbsolutePath}/wg-mullvad.conf.age";
     ashley-samba-user-pw.file = "${secretsAbsolutePath}/samba-ashley-password.age";
     media-samba-user-pw.file = "${secretsAbsolutePath}/samba-media-password.age";
   };
@@ -73,12 +72,8 @@ in
   diskCare = {
     enableTrim = true;
     disksToSmartMonitor = [
-      {
-        device = "/dev/disk/by-id/ata-SanDisk_SDSSDH3_250G_214676446013"; # boot drive
-      }
-      {
-        device = "/dev/disk/by-id/ata-WDC_WD10EZEX-07WN4A0_WD-WCC6Y3ESH5SP"; # drive 1
-      }
+      { device = "/dev/disk/by-id/ata-SanDisk_SDSSDH3_250G_214676446013"; } # boot drive
+      { device = "/dev/disk/by-id/ata-WDC_WD10EZEX-07WN4A0_WD-WCC6Y3ESH5SP"; } # drive 1
     ];
   };
 

@@ -14,7 +14,7 @@ in
       name = "media"; 
       passwordFile = config.age.secrets.media-samba-user-pw.path; 
       createHostUser = true; # samba needs a user to exist for the samba users to be created
-      extraGroups = [ config.host.storage.accessGroups.media.name ]; 
+      extraGroups = [ hostCfgVars.storage.accessGroups.media.name ]; 
     } 
   ];
 
