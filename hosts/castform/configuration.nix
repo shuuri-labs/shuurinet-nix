@@ -2,11 +2,13 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, ... }:
+{ config, pkgs, inputs, ... }:
 
 let
   hostCfgVars = config.host.vars;
   secretsAbsolutePath = "/home/ashley/shuurinet-nix/secrets"; 
+
+  inherit (inputs) nixvirt;
 in
 {
   imports = [
@@ -109,4 +111,19 @@ in
   mediaServer.services.downloadDir = hostCfgVars.storage.directories.downloads; 
   mediaServer.services.downloadDirAccessGroup = hostCfgVars.storage.accessGroups.downloads.name;
   mediaServer.services.mediaDirAccessGroup = hostCfgVars.storage.accessGroups.media.name;
+
+  # -------------------------------- VMs --------------------------------
+
+  virtualisation.libvirt.enable = true;
+  virtualisation.libvirt.connections."qemu:///session".domains = [
+    {
+      definition = nixvirt.lib.domain.writeXML (nixvirt.lib.domain.templates.linux
+        {
+          name = "Penguin";
+          uuid = "cc7439ed-36af-4696-a6f2-1f0c4474d87e";
+          memory = { count = 6; unit = "GiB"; };
+          storage_vol = { pool = "MyPool"; volume = "Penguin.qcow2"; };
+        });
+    }
+  ];
 }

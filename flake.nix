@@ -1,153 +1,95 @@
 {
-  description = "Nixos config flake";
+  description = "shuurinet nixos config flake";
 
-  inputs = {
-    # core nixpkgs
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
-
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
-
-    disko.url = "github:nix-community/disko";
-    disko.inputs.nixpkgs.follows = "nixpkgs";
-
-    # Home Manager for user configurations
-    home-manager.url = "github:nix-community/home-manager/release-24.11";
-    home-manager.inputs.nixpkgs.follows = "nixpkgs";
-
-    # vscode server module for nixos 
-    vscode-server.url = "github:nix-community/nixos-vscode-server";
-
-    # MacOS 
-    nix-darwin.url = "github:LnL7/nix-darwin";
-
-    # Agenix for managing secrets
-    agenix.url = "github:ryantm/agenix";
-
-    # Service-level VPN confinement
-    vpn-confinement.url = "github:Maroka-chan/VPN-Confinement";
+  nixConfig = {
+    trusted-substituters = [
+      "https://cachix.cachix.org"
+      "https://nixpkgs.cachix.org"
+      "https://nix-community.cachix.org"
+    ];
+    trusted-public-keys = [
+      "cachix.cachix.org-1:eWNHQldwUO7G2VkjpnjDbWwy4KQ/HNxht7H4SSoMckM="
+      "nixpkgs.cachix.org-1:q91R6hxbwFvDqTSDKwDAV4T5PxqXGxswD8vhONFMeOE="
+      "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+    ];
   };
 
-  outputs = { 
-              self, 
-              nixpkgs, 
-              nixpkgs-unstable, 
-              vscode-server, 
-              home-manager, 
-              nix-darwin, 
-              agenix, 
-              vpn-confinement, 
-              disko,
-              ... 
-            }:
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+
+    # nix-darwin = {
+    #   url = "github:LnL7/nix-darwin";
+    #   inputs.nixpkgs.follows = "nixpkgs";
+    # };
+
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    home-manager = {
+      url = "github:nix-community/home-manager/release-24.11";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    agenix = {
+      url = "github:ryantm/agenix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    vscode-server = {
+      url = "github:nix-community/nixos-vscode-server";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    vpn-confinement.url = "github:Maroka-chan/VPN-Confinement";
+
+    nixvirt = {
+      url = "https://flakehub.com/f/AshleyYakeley/NixVirt/*.tar.gz";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+
+  outputs = inputs@{ ... }:
     let
-      system = "x86_64-linux";  
-      
-      pkgs-unstable = import nixpkgs-unstable {
-        inherit system;
-        inherit (nixpkgsConfig) config;
-      };
-      
-      # Create an overlay that pulls specific packages from unstable
-      overlay-unstable = final: prev: {
-        sonarr = pkgs-unstable.sonarr;
-        radarr = pkgs-unstable.radarr;
-        prowlarr = pkgs-unstable.prowlarr;
-        netbird = pkgs-unstable.netbird;
-      };
-
-      # Configure permittedInsecurePackages for both stable and unstable (for sonarr)
-      nixpkgsConfig = {
-        config = {
-          permittedInsecurePackages = [
-            "aspnetcore-runtime-6.0.36"
-            "aspnetcore-runtime-wrapped-6.0.36"
-            "dotnet-sdk-6.0.428"
-            "dotnet-sdk-wrapped-6.0.428"
-          ];
-          allowUnfree = true;
-        };
-      };
-
-      # Modified makeHost function to accept additional modules
-      makeHost = { hostPath, extraModules ? [] }: nixpkgs.lib.nixosSystem {
-        inherit system;
-        modules = [
-          ./modules/common
-          ./options-host
-          ./options-homelab
-          vscode-server.nixosModules.default
-          agenix.nixosModules.default
-          home-manager.nixosModules.home-manager
-          disko.nixosModules.disko
-          hostPath                 # Host-specific configuration.nix
-          ({ config, pkgs, inputs, ... }: {
-            nixpkgs.overlays = [ overlay-unstable ];
-            nixpkgs.config = nixpkgsConfig.config;
-            
-            environment.systemPackages = [
-              agenix.packages."${system}".default
-              home-manager
-            ];
-
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.users.ashley = import ./home.nix;
-          })
-        ] 
-        # Append the host-specific modules
-        ++ extraModules;
-      };
+      helper = import ./flakeHelper.nix inputs;
+      inherit (helper) mkNix mkDarwin;
     in {
-      # NixOS configurations for various hosts with specific modules
       nixosConfigurations = {
-        "dondozo" = makeHost {
-          hostPath = ./hosts/dondozo/configuration.nix;
-          extraModules = [
-            ./modules/homepage-dashboard
-            ./modules/zfs
-            ./modules/hdd-spindown
-            ./modules/intel-graphics
-            ./modules/power-saving
-            ./modules/intel-virtualization
-            ./modules/media-server
-            ./modules/smb-provisioner
-            ./modules/disk-care
-            ./modules/iperf
-            ./modules/uefi-boot
-            ./modules/monitoring
-            ./modules/paperless-ngx
-            vpn-confinement.nixosModules.default
-          ];
-        };
-        
+        "dondozo" = mkNix "dondozo" [
+          ./modules/homepage-dashboard
+          ./modules/zfs
+          ./modules/hdd-spindown
+          ./modules/intel-graphics
+          ./modules/power-saving
+          ./modules/intel-virtualization
+          ./modules/media-server
+          ./modules/smb-provisioner
+          ./modules/disk-care
+          ./modules/iperf
+          ./modules/uefi-boot
+          ./modules/monitoring
+          ./modules/paperless-ngx
+          inputs.vpn-confinement.nixosModules.default
+        ];
 
-        "castform" = makeHost {
-          hostPath = ./hosts/castform/configuration.nix;
-          extraModules = [
-            ./modules/homepage-dashboard
-            ./modules/zfs
-            ./modules/hdd-spindown
-            ./modules/intel-graphics
-            ./modules/power-saving
-            ./modules/intel-virtualization
-            ./modules/media-server
-            ./modules/smb-provisioner
-            ./modules/disk-care
-            ./modules/iperf
-            ./modules/uefi-boot
-            ./modules/monitoring
-            vpn-confinement.nixosModules.default
-          ];
-        };
+        "castform" = mkNix "castform" [
+          ./modules/homepage-dashboard
+          ./modules/zfs
+          ./modules/hdd-spindown
+          ./modules/intel-graphics
+          ./modules/power-saving
+          ./modules/intel-virtualization
+          ./modules/media-server
+          ./modules/smb-provisioner
+          ./modules/disk-care
+          ./modules/iperf
+          ./modules/uefi-boot
+          ./modules/monitoring
+          inputs.vpn-confinement.nixosModules.default
+          inputs.nixvirt.nixosModules.default
+        ];
       };
-    
-    # MacOS configuration via nix-darwin
-    #   darwinConfigurations."rotom" = nix-darwin.lib.darwinSystem {
-    #   system = "arm64-darwin";
-    #   modules = [
-    #       ./hosts/rotom/darwin-configuration.nix
-    #       home-manager.nixosModules.home-manager
-    #   ];
-    #   };
     };
 }
