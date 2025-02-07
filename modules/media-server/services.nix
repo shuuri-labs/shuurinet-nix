@@ -63,7 +63,7 @@ in
         enable = true;
         # openFirewall = true;
         # openRPCPort = true;
-        group = cfg.downloadDirAccessGroup;
+        # group = cfg.downloadDirAccessGroup;
         package = pkgs.transmission_4;
         settings = {
           download-dir = cfg.downloadDir;
@@ -145,12 +145,12 @@ in
     # Add systemd service overrides - folders must be writable by the group, not just the user
     systemd.services.radarr.serviceConfig.UMask = "0002";
     systemd.services.sonarr.serviceConfig.UMask = "0002";
-    systemd.services.bazarr.serviceConfig.UMask = "0002";
 
     # Add extra groups to the existing Sonarr and Radarr users
     users.users = {
       sonarr.extraGroups = [ cfg.downloadDirAccessGroup ];
       radarr.extraGroups = [ cfg.downloadDirAccessGroup ];
+      transmission.extraGroups = [ cfg.downloadDirAccessGroup ];
     };
   };
 }
