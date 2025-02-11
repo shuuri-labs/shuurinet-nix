@@ -67,7 +67,7 @@ in
       "read only" = "yes";
       "valid users" = "ashley media"; 
     };
-    home-assistant-backup = {
+    home-assistant-backups = {
       browseable = "yes";
       comment = "${hostCfgVars.network.config.hostName} Home Assistant Backups";
       "guest ok" = "no";
