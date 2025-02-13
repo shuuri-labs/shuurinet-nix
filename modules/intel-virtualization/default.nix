@@ -13,13 +13,13 @@ in
 
     kernelParams = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [ "iommu=on" "iommu=pt" ];
+      default = [ "intel_iommu=on" "iommu=pt" ];
       description = "Additional kernel parameters for IOMMU.";
     };
 
     extraModules = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [ "vfio" "vfio_iommu_type1" "vfio_pci" "kvm" "kvm_intel" ];
+      default = [ "vfio_iommu_type1" "vfio_pci" "kvm_intel" ];
       description = "Additional kernel modules to load for virtualization and passthrough.";
     };
   };
@@ -35,7 +35,6 @@ in
       #  (get device ids from lspci -nn, at end of each line is [vendorId:deviceId])
       # 'kvm_intel nested=1' enables nested virtualization
       extraModprobeConfig = ''
-        options vfio-pci ids=15b3:1015
         options kvm_intel nested=1 
       '';
     };
@@ -51,31 +50,27 @@ in
     # Enable libvirtd service
     virtualisation.libvirtd = {
       enable = true;
-      onBoot = "ignore";
-      onShutdown = "shutdown";
+      onShutdown = "shutdown"; # shutdown the VMs when the host shuts down
       qemu = {
         package = pkgs.qemu_kvm;
 
-        
         ovmf = {
           enable = true;  # Enable UEFI support
           packages = [ pkgs.OVMFFull.fd ]; 
         };
 
-        swtpm.enable = true; # Enable TPM emulation
-
-        verbatimConfig = ''
-          user = "root"
-          group = "root"
-          cgroup_device_acl = [
-            "/dev/null", "/dev/full", "/dev/zero",
-            "/dev/random", "/dev/urandom",
-            "/dev/ptmx", "/dev/kvm",
-            "/dev/vfio/vfio",
-            "/dev/vfio/0",  # Add IOMMU group devices
-            "/dev/vfio/1"
-          ]
-        '';
+        # verbatimConfig = ''
+        #   user = "root"
+        #   group = "root"
+        #   cgroup_device_acl = [
+        #     "/dev/null", "/dev/full", "/dev/zero",
+        #     "/dev/random", "/dev/urandom",
+        #     "/dev/ptmx", "/dev/kvm",
+        #     "/dev/vfio/vfio",
+        #     "/dev/vfio/0",  # Add IOMMU group devices
+        #     "/dev/vfio/1"
+        #   ]
+        # '';
       };
       
     };
