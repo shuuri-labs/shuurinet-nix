@@ -87,6 +87,7 @@ in
 
   # Intel-specific & Power Saving
   intelGraphics.enable = true;
+  boot.kernelParams = [ "intremap=no_x2apic_optout" ]; # ignore fujitsu bios error 
   powersave.enable = true; 
   virtualization.intel.enable = true;
   hddSpindown.disks = [ "ata-WDC_WD10EZEX-07WN4A0_WD-WCC6Y3ESH5SP" ];
@@ -114,16 +115,108 @@ in
 
   # -------------------------------- VMs --------------------------------
 
-  virtualisation.libvirt.enable = true;
-  virtualisation.libvirt.connections."qemu:///session".domains = [
-    {
-      definition = nixvirt.lib.domain.writeXML (nixvirt.lib.domain.templates.linux
+  users.users.ashley.extraGroups = [ "libvirtd" ];
+
+  virtualisation.libvirt = {
+    enable = true;
+
+    connections."qemu:///system" = {
+      pools = [
         {
-          name = "Penguin";
-          uuid = "cc7439ed-36af-4696-a6f2-1f0c4474d87e";
-          memory = { count = 6; unit = "GiB"; };
-          storage_vol = { pool = "MyPool"; volume = "Penguin.qcow2"; };
-        });
-    }
-  ];
+          definition = nixvirt.lib.pool.writeXML {
+            name = "default";
+            uuid = "4acdd24f-9649-4a24-8739-277c822c6639";
+            type = "dir";
+            target = {
+              path = "/var/lib/libvirt/images";
+            };
+          };
+          active = true;
+          volumes = [
+            {
+              definition = nixvirt.lib.volume.writeXML {
+                name = "openwrt.qcow2";
+                uuid = "05a1b7c8-d3e4-4f5a-9b2c-6d7e8f9a0b1c";
+                capacity = { count = 1; unit = "GiB"; };
+                target = {
+                  path = "/var/lib/libvirt/images/openwrt.qcow2";
+                  format = { 
+                    type = "qcow2"; 
+                  };
+                };
+              };
+            }
+          ];
+        }
+      ];
+
+      networks = [{
+        definition = nixvirt.lib.network.writeXML (
+          nixvirt.lib.network.templates.bridge {
+            name = "default";
+            uuid = "27ca47f3-2490-4d1e-9d7e-2b9c1d3d7374";  # generate a new UUID
+            bridge_name = "virbr0";
+            subnet_byte = 122;  # This will create a 192.168.122.0/24 network
+          }
+        );
+        active = true;
+      }];
+      
+      domains = [{
+        definition = nixvirt.lib.domain.writeXML (
+          let
+            baseTemplate = nixvirt.lib.domain.templates.linux {
+              name = "openwrt";
+              uuid = "cc7439ed-36af-4696-a6f2-1f0c4474d87e";
+              memory = { count = 256; unit = "MiB"; };
+              storage_vol = { pool = "default"; volume = "openwrt.qcow2"; };
+            };
+          in
+            baseTemplate // {
+              devices = baseTemplate.devices // {
+                # Add to existing device types
+                # disk = baseTemplate.devices.disk ++ [
+                #   {
+                    
+                #   }
+                # ];
+                
+                # Add new device types
+                hostdev = [
+                  {
+                    type = "pci";
+                    source = {
+                      address = {
+                        domain = 0;
+                        bus = 1;
+                        slot = 0;
+                        function = 0;
+                      };
+                    };
+                  }
+                  {
+                    type = "pci";
+                    source = {
+                      address = {
+                        domain = 0;
+                        bus = 1;
+                        slot = 0;
+                        function = 1;
+                      };
+                    };
+                  }
+                ];
+              };
+            }
+        );
+        active = true;
+      }];
+    };
+  };
 }
+
+# sudo virsh list --all
+# ls -l /nix/store/*NixVirt*
+# sudo virsh console openwrt
+# sudo virsh start openwrt
+# sudo virsh destroy openwrt
