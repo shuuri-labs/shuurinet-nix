@@ -54,12 +54,30 @@ in
       onBoot = "ignore";
       onShutdown = "shutdown";
       qemu = {
+        package = pkgs.qemu_kvm;
+
+        
         ovmf = {
           enable = true;  # Enable UEFI support
           packages = [ pkgs.OVMFFull.fd ]; 
         };
+
         swtpm.enable = true; # Enable TPM emulation
+
+        verbatimConfig = ''
+          user = "root"
+          group = "root"
+          cgroup_device_acl = [
+            "/dev/null", "/dev/full", "/dev/zero",
+            "/dev/random", "/dev/urandom",
+            "/dev/ptmx", "/dev/kvm",
+            "/dev/vfio/vfio",
+            "/dev/vfio/0",  # Add IOMMU group devices
+            "/dev/vfio/1"
+          ]
+        '';
       };
+      
     };
 
     # PCIe passthrough
