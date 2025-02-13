@@ -28,12 +28,16 @@ in
     boot = {
       # Append required kernel parameters
       kernelParams = cfg.kernelParams;
-
       # Load required kernel modules
+      initrd.kernelModules = cfg.extraModules;
+
+      # 'vfio-pci ids=' will block specific devices from the host and immediately pass them through on boot 
+      #  (get device ids from lspci -nn, at end of each line is [vendorId:deviceId])
+      # 'kvm_intel nested=1' enables nested virtualization
       extraModprobeConfig = ''
-        options vfio-pci ids=8086:1234,10de:1ae3
+        options vfio-pci ids=15b3:1015
+        options kvm_intel nested=1 
       '';
-      initrd.availableKernelModules = cfg.extraModules;
     };
 
     # Required packages for virtualization
@@ -47,8 +51,13 @@ in
     # Enable libvirtd service
     virtualisation.libvirtd = {
       enable = true;
+      onBoot = "ignore";
+      onShutdown = "shutdown";
       qemu = {
-        ovmf.enable = true;  # Enable UEFI support
+        ovmf = {
+          enable = true;  # Enable UEFI support
+          packages = [ pkgs.OVMFFull.fd ]; 
+        };
         swtpm.enable = true; # Enable TPM emulation
       };
     };
