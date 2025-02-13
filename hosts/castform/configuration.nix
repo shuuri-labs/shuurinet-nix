@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, inputs, ... }:
+{ config, pkgs, inputs, lib, ... }:
 
 let
   hostCfgVars = config.host.vars;
@@ -117,10 +117,17 @@ in
 
   users.users.ashley.extraGroups = [ "libvirtd" ];
 
+  # 'vfio-pci ids='disable these devices from the host and pass them through on boot
+  # (get device ids from lspci -nn, at end of each line is [vendorId:deviceId])
+  boot.extraModprobeConfig = lib.mkAfter ''
+    options vfio-pci ids=15b3:1015,15b3:1015
+  '';
+
+  boot.blacklistedKernelModules = [ "mlx5_core" ]; # block mellanox drivers on host to prevent passthrough interference
+  
   virtualisation.libvirt = {
     enable = true;
-    swtpm.enable = true;
-
+    
     connections."qemu:///system" = {
       pools = [
         {
@@ -151,17 +158,30 @@ in
         }
       ];
 
-      networks = [{
-        definition = nixvirt.lib.network.writeXML (
-          nixvirt.lib.network.templates.bridge {
-            name = "default";
-            uuid = "27ca47f3-2490-4d1e-9d7e-2b9c1d3d7374";  # generate a new UUID
-            bridge_name = "virbr0";
-            subnet_byte = 122;  # This will create a 192.168.122.0/24 network
-          }
-        );
-        active = true;
-      }];
+      # networks = [{
+      #   definition = nixvirt.lib.network.writeXML (
+      #     nixvirt.lib.network.templates.bridge {
+      #       name = "default";
+      #       uuid = "27ca47f3-2490-4d1e-9d7e-2b9c1d3d7374";  # generate a new UUID
+      #       bridge_name = "virbr0";
+      #       subnet_byte = 122;  # This will create a 192.168.122.0/24 network
+      #     }
+      #   );
+      #   active = true;
+      # }];
+
+      # networks = [{
+      #   definition = nixvirt.lib.network.writeXML {
+      #     name = "physical";
+      #     uuid = "27ca47f3-2490-4d1e-9d7e-2b9c1d3d7374";
+      #     bridge = {
+      #       name = "br0";  # Match your bridge name from step 1
+      #       stp = true;
+      #       delay = 0;
+      #     };
+      #   };
+      #   active = true;
+      # }];
       
       domains = [{
         definition = nixvirt.lib.domain.writeXML (
@@ -175,14 +195,27 @@ in
           in
             baseTemplate // {
               devices = baseTemplate.devices // {
+                interface = {
+                  type = "bridge";
+                  source = { bridge = "br0"; };  # Match your bridge name
+                  model = { type = "virtio"; };
+                };
+
                 # Add to existing device types
-                # disk = baseTemplate.devices.disk ++ [
-                #   {
-                    
-                #   }
-                # ];
+                # disk = baseTemplate.devices.disk ++ [{}];
                 
                 # Add new device types
+                serial = [{
+                  type = "pty";
+                }];
+                console = [{
+                  type = "pty";
+                  target = {
+                    type = "serial";
+                    port = 0;
+                  };
+                }];
+
                 hostdev = [
                   {
                     type = "pci";
