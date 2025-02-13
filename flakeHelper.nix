@@ -2,21 +2,8 @@ inputs:
 let
   mkHostPath = hostName: ./hosts/${hostName}/configuration.nix;
 
-  nixpkgsConfig = {
-    config = {
-      # permit these insecure packages (used by sonarr)
-      permittedInsecurePackages = [
-        "aspnetcore-runtime-6.0.36"
-        "aspnetcore-runtime-wrapped-6.0.36"
-        "dotnet-sdk-6.0.428"
-        "dotnet-sdk-wrapped-6.0.428"
-      ];
-      allowUnfree = true;
-    };
-  };
-
   commonConfig = { config, pkgs, inputs, ... }: {
-    nixpkgs.config = nixpkgsConfig.config; # override nixpkgs config with custom config above. will append/merge, not replace.
+    nixpkgs.config.allowUnfree = true;
     
     environment.systemPackages = [
       inputs.agenix.packages."${pkgs.system}".default
