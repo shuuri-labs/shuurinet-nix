@@ -125,6 +125,15 @@ in
 
   boot.blacklistedKernelModules = [ "mlx5_core" ]; # block mellanox drivers on host to prevent passthrough interference
   
+  networking.firewall = {
+    allowedTCPPorts = [ 67 68 5900 ];
+    allowedUDPPorts = [ 67 68 5900 ];
+    extraCommands = ''
+      iptables -A FORWARD -i br0 -j ACCEPT
+      iptables -A FORWARD -o br0 -j ACCEPT
+    '';
+  };
+
   virtualisation.libvirt = {
     enable = true;
     
@@ -147,10 +156,22 @@ in
                 uuid = "05a1b7c8-d3e4-4f5a-9b2c-6d7e8f9a0b1c";
                 capacity = { count = 1; unit = "GiB"; };
                 target = {
-                  path = "/var/lib/libvirt/images/openwrt.qcow2";
                   format = { 
                     type = "qcow2"; 
                   };
+                };
+              };
+            }
+            {
+              definition = nixvirt.lib.volume.writeXML {
+                name = "home-assistant.qcow2";  # New overlay disk name
+                capacity = { count = 32; unit = "GiB"; };
+                target = {
+                  format = { type = "qcow2"; };
+                };
+                backingStore = {
+                  path = "/var/lib/libvirt/images/haos_ova-14.2.qcow2";
+                  format = { type = "qcow2"; };
                 };
               };
             }
@@ -240,6 +261,89 @@ in
                     };
                   }
                 ];
+              };
+            }
+        );
+        active = true;
+      }
+      {
+        definition = nixvirt.lib.domain.writeXML (
+          let
+            baseTemplate = nixvirt.lib.domain.templates.linux {
+              name = "home-assistant";
+              uuid = "cc7439ed-36af-4696-a6f2-1f0c4454d87e";
+              memory = { count = 512; unit = "MiB"; };
+              storage_vol = { pool = "default"; volume = "home-assistant.qcow2"; };
+            };
+          in
+            baseTemplate // {
+              os = baseTemplate.os // {
+                loader = {
+                  readonly = true;
+                  type = "pflash";
+                  path = "${pkgs.OVMFFull.fd}/FV/OVMF_CODE.fd";
+                };
+                nvram = {
+                  template = "${pkgs.OVMFFull.fd}/FV/OVMF_VARS.fd";
+                  path = "/var/lib/libvirt/qemu/nvram/home-assistant_VARS.fd";
+                };
+                boot = [
+                  { dev = "hd"; }  # Try HD first
+                ];
+              };
+
+              devices = baseTemplate.devices // {
+                interface = {
+                  type = "bridge";
+                  source = { bridge = "br0"; };  # Match your bridge name
+                  model = { type = "virtio"; };
+                };
+
+                disk = [
+                  {
+                    type = "volume";
+                    device = "disk";
+                    driver = {
+                      name = "qemu";
+                      type = "qcow2";
+                      discard = "unmap";
+                    };
+                    source = {
+                      pool = "default";
+                      volume = "home-assistant.qcow2";
+                    };
+                    target = {
+                      dev = "vda";
+                      bus = "virtio";
+                    };
+                    boot_order = 1;  # Make this the first boot device
+                  }
+                ];
+
+                # Add to existing device types
+                # disk = baseTemplate.devices.disk ++ [{}];
+                
+                # Add new device types
+                graphics =  [{
+                  type = "vnc";
+                  listen = { type="address"; address = "127.0.0.1"; passwd = "123"; };  # Listen on all interfaces
+                  port = 5900;
+                  # gl = { enable = false; };
+                }
+                {
+                  type = "spice";
+                  listen = { type="address"; address = "127.0.0.1"; };
+                  autoport = true;
+                  image_compression = { compression = true; };
+                }];
+                video = {
+                  model = {
+                    type =  "virtio";
+                    vram = 32768;
+                    heads = 1;
+                    primary = true;
+                  };
+                };
               };
             }
         );
