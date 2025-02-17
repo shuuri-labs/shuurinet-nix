@@ -19,6 +19,7 @@ in
   # -------------------------------- HOST VARIABLES --------------------------------
   # See /options-host
 
+
   host.vars = {
     network = {
       config = {
@@ -28,6 +29,7 @@ in
         unmanagedInterfaces = config.host.vars.network.config.interfaces ++ [ config.host.vars.network.config.bridge "eno2" ];
         subnet = config.homelab.networks.subnets.bln; # see /options-homelab/networks.nix 
         hostIdentifier = "10";
+        hostAddress6 = "${config.host.vars.network.config.subnet.ipv6}:${config.host.vars.network.config.hostIdentifier}";
       };
 
       staticIpConfig.enable = true;

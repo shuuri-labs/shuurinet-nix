@@ -26,6 +26,7 @@ in
         unmanagedInterfaces = config.host.vars.network.config.interfaces ++ [ config.host.vars.network.config.bridge ];
         subnet = config.homelab.networks.subnets.ldn; # see /options-homelab/networks.nix 
         hostIdentifier = "10";
+        hostAddress6 = "${config.host.vars.network.config.subnet.ipv6}:${config.host.vars.network.config.hostIdentifier}";
       };
 
       staticIpConfig.enable = true;
