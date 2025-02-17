@@ -23,7 +23,7 @@ in
       };
       "ldn" = {
         ipv4 = "10.11.20";
-        ipv6 = " fd20:e376:b0a4"; # TODO: change from link local
+        ipv6 = " fe80::d6da:21ff:fe75"; # TODO: change from link local
         gateway = "${config.homelab.networks.subnets.ldn.ipv4}.1";
         gateway6 = "${config.homelab.networks.subnets.ldn.ipv6}::1";
       };

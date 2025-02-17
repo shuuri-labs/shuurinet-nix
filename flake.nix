@@ -90,6 +90,23 @@
           inputs.vpn-confinement.nixosModules.default
           inputs.nixvirt.nixosModules.default
         ];
+
+        "ludicolo" = mkNix "ludicolo" [
+          ./modules/homepage-dashboard
+          ./modules/zfs
+          ./modules/hdd-spindown
+          ./modules/intel-graphics
+          ./modules/power-saving
+          ./modules/intel-virtualization
+          ./modules/media-server
+          ./modules/smb-provisioner
+          ./modules/disk-care
+          ./modules/iperf
+          ./modules/uefi-boot
+          ./modules/monitoring
+          inputs.vpn-confinement.nixosModules.default
+          inputs.nixvirt.nixosModules.default
+        ];
       };
     };
 }
