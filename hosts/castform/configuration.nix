@@ -126,8 +126,8 @@ in
   boot.blacklistedKernelModules = [ "mlx5_core" ]; # block mellanox drivers on host to prevent passthrough interference
   
   networking.firewall = {
-    allowedTCPPorts = [ 67 68 5900 ];
-    allowedUDPPorts = [ 67 68 5900 ];
+    allowedTCPPorts = [ 67 68 5900 5901 ];
+    allowedUDPPorts = [ 67 68 5900 5901 ];
     extraCommands = ''
       iptables -A FORWARD -i br0 -j ACCEPT
       iptables -A FORWARD -o br0 -j ACCEPT
@@ -149,33 +149,34 @@ in
             };
           };
           active = true;
-          volumes = [
-            {
-              definition = nixvirt.lib.volume.writeXML {
-                name = "openwrt.qcow2";
-                uuid = "05a1b7c8-d3e4-4f5a-9b2c-6d7e8f9a0b1c";
-                capacity = { count = 1; unit = "GiB"; };
-                target = {
-                  format = { 
-                    type = "qcow2"; 
-                  };
-                };
-              };
-            }
-            {
-              definition = nixvirt.lib.volume.writeXML {
-                name = "home-assistant.qcow2";  # New overlay disk name
-                capacity = { count = 32; unit = "GiB"; };
-                target = {
-                  format = { type = "qcow2"; };
-                };
-                backingStore = {
-                  path = "/var/lib/libvirt/images/haos_ova-14.2.qcow2";
-                  format = { type = "qcow2"; };
-                };
-              };
-            }
-          ];
+          # volumes = [
+            # {
+            #   definition = nixvirt.lib.volume.writeXML {
+            #     name = "openwrt.qcow2";
+            #     capacity = { count = 1; unit = "GiB"; };
+            #     target = {
+            #       format = { type = "qcow2"; };
+            #     };
+            #     backingStore = {
+            #       path = "/var/lib/libvirt/images/openwrt-24.10.0-x86-64-generic-ext4-combined-efi.raw";
+            #       format = { type = "raw"; };
+            #     };
+            #   };
+            # }
+            # {
+            #   definition = nixvirt.lib.volume.writeXML {
+            #     name = "home-assistant.qcow2";  # New overlay disk name
+            #     capacity = { count = 32; unit = "GiB"; };
+            #     target = {
+            #       format = { type = "qcow2"; };
+            #     };
+            #     backingStore = {
+            #       path = "/var/lib/libvirt/images/haos_ova-14.2.qcow2";
+            #       format = { type = "qcow2"; };
+            #     };
+            #   };
+            # }
+          # ];
         }
       ];
 
@@ -190,19 +191,6 @@ in
       #   );
       #   active = true;
       # }];
-
-      # networks = [{
-      #   definition = nixvirt.lib.network.writeXML {
-      #     name = "physical";
-      #     uuid = "27ca47f3-2490-4d1e-9d7e-2b9c1d3d7374";
-      #     bridge = {
-      #       name = "br0";  # Match your bridge name from step 1
-      #       stp = true;
-      #       delay = 0;
-      #     };
-      #   };
-      #   active = true;
-      # }];
       
       domains = [{
         definition = nixvirt.lib.domain.writeXML (
@@ -211,24 +199,58 @@ in
               name = "openwrt";
               uuid = "cc7439ed-36af-4696-a6f2-1f0c4474d87e";
               memory = { count = 256; unit = "MiB"; };
-              storage_vol = { pool = "default"; volume = "openwrt.qcow2"; };
+              storage_vol = null;
             };
           in
             baseTemplate // {
+              vcpu = {
+                count = 2;
+              };
+              
+              os = baseTemplate.os // {
+                loader = {
+                  readonly = true;
+                  type = "pflash";
+                  path = "${pkgs.OVMFFull.fd}/FV/OVMF_CODE.fd";
+                };
+                nvram = {
+                  template = "${pkgs.OVMFFull.fd}/FV/OVMF_VARS.fd";
+                  path = "/var/lib/libvirt/qemu/nvram/openwrt_VARS.fd";
+                };
+                boot = [{ dev = "hd"; }];
+              };
+
               devices = baseTemplate.devices // {
+                disk = [{
+                  type = "volume";
+                  device = "disk";
+                  driver = {
+                    name = "qemu";
+                    type = "raw";
+                    cache = "none";
+                    discard = "unmap";
+                  };
+                  source = {
+                    pool = "default";
+                    volume = "openwrt-24.10.0-x86-64-generic-ext4-combined-efi.raw";
+                  };
+                  target = {
+                    dev = "vda";
+                    bus = "virtio";
+                  };
+                  boot = { order = 1; };
+                }];
+
                 interface = {
                   type = "bridge";
-                  source = { bridge = "br0"; };  # Match your bridge name
+                  source = { bridge = "br0"; };
                   model = { type = "virtio"; };
                 };
 
-                # Add to existing device types
-                # disk = baseTemplate.devices.disk ++ [{}];
-                
-                # Add new device types
                 serial = [{
                   type = "pty";
                 }];
+
                 console = [{
                   type = "pty";
                   target = {
@@ -236,6 +258,33 @@ in
                     port = 0;
                   };
                 }];
+
+                graphics = [
+                  {
+                    type = "vnc";
+                    listen = { type = "address"; address = "127.0.0.1"; };
+                    port = 5900;
+                    attrs = {
+                      passwd = "changeme";
+                    };
+                  }
+                  {
+                    type = "spice";
+                    listen = { type = "address"; address = "127.0.0.1"; };
+                    autoport = true;
+                    image = { compression = false; };
+                    gl = { enable = false; };
+                  }
+                ];
+
+                video = {
+                  model = {
+                    type = "virtio";
+                    vram = 32768;
+                    heads = 1;
+                    primary = true;
+                  };
+                };
 
                 hostdev = [
                   {
@@ -272,11 +321,15 @@ in
             baseTemplate = nixvirt.lib.domain.templates.linux {
               name = "home-assistant";
               uuid = "cc7439ed-36af-4696-a6f2-1f0c4454d87e";
-              memory = { count = 512; unit = "MiB"; };
-              storage_vol = { pool = "default"; volume = "home-assistant.qcow2"; };
+              memory = { count = 512; unit = "MiB"; }; 
+              storage_vol = null;
             };
           in
             baseTemplate // {
+              vcpu = {
+                count = 2;
+              };
+
               os = baseTemplate.os // {
                 loader = {
                   readonly = true;
@@ -287,58 +340,73 @@ in
                   template = "${pkgs.OVMFFull.fd}/FV/OVMF_VARS.fd";
                   path = "/var/lib/libvirt/qemu/nvram/home-assistant_VARS.fd";
                 };
-                boot = [
-                  { dev = "hd"; }  # Try HD first
-                ];
+                boot = [{ dev = "hd"; }];
               };
 
               devices = baseTemplate.devices // {
+                serial = [{
+                  type = "pty";
+                }];
+                console = [{
+                  type = "pty";
+                  target = {
+                    type = "serial";
+                    port = 0;
+                  };
+                }];
+
+                controller = [{
+                  type = "scsi";
+                  model = "virtio-scsi";
+                }];
+
+                disk = [{
+                  type = "volume";
+                  device = "disk";
+                  driver = {
+                    name = "qemu";
+                    type = "qcow2";
+                    cache = "none";
+                    discard = "unmap";
+                  };
+                  source = {
+                    pool = "default";
+                    volume = "haos_ova-14.2-2.qcow2";
+                  };
+                  target = {
+                    dev = "sda";
+                    bus = "scsi";
+                  };
+                  boot = { order = 1; };
+                }];
+
                 interface = {
                   type = "bridge";
-                  source = { bridge = "br0"; };  # Match your bridge name
+                  source = { bridge = "br0"; };
                   model = { type = "virtio"; };
                 };
 
-                disk = [
+                graphics = [
                   {
-                    type = "volume";
-                    device = "disk";
-                    driver = {
-                      name = "qemu";
-                      type = "qcow2";
-                      discard = "unmap";
+                    type = "vnc";
+                    listen = { type = "address"; address = "127.0.0.1"; };
+                    port = 5901;
+                    attrs = {
+                      passwd = "changeme";
                     };
-                    source = {
-                      pool = "default";
-                      volume = "home-assistant.qcow2";
-                    };
-                    target = {
-                      dev = "vda";
-                      bus = "virtio";
-                    };
-                    boot_order = 1;  # Make this the first boot device
+                  }
+                  {
+                    type = "spice";
+                    listen = { type = "address"; address = "127.0.0.1"; };
+                    autoport = true;
+                    image = { compression = false; };
+                    gl = { enable = false; };
                   }
                 ];
 
-                # Add to existing device types
-                # disk = baseTemplate.devices.disk ++ [{}];
-                
-                # Add new device types
-                graphics =  [{
-                  type = "vnc";
-                  listen = { type="address"; address = "127.0.0.1"; passwd = "123"; };  # Listen on all interfaces
-                  port = 5900;
-                  # gl = { enable = false; };
-                }
-                {
-                  type = "spice";
-                  listen = { type="address"; address = "127.0.0.1"; };
-                  autoport = true;
-                  image_compression = { compression = true; };
-                }];
                 video = {
                   model = {
-                    type =  "virtio";
+                    type = "virtio";
                     vram = 32768;
                     heads = 1;
                     primary = true;
@@ -358,3 +426,21 @@ in
 # sudo virsh console openwrt
 # sudo virsh start openwrt
 # sudo virsh destroy openwrt
+
+# List all pools
+# sudo virsh pool-list
+
+# Refresh the specific pool (in your case, "default")
+# sudo virsh pool-refresh default
+
+# You can also try stopping and starting the pool
+# sudo virsh pool-destroy default
+# sudo virsh pool-start default
+
+# To verify the volume exists
+# sudo virsh vol-list default
+
+#sudo virsh dumpxml home-assistant
+
+
+# ssh -L 5900:127.0.0.1:5900 castform
