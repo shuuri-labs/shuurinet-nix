@@ -2,16 +2,20 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running 'nixos-help').
 
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
 let
   hostCfgVars = config.host.vars;
   secretsAbsolutePath = "/home/ashley/shuurinet-nix/secrets"; 
+
+  themoviedbIp = "18.244.179.36";
 in
 {
   imports = [
     ./hardware-configuration.nix
     ./disk-config.nix
+    ./homepage-config.nix
+    ./samba-config.nix
   ];
 
   # -------------------------------- HOST VARIABLES --------------------------------
@@ -46,8 +50,8 @@ in
   # Bootloader
   host.uefi-boot.enable = true;
 
-  users.users.ashley.password = "changeme"; # uncomment for new install
-  # users.users.ashley.hashedPasswordFile = config.age.secrets.castform-main-user-password.path;
+  # users.users.ashley.password = "changeme"; /* uncomment for new install */
+  users.users.ashley.hashedPasswordFile = config.age.secrets.castform-main-user-password.path;
   
   # -------------------------------- SECRETS --------------------------------
 
@@ -56,7 +60,9 @@ in
     mullvad-wireguard-config.file = "${secretsAbsolutePath}/wg-mullvad.conf.age";
     ashley-samba-user-pw.file = "${secretsAbsolutePath}/samba-ashley-password.age";
     media-samba-user-pw.file = "${secretsAbsolutePath}/samba-media-password.age";
-    dondozo-homepage-vars.file = "${secretsAbsolutePath}/dondozo-homepage-vars.age";
+    ludicolo-homepage-vars.file = "${secretsAbsolutePath}/ludicolo-homepage-vars.age";
+    netbird-management-url.file = "${secretsAbsolutePath}/netbird-management-url.age";
+    ludicolo-netbird-master-setup-key.file = "${secretsAbsolutePath}/ludicolo-netbird-master-setup-key.age";
     
     grafana-admin-password = {
       file = "${secretsAbsolutePath}/grafana-admin-password.age";
@@ -116,6 +122,11 @@ in
   # -------------------------------- HOSTED SERVICES --------------------------------
 
   # Media Server
+  # (jellyfin metadata) ldn ipv6 tunnel (Hurricane Electric) can't connect for some reason, so force IPv4
+  networking.extraHosts = ''
+    ${themoviedbIp} themoviedb.org api.themoviedb.org
+  '';
+  
   mediaServer.enable = true;
   mediaServer.vpnConfinement.wireguardConfigFile = config.age.secrets.mullvad-wireguard-config.path; 
   mediaServer.vpnConfinement.lanSubnet = hostCfgVars.network.config.subnet.ipv4;
@@ -128,4 +139,147 @@ in
   mediaServer.services.downloadDir = hostCfgVars.storage.directories.downloads; 
   mediaServer.services.downloadDirAccessGroup = hostCfgVars.storage.accessGroups.downloads.name;
   mediaServer.services.mediaDirAccessGroup = hostCfgVars.storage.accessGroups.media.name;
+
+  # -------------------------------- VMs --------------------------------
+
+  # virtualisation.libvirt = {
+  #   enable = true;
+    
+  #   connections."qemu:///system" = {
+  #     pools = [
+  #       {
+  #         definition = nixvirt.lib.pool.writeXML {
+  #           name = "default";
+  #           uuid = "4acdd24f-9649-4a24-8739-277c822c6639";
+  #           type = "dir";
+  #           target = {
+  #             path = "/var/lib/libvirt/images";
+  #           };
+  #         };
+  #         active = true;
+  #         # volumes = [
+  #           # {
+  #           # }
+  #         # ];
+  #       }
+  #     ];
+      
+  #     domains = [{
+  #       definition = nixvirt.lib.domain.writeXML (
+  #         let
+  #           baseTemplate = nixvirt.lib.domain.templates.linux {
+  #             name = "home-assistant";
+  #             uuid = "2f8b3a91-c5d7-4e82-b9f3-6a0d5c8f1e4d";
+  #             memory = { count = 512; unit = "MiB"; }; 
+  #             storage_vol = null;
+  #           };
+  #         in
+  #           baseTemplate // {
+  #             vcpu = {
+  #               count = 2;
+  #             };
+
+  #             os = baseTemplate.os // {
+  #               loader = {
+  #                 readonly = true;
+  #                 type = "pflash";
+  #                 path = "${pkgs.OVMFFull.fd}/FV/OVMF_CODE.fd";
+  #               };
+  #               nvram = {
+  #                 template = "${pkgs.OVMFFull.fd}/FV/OVMF_VARS.fd";
+  #                 path = "/var/lib/libvirt/qemu/nvram/home-assistant_VARS.fd";
+  #               };
+  #               boot = [{ dev = "hd"; }];
+  #             };
+
+  #             devices = baseTemplate.devices // {
+  #               serial = [{
+  #                 type = "pty";
+  #               }];
+  #               console = [{
+  #                 type = "pty";
+  #                 target = {
+  #                   type = "serial";
+  #                   port = 0;
+  #                 };
+  #               }];
+
+  #               controller = [{
+  #                 type = "scsi";
+  #                 model = "virtio-scsi";
+  #               }];
+
+  #               disk = [{
+  #                 type = "volume";
+  #                 device = "disk";
+  #                 driver = {
+  #                   name = "qemu";
+  #                   type = "qcow2";
+  #                   cache = "none";
+  #                   discard = "unmap";
+  #                 };
+  #                 source = {
+  #                   pool = "default";
+  #                   volume = "haos_ova-14.2-2.qcow2";
+  #                 };
+  #                 target = {
+  #                   dev = "sda";
+  #                   bus = "scsi";
+  #                 };
+  #                 boot = { order = 1; };
+  #               }];
+
+  #               interface = {
+  #                 type = "bridge";
+  #                 source = { bridge = "br0"; };
+  #                 model = { type = "virtio"; };
+  #               };
+
+  #               graphics = [
+  #                 {
+  #                   type = "vnc";
+  #                   listen = { type = "address"; address = "127.0.0.1"; };
+  #                   port = 5901;
+  #                   attrs = {
+  #                     passwd = "changeme";
+  #                   };
+  #                 }
+  #                 {
+  #                   type = "spice";
+  #                   listen = { type = "address"; address = "127.0.0.1"; };
+  #                   autoport = true;
+  #                   image = { compression = false; };
+  #                   gl = { enable = false; };
+  #                 }
+  #               ];
+
+  #               video = {
+  #                 model = {
+  #                   type = "virtio";
+  #                   vram = 32768;
+  #                   heads = 1;
+  #                   primary = true;
+  #                 };
+  #               };
+  #             };
+  #           }
+  #       );
+  #       active = true;
+  #     }];
+  #   };
+  # };
+
+  netbird.router = {
+    enable = true;
+    hostInterface = hostCfgVars.network.config.bridge;
+    hostSubnet = hostCfgVars.network.config.subnet.ipv4;
+    managementUrlPath = config.age.secrets.netbird-management-url.path;
+    
+    peers = {
+      master = {
+        enable = lib.mkForce true;
+        setupKey = config.age.secrets.ludicolo-netbird-master-setup-key.path;
+      };
+    };
+  };
 }

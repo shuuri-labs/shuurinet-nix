@@ -76,7 +76,6 @@ in
       enable = true;
       address = "0.0.0.0";
       passwordFile = cfg.passwordFile;
-      mediaDir = cfg.paths.paperlessMediaDir;
       consumptionDir = cfg.paths.paperlessConsumeDir;
 
       settings = {

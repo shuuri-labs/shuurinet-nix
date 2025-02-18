@@ -1,0 +1,33 @@
+{config, lib, ...}:
+
+let
+  hostCfgVars = config.host.vars;
+in
+{
+  sambaProvisioner.hostName = hostCfgVars.network.config.hostName;
+  sambaProvisioner.hostIp = "${hostCfgVars.network.config.hostAddress}/32";
+  sambaProvisioner.users = [
+    { name = "ashley"; 
+      passwordFile = config.age.secrets.ashley-samba-user-pw.path; 
+    }
+    # { 
+    #   name = "media"; 
+    #   passwordFile = config.age.secrets.media-samba-user-pw.path; 
+    #   createHostUser = true; # samba needs a user to exist for the samba users to be created
+    #   extraGroups = [ hostCfgVars.storage.accessGroups.media.name ]; 
+    # } 
+  ];
+
+  services.samba.settings = {
+    ludicolo-rust = {
+      browseable = "yes";
+      comment = "${hostCfgVars.network.config.hostName} Rust Pool";
+      "guest ok" = "no";
+      path = hostCfgVars.storage.paths.bulkStorage;
+      writable = "yes";
+      public = "yes";
+      "read only" = "no";
+      "valid users" = "ashley"; # todo: dynamic based on user definitions above
+    };
+  };
+}

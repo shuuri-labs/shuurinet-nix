@@ -19,13 +19,13 @@ in
         ipv4 = "192.168.11";
         ipv6 = "fd8f:2e0e:4eed";
         gateway = "${config.homelab.networks.subnets.bln.ipv4}.1";
-        gateway6 = "${config.homelab.networks.subnets.bln.ipv6}::1";
+        gateway6 = "fe80::be24:11ff:fee6:113b";
       };
       "ldn" = {
         ipv4 = "10.11.20";
-        ipv6 = " fe80::d6da:21ff:fe75"; # TODO: change from link local
+        ipv6 = "fe80::d6da:21ff:fe75:37d"; # TODO: change from link local
         gateway = "${config.homelab.networks.subnets.ldn.ipv4}.1";
-        gateway6 = "${config.homelab.networks.subnets.ldn.ipv6}::1";
+        gateway6 = "fe80::d6da:21ff:fe75:37d";
       };
       "tats" = {
         ipv4 = "192.168.178";

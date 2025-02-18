@@ -1,4 +1,5 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, stateVersion, ... }:
+
 {
   options.common.systemConfig = {
     sshKeys = lib.mkOption {
@@ -11,7 +12,7 @@
   };
 
   config = {
-    system.stateVersion = "24.11";
+    system.stateVersion = stateVersion;
     nix.settings.experimental-features = [ "nix-command" "flakes" ];
     networking.firewall.enable = true;
     

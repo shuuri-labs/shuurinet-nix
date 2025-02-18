@@ -5,7 +5,7 @@ let
 in
 {
   services.homepage-dashboard = {
-    environmentFile = config.age.secrets.dondozo-homepage-vars.path;
+    environmentFile = config.age.secrets.ludicolo-homepage-vars.path;
     settings = {
       title = "${hostCfgVars.network.config.hostName} dashboard";
       layout = [ 
@@ -18,9 +18,6 @@ in
         {
           Downloads = { style = "row"; columns = 1; };
         }
-        {
-          Documents = { style = "row"; columns = 1; };
-        }
       ];
       statusStyle = "dot";
     };
@@ -28,7 +25,7 @@ in
       {
         resources = {
           cpu = true;
-          disk = [ "/" hostCfgVars.storage.paths.bulkStorage hostCfgVars.storage.paths.fastStorage hostCfgVars.storage.paths.editingStorage ];
+          disk = [ "/" hostCfgVars.storage.paths.bulkStorage ];
           memory = true;
           units = "metric";
           uptime = true;
@@ -103,7 +100,7 @@ in
           {
             Transmission = {
               icon = "transmission.png";
-              href = "http://192.168.11.10:9091";
+              href = "http://10.11.20.10:9091";
               siteMonitor = "http://192.168.15.1:9091";
               widget = {
                 type = "transmission";
@@ -116,24 +113,6 @@ in
       {
         Monitoring = [
           {
-            "Power Usage" = {
-              icon = "home-assistant.png";
-              href = "http://10.10.33.231";
-              siteMonitor = "http://192.168.11.127:8123";
-              widget = {
-                type = "homeassistant";
-                url = "http://192.168.11.127:8123";
-                key = "{{HOMEPAGE_VAR_HOMEASSISTANT_API_KEY}}";
-                custom = [
-                  {
-                    state = "sensor.server_plug_switch_0_power";
-                    label = "Server Plug";
-                  }
-                ];
-              };
-            };
-          }
-          {
             Grafana = {
               icon = "grafana.png";
               href = "http://${hostCfgVars.network.config.hostAddress}:${toString config.monitoring.grafana.port}";
@@ -143,23 +122,6 @@ in
                 url = "http://${hostCfgVars.network.config.hostAddress}:${toString config.monitoring.grafana.port}";
                 username = "admin";
                 # password = "{{HOMEPAGE_VAR_GRAFANA_PASSWORD}}"; # TODO: fix; don't forget to change environment variable
-              };
-            };
-          }
-        ];
-      }
-      {
-        Documents = [
-          {
-            Paperless = {
-              icon = "paperless.png";
-              href = "http://${hostCfgVars.network.config.hostAddress}:28981";
-              siteMonitor = "http://${hostCfgVars.network.config.hostAddress}:28981";
-              description = "Document Management";
-              widget = {
-                type = "paperlessngx";
-                url = "http://${hostCfgVars.network.config.hostAddress}:28981";
-                key = "{{HOMEPAGE_VAR_PAPERLESS_API_KEY}}"; 
               };
             };
           }
