@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, stateVersion, ... }:
 
 let
   inherit (lib) mkOption types;
@@ -16,7 +16,7 @@ in
 
   config = {
     nix.settings.experimental-features = [ "nix-command" "flakes" ];
-    system.stateVersion = "24.11";
+    system.stateVersion = stateVersion;
 
     security.sudo.enable = true;
 

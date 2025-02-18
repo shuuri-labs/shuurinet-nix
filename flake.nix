@@ -15,7 +15,7 @@
   };
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11"; # update flakeHelper.nix stateVersion to match
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
 
     # nix-darwin = {
@@ -104,6 +104,7 @@
           ./modules/iperf
           ./modules/uefi-boot
           ./modules/monitoring
+          ./modules/netbird/router
           inputs.vpn-confinement.nixosModules.default
           inputs.nixvirt.nixosModules.default
         ];

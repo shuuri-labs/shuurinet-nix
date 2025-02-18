@@ -62,7 +62,7 @@ in
       enable = true;
       wireguardConfigFile = cfg.wireguardConfigFile;
       accessibleFrom = [
-        "192.168.0.0/16"
+        "${cfg.lanSubnet}.0/24"
       ];
       portMappings = [
         { from = 9091; to = 9091; protocol = "tcp"; } # transmission

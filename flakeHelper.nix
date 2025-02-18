@@ -2,7 +2,7 @@ inputs:
 let
   mkHostPath = hostName: ./hosts/${hostName}/configuration.nix;
 
-  commonConfig = { config, pkgs, inputs, ... }: {
+  commonConfig = { config, pkgs, inputs, stateVersion, ... }: {
     nixpkgs.config.allowUnfree = true;
     
     environment.systemPackages = [
@@ -10,12 +10,21 @@ let
       inputs.home-manager.packages."${pkgs.system}".default
     ];
 
+    nixpkgs.overlays = [
+      (final: prev: {
+        netbird = inputs.nixpkgs-unstable.legacyPackages.${prev.system}.netbird;
+      })
+    ];
+
     home-manager = {
       useGlobalPkgs = true;
       useUserPackages = true;
       users.ashley = import ./home.nix;
+      extraSpecialArgs = { inherit stateVersion; };
     };
   };
+
+  stateVersion = "24.11";
 in
 {
   mkNix = hostName: extraModules: inputs.nixpkgs.lib.nixosSystem {
@@ -23,6 +32,7 @@ in
     
     specialArgs = {
       inherit inputs;
+      stateVersion = stateVersion;
     };
 
     modules = [
@@ -44,6 +54,7 @@ in
     
     specialArgs = {
       inherit inputs;
+      stateVersion = stateVersion;
     };
 
     modules = [ 

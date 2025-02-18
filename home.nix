@@ -1,11 +1,21 @@
-{ config, pkgs, ... }:
+{ config, pkgs, stateVersion, ... }:
 
 {
+  # Let home Manager install and manage itself.
+  programs.home-manager.enable = true;
+  # set version to system stateVersion defined in flakeHelper.nix
+  home.stateVersion = stateVersion;
+
   home.username = "ashley";
   home.homeDirectory = "/home/ashley";
 
-  # Let home Manager install and manage itself.
-  programs.home-manager.enable = true;
+  home.sessionVariables = {
+    EDITOR = "nano";
+  };
+
+  home.packages = with pkgs; [
+    home-manager
+  ];
 
   programs.bash = {
     enable = true;
@@ -17,6 +27,7 @@
       lservices = "systemctl list-units --type=service --state=running";
       laservices = "systemctl list-units --type=service";
       igtop = "nix-shell -p intel-gpu-tools --run \"sudo intel_gpu_top\"";
+      container-login = "sudo nixos-container root-login";
       dhealth = ''
         #!/bin/bash
 
@@ -39,15 +50,4 @@
     userName = "Ashley Mensah";
     userEmail = "mail@shuurilabs.com";
   };
-
-  home.sessionVariables = {
-    EDITOR = "nano";
-  };
-
-  home.stateVersion = "24.11";
-
-  home.packages = with pkgs; [
-    netbird
-    home-manager
-  ];
 }
