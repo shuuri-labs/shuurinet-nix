@@ -52,6 +52,10 @@ in
   host.uefi-boot.enable = true;
 
   users.users.ashley.hashedPasswordFile = config.age.secrets.castform-main-user-password.path;
+
+  environment.systemPackages = with pkgs; [
+    openseachest
+  ];
   
   # -------------------------------- SECRETS --------------------------------
 
