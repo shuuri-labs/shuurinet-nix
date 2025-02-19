@@ -45,6 +45,14 @@ in
 
   # -------------------------------- SYSTEM CONFIGURATION --------------------------------
 
+  # Realtek 8168/8111/8169 NICs - blacklist r8169 driver and enable r8168 driver
+  
+  # boot.kernelPackages =lib.mkForce pkgs.linuxPackages_6_1;
+  # boot.extraModulePackages = [ config.boot.kernelPackages.r8168 ];
+  # boot.kernelModules = [ "r8168" ];
+  # boot.blacklistedKernelModules = [ "r8169" ];
+  # nixpkgs.config.allowBroken = true;
+
   time.timeZone = "Europe/London";
 
   # Bootloader
@@ -139,6 +147,15 @@ in
   mediaServer.services.downloadDir = hostCfgVars.storage.directories.downloads; 
   mediaServer.services.downloadDirAccessGroup = hostCfgVars.storage.accessGroups.downloads.name;
   mediaServer.services.mediaDirAccessGroup = hostCfgVars.storage.accessGroups.media.name;
+
+  # -------------------------------- FRIGATE --------------------------------
+
+  frigate = {
+    enable = true;
+    mediaDir = "${hostCfgVars.storage.paths.bulkStorage}/nvr/media";
+    mainUser = "ashley";
+    configFile = builtins.readFile ./frigate/config.yml;
+  };
 
   # -------------------------------- VMs --------------------------------
 
@@ -268,6 +285,8 @@ in
   #     }];
   #   };
   # };
+
+  # -------------------------------- VPNs & REMOTE ACCESS --------------------------------
 
   netbird.router = {
     enable = true;
