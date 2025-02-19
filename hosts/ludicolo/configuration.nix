@@ -7,9 +7,6 @@
 let
   hostCfgVars = config.host.vars;
   secretsAbsolutePath = "/home/ashley/shuurinet-nix/secrets"; 
-
-  # fetch ip via dig
-  themoviedbIp = "";
 in
 {
   imports = [
