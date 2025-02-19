@@ -7,9 +7,15 @@ in
   options.frigate = {
     enable = lib.mkEnableOption "frigate";
 
+    host.nvrMediaStorage = lib.mkOption {
+      type = lib.types.str;
+      description = "Path to the host's media storage volume. Normally bulk storage root file path.";
+    };
+
     mediaDir = lib.mkOption {
       type = lib.types.str;
-      default = "/var/podman/volumes/frigate/media";
+      description = "Path to the media storage. Normally bulk storage root file path.";
+      default = "${cfg.host.nvrMediaStorage}/media";
     };
 
     configDir = lib.mkOption {
@@ -31,6 +37,12 @@ in
       type = lib.types.str;
       description = "Content of the Frigate configuration file";
     };
+
+    password = lib.mkOption {
+      type = lib.types.str;
+      description = "Password for the Frigate web UI";
+      default = "changme";
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -47,38 +59,50 @@ in
       };
     };
 
-    # Ensure the directories exist and set c
-    systemd.tmpfiles.rules = [
-      "d ${cfg.mediaDir} 0755 ${cfg.mainUser} ${cfg.nvrMediaAccessGroup} -"
-      "d ${cfg.configDir} 0755 root root -"
-      "d ${cfg.configDir}/config.yaml 0777 root root -"
-      "z ${cfg.mediaDir} 0755 ${cfg.mainUser} ${cfg.nvrMediaAccessGroup} -"
-      "z ${cfg.configDir} 0755 root root -"
-      "z ${cfg.configDir}/config.yaml 0777 root root -"
-    ];
+    # Ensure the directorie/files exist and set permissions
+    systemd.services.frigate-setup = {
+      description = "Setup Frigate directories, config file and permissions";
+      wantedBy = [ "multi-user.target" ];
+      before = [ "podman-frigate.service" ];
+      
+      # Run before podman but after filesystems are mounted
+      after = [ "local-fs.target" ];
+      
+      # Run once at startup
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+      };
 
-    systemd.services.podman-frigate = {
-      aliases = [ "frigate.service" ];
-      preStart = ''
-        # Ensure config directory exists
+      script = ''
+        mkdir -p ${cfg.mediaDir}
         mkdir -p ${cfg.configDir}
         
-        # Only copy config if it doesn't exist at destination
+        # Set permissions recursively
+        chmod -R 0755 ${cfg.host.nvrMediaStorage}
+        chmod -R 0755 ${cfg.configDir}
+        
+        # Set ownership recursively
+        chown -R root:root ${cfg.host.nvrMediaStorage}
+        chown -R root:root ${cfg.configDir}
+
+        # Only copy config file if it doesn't exist at destination
         if [ ! -f ${cfg.configDir}/config.yaml ]; then
           echo "No config file found, copying default config..."
           cp ${pkgs.writeText "frigate-config.yaml" cfg.configFile} ${cfg.configDir}/config.yaml
-          # Set initial permissions
-          chown root:${cfg.nvrMediaAccessGroup} ${cfg.configDir}/config.yaml
-          chmod 644 ${cfg.configDir}/config.yaml
+          chown root:root ${cfg.configDir}/config.yaml
+          chmod 755 ${cfg.configDir}/config.yaml
         fi
       '';
     };
+
+    systemd.services."podman-frigate".requires = [ "frigate-setup.service" ];
 
     virtualisation.oci-containers = {
       containers.frigate = {
         image = "ghcr.io/blakeblackshear/frigate:stable";
         environment = {
-          # FRIGATE_RTSP_PASSWORD = "changme";  # Replace with actual password
+          FRIGATE_RTSP_PASSWORD = cfg.password;
           TZ = config.time.timeZone;
         };
         volumes = [
@@ -87,56 +111,34 @@ in
         ];
         ports = [
           "8971:8971"
-          "127.0.0.1:5001:5000" # Internal unauthenticated access. Expose carefully.
+          "127.0.0.1:5001:5000" # Internal unauthenticated access. For host-local API access only
           "8554:8554" # RTSP feeds
           "8555:8555/tcp" # WebRTC over tcp
           "8555:8555/udp" # WebRTC over udp
         ];
         extraOptions = [
           "--device=/dev/dri/renderD128:/dev/dri/renderD128"
-          "--device=/dev/dri/card0:/dev/dri/card0"
-          "--shm-size=500m"
+          "--device=/dev/dri/card1:/dev/dri/card1"
+          "--shm-size=400m"
           "--tmpfs=/tmp/cache:rw,size=1000000000"
         ];
         autoStart = true;
       };
     };
 
-    # environment.systemPackages = with pkgs; [
-    #   (writeShellScriptBin "frigate-logs" ''
-    #     exec ${pkgs.podman}/bin/podman logs -f frigate
-    #   '')
-    #   (writeShellScriptBin "frigate-status" ''
-    #     echo "Container Status:"
-    #     ${pkgs.podman}/bin/podman ps -f name=frigate
-    #     echo -e "\nContainer Details:"
-    #     ${pkgs.podman}/bin/podman inspect frigate
-    #   '')
-    # ];
-
-    networking.firewall.allowedTCPPorts = [ 8971 /* 5001 */ 8554 8555 ];
+    networking.firewall.allowedTCPPorts = [ 8971 8554 8555 ];
     networking.firewall.allowedUDPPorts = [ 8554 8555 ];
   };
 }
 
-/* 
-
 # Stop the container
-sudo systemctl stop frigate
+# sudo systemctl stop frigate
+
 
 # Remove the container
-sudo podman rm -f frigate
+# sudo podman rm -f frigate
 
-# Remove the container's volumes/data
-sudo rm -rf /var/lib/containers/storage/volumes/frigate
-sudo rm -rf /var/lib/frigate  # If this directory exists
-sudo rm -rf ${hostCfgVars.storage.paths.bulkStorage}/nvr/media/*  # Be careful with this one - it will delete all recorded media
+# Enter container shell
+# sudo podman exec -it frigate /bin/bash
 
-# Remove any remaining container storage
-sudo podman volume rm -f frigate
-sudo podman system prune -f  # This removes all unused containers, networks, and images
 
-# Start fresh
-sudo systemctl start frigate
-
-*/
