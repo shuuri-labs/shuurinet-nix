@@ -105,6 +105,7 @@
           ./modules/uefi-boot
           ./modules/monitoring
           ./modules/netbird/router
+          ./modules/frigate
           inputs.vpn-confinement.nixosModules.default
           inputs.nixvirt.nixosModules.default
         ];

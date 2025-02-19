@@ -13,6 +13,9 @@ in
           Monitoring = { style = "row"; columns = 2; };
         }
         {
+          "Home & Security" = { style = "row"; columns = 2; };
+        }
+        {
           Media = { style = "row"; columns = 2; };
         }
         {
@@ -39,6 +42,34 @@ in
       }
     ];
     services = [
+      {
+        "Home & Security" = [
+          {
+            "Home Assistant" = {
+              icon = "home-assistant.png";
+              href = "http://${hostCfgVars.network.config.hostAddress}:8123";
+              widget = {
+                type = "homeassistant";
+                url = "http://${hostCfgVars.network.config.hostAddress}:8123";
+                key = "{{HOMEPAGE_VAR_HOME_ASSISTANT_API_KEY}}";
+              };
+            };
+          }
+          {
+            "Frigate" = {
+              icon = "frigate.png";
+              href = "https://${hostCfgVars.network.config.hostAddress}:8971";
+              siteMonitor = "http://127.0.0.1:5001";
+              description = "Home Security";
+              widget = {
+                type = "frigate";
+                url = "http://127.0.0.1:5001";
+                enableRecentEvents = true;
+              };
+            };
+          }
+        ];
+      }
       {
         Media = [
           {

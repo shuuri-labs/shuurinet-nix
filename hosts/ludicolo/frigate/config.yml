@@ -1,0 +1,86 @@
+mqtt:
+  enabled: false
+
+cameras:
+  front_camera:
+    enabled: true
+    ffmpeg:
+      hwaccel_args: preset-vaapi
+      inputs:
+        - path: rtsp://192.168.1.10:554/rtsp
+          roles:
+            - detect
+    detect:
+      width: 1280
+      height: 720
+      fps: 5
+    objects:
+      track:
+        - person
+        - umbrella
+
+    motion:
+      mask:
+        - 0.996,0.944,0.974,0.964,0.946,0.972,0.923,0.992,0.894,0.999,0.875,0.992,0.854,0.958,0.833,0.939,0.824,0.915,0.806,0.884,0.782,0.837,0.769,0.796,0.753,0.772,0.751,0.745,0.746,0.71,0.74,0.665,0.721,0.667,0.697,0.681,0.685,0.664,0.668,0.656,0.659,0.635,0.672,0.606,0.685,0.564,0.688,0.528,0.688,0.484,0.688,0.439,0.664,0.439,0.65,0.429,0.65,0.393,0.667,0.372,0.657,0.342,0.657,0.311,0.676,0.272,0.702,0.257,0.698,0.236,0.698,0.211,0.699,0.183,0.688,0.17,0.67,0.121,0.672,0.09,0.67,0.076,0.655,0.056,0.639,0.002,1,0.001,1,0.941
+        - 0.002,0.371,0.191,0.366,0.241,0.36,0.313,0.363,0.345,0.36,0.389,0.261,0.407,0.221,0.431,0.164,0.444,0.131,0.471,0.102,0.492,0.078,0.507,0.052,0.541,0.028,0.557,0.017,0.562,0,0.003,0.001
+      threshold: 35
+      contour_area: 10
+      improve_contrast: true
+  side_camera:
+    enabled: true
+    ffmpeg:
+      hwaccel_args: preset-vaapi
+      inputs:
+        - path: rtsp://192.168.1.11:554/rtsp
+          roles:
+            - detect
+    detect:
+      width: 1280
+      height: 720
+      fps: 5
+    objects:
+      track:
+        - person
+        - umbrella
+
+    motion:
+      mask: 
+        0.453,0.998,0.477,0.914,0.494,0.831,0.506,0.778,0.527,0.669,0.539,0.61,0.553,0.541,0.533,0.344,0.531,0.315,0.577,0.269,0.597,0.229,0.622,0.215,0.623,0,0.003,0.005,0.001,0.998
+      threshold: 35
+      contour_area: 10
+      improve_contrast: true
+  rear_camera:
+    enabled: true
+    ffmpeg:
+      hwaccel_args: preset-vaapi
+      inputs:
+        - path: rtsp://192.168.1.12:554/rtsp
+          roles:
+            - detect
+    detect:
+      width: 1280
+      height: 720
+      fps: 5
+    objects:
+      track:
+        - person
+        - umbrella
+
+    motion:
+      mask: 
+        0.999,0.888,0.949,0.809,0.909,0.76,0.863,0.722,0.824,0.691,0.769,0.625,0.709,0.576,0.686,0.543,0.645,0.488,0.627,0.45,0.602,0.381,0.606,0.281,0.599,0.156,0.587,0.12,0.558,0.118,0.506,0.115,0.485,0.109,0.415,0.098,0.359,0.102,0.277,0.112,0.212,0.122,0.18,0.122,0.169,0.121,0.141,0.171,0.119,0.221,0.101,0.267,0.076,0.321,0.054,0.355,0.038,0.381,0.009,0.403,0.001,0.406,0.003,0.002,0.997,0
+      threshold: 35
+      contour_area: 10
+      improve_contrast: true
+detectors:
+  ov:
+    type: openvino
+    device: GPU
+    model_path: /openvino-model/ssdlite_mobilenet_v2.xml
+model:
+  width: 300
+  height: 300
+  input_tensor: nhwc
+  input_pixel_format: bgr
+  labelmap_path: /openvino-model/coco_91cl_bkgr.txt
+version: 0.15-1
