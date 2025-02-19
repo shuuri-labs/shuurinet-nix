@@ -59,7 +59,7 @@ in
       };
     };
 
-    # Ensure the directorie/files exist and set permissions
+    # Ensure the directories/config file exist and set permissions
     systemd.services.frigate-setup = {
       description = "Setup Frigate directories, config file and permissions";
       wantedBy = [ "multi-user.target" ];
@@ -98,6 +98,7 @@ in
 
     systemd.services."podman-frigate".requires = [ "frigate-setup.service" ];
 
+    # TODO: run as user (rootless)
     virtualisation.oci-containers = {
       containers.frigate = {
         image = "ghcr.io/blakeblackshear/frigate:stable";

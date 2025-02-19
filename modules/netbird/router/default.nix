@@ -2,7 +2,7 @@
 
 let
   cfg = config.netbird.router;
-  containerTemplate = import ../../containers/template.nix {
+  containerTemplate = import ../../../lib/container-templates/host-network-container.nix {
     inherit config lib pkgs;
     stateVersion = config.system.stateVersion;
   };
