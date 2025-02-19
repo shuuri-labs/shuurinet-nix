@@ -60,6 +60,10 @@ in
 
   # users.users.ashley.password = "changeme"; /* uncomment for new install */
   users.users.ashley.hashedPasswordFile = config.age.secrets.castform-main-user-password.path;
+
+  environment.systemPackages = with pkgs; [
+    dig
+  ];
   
   # -------------------------------- SECRETS --------------------------------
 
@@ -152,7 +156,7 @@ in
 
   frigate = {
     enable = true;
-    mediaDir = "${hostCfgVars.storage.paths.bulkStorage}/nvr/media";
+    host.nvrMediaStorage = "${hostCfgVars.storage.paths.bulkStorage}/nvr";
     mainUser = "ashley";
     configFile = builtins.readFile ./frigate/config.yml;
   };

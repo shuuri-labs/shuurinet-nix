@@ -10,6 +10,7 @@ cameras:
         - path: rtsp://192.168.1.10:554/rtsp
           roles:
             - detect
+            - record
     detect:
       width: 1280
       height: 720
@@ -34,6 +35,7 @@ cameras:
         - path: rtsp://192.168.1.11:554/rtsp
           roles:
             - detect
+            - record
     detect:
       width: 1280
       height: 720
@@ -57,6 +59,8 @@ cameras:
         - path: rtsp://192.168.1.12:554/rtsp
           roles:
             - detect
+            - record
+            
     detect:
       width: 1280
       height: 720
@@ -72,11 +76,27 @@ cameras:
       threshold: 35
       contour_area: 10
       improve_contrast: true
+
+record:
+  enabled: True
+  retain:
+    days: 7
+    mode: all
+  alerts:
+    retain:
+      days: 30
+      mode: motion
+  detections:
+    retain:
+      days: 30
+      mode: motion
+
 detectors:
   ov:
     type: openvino
     device: GPU
     model_path: /openvino-model/ssdlite_mobilenet_v2.xml
+
 model:
   width: 300
   height: 300
