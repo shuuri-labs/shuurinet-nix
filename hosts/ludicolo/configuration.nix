@@ -8,7 +8,8 @@ let
   hostCfgVars = config.host.vars;
   secretsAbsolutePath = "/home/ashley/shuurinet-nix/secrets"; 
 
-  themoviedbIp = "18.244.179.36";
+  # fetch ip via dig
+  themoviedbIp = "";
 in
 {
   imports = [
@@ -69,7 +70,7 @@ in
 
   age.secrets = {
     castform-main-user-password.file = "${secretsAbsolutePath}/castform-main-user-password.age";
-    mullvad-wireguard-config.file = "${secretsAbsolutePath}/wg-mullvad.conf.age";
+    mullvad-wireguard-config.file = "${secretsAbsolutePath}/wg-mullvad-ludicolo.conf.age";
     ashley-samba-user-pw.file = "${secretsAbsolutePath}/samba-ashley-password.age";
     media-samba-user-pw.file = "${secretsAbsolutePath}/samba-media-password.age";
     ludicolo-homepage-vars.file = "${secretsAbsolutePath}/ludicolo-homepage-vars.age";
@@ -134,11 +135,7 @@ in
   # -------------------------------- HOSTED SERVICES --------------------------------
 
   # Media Server
-  # (jellyfin metadata) ldn ipv6 tunnel (Hurricane Electric) can't connect for some reason, so force IPv4
-  networking.extraHosts = ''
-    ${themoviedbIp} themoviedb.org api.themoviedb.org
-  '';
-  
+
   mediaServer.enable = true;
   mediaServer.vpnConfinement.wireguardConfigFile = config.age.secrets.mullvad-wireguard-config.path; 
   mediaServer.vpnConfinement.lanSubnet = hostCfgVars.network.config.subnet.ipv4;
@@ -151,6 +148,30 @@ in
   mediaServer.services.downloadDir = hostCfgVars.storage.directories.downloads; 
   mediaServer.services.downloadDirAccessGroup = hostCfgVars.storage.accessGroups.downloads.name;
   mediaServer.services.mediaDirAccessGroup = hostCfgVars.storage.accessGroups.media.name;
+
+  # (jellyfin metadata) ldn ipv6 tunnel (Hurricane Electric) can't connect to themoviedb.org via its
+  # (default) IPv6 DNS record for some reason, so fetch IPv4 address and update hosts file to force IPv4
+  systemd.services.update-themoviedb-ip = {
+    description = "Update themoviedb.org IP address in hosts file";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = pkgs.writeShellScript "update-themoviedb-ip" ''
+        IP=$(${pkgs.dig}/bin/dig +short themoviedb.org | head -n1)
+        if [ -n "$IP" ]; then
+          sed -i '/themoviedb.org/d' /etc/hosts
+          echo "$IP themoviedb.org api.themoviedb.org" >> /etc/hosts
+        fi
+      '';
+    };
+  };
+
+  systemd.timers.update-themoviedb-ip = {
+    wantedBy = [ "multi-user.target" ];
+    timerConfig = {
+      OnBootSec = "1min";
+      OnUnitActiveSec = "1h";
+    };
+  };
 
   # -------------------------------- FRIGATE --------------------------------
 
