@@ -31,12 +31,12 @@ in
 
     smartdOptionsAndSchedule = lib.mkOption {
       type = lib.types.str;
-      default = "-a -o on -S on -s (S/../../[1-2,4-7]/05|L/../../>2W/05)";
+      default = "-a -o on -S on -s (S/../../4/05|L/../../>2W/05)";
       description = ''
         Default options and schedule for smartd
         Schedule format: T/MM/DD/d/HH
-        - Short test every day at 5 AM except Wednesdays (d = [1-2,4-7])
-        - Long test on the second Wednesday of the month at 5 AM (d = >2W)
+        - Short test every **Thursday** at 5 AM (d = 4)
+        - Long test on the **second Wednesday** of the month at 5 AM (d = >2W)
       '';
     };
   };
