@@ -57,7 +57,7 @@ in
   host.uefi-boot.enable = true;
 
   # users.users.ashley.password = "changeme"; /* uncomment for new install */
-  users.users.ashley.hashedPasswordFile = config.age.secrets.castform-main-user-password.path;
+  users.users.ashley.hashedPasswordFile = config.age.secrets.castform-main-user-password.path; # TODO: use plain hashed password file
 
   environment.systemPackages = with pkgs; [
     dig

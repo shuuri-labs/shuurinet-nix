@@ -41,7 +41,7 @@ in
     password = lib.mkOption {
       type = lib.types.str;
       description = "Password for the Frigate web UI";
-      default = "changme";
+      default = "changeme";
     };
   };
 
@@ -119,7 +119,7 @@ in
         ];
         extraOptions = [
           "--device=/dev/dri/renderD128:/dev/dri/renderD128"
-          "--device=/dev/dri/card1:/dev/dri/card1"
+          "--device=/dev/dri/card0:/dev/dri/card0"
           "--shm-size=400m"
           "--tmpfs=/tmp/cache:rw,size=1000000000"
         ];
