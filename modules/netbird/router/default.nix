@@ -51,17 +51,27 @@ let
             after = [ "network.target" ];
             wantedBy = [ "multi-user.target" ];
             
+            # create 'setup-complete' file in netbird dir if it doesn't exist 
+            # signalling we don't need to run our setup command service again
+            # TODO: this 'setup complete' logic is useful. extract it and place in lib
             serviceConfig = {
               Type = "oneshot";
               RemainAfterExit = true;
               ExecStart = let
                 script = pkgs.writeShellScript "netbird-setup" ''
+                  if [ -f /var/lib/netbird/setup-complete ]; then
+                    echo "Netbird already configured, skipping setup"
+                    exit 0
+                  fi
+                  
                   setup_key=$(cat ${peerConfig.setupKey})
                   management_url=$(cat ${cfg.managementUrlPath})
                   ${pkgs.netbird}/bin/netbird up \
                     --management-url="$management_url:443" \
                     --admin-url="$management_url" \
                     --setup-key="$setup_key"
+                    
+                  touch /var/lib/netbird/setup-complete
                 '';
               in "${script}";
             };
