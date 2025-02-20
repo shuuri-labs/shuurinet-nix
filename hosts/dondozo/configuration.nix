@@ -61,7 +61,7 @@ in
 
   age.secrets = {
     castform-main-user-password.file = "${secretsAbsolutePath}/castform-main-user-password.age";
-    mullvad-wireguard-config.file = "${secretsAbsolutePath}/wg-mullvad.conf.age";
+    mullvad-wireguard-config.file = "${secretsAbsolutePath}/wg-mullvad-dondozo.conf.age";
     ashley-samba-user-pw.file = "${secretsAbsolutePath}/samba-ashley-password.age";
     media-samba-user-pw.file = "${secretsAbsolutePath}/samba-media-password.age";
     dondozo-homepage-vars.file = "${secretsAbsolutePath}/dondozo-homepage-vars.age";
