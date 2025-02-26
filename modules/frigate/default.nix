@@ -63,9 +63,8 @@ in
     systemd.services.frigate-setup = {
       description = "Setup Frigate directories, config file and permissions";
       wantedBy = [ "multi-user.target" ];
-      before = [ "podman-frigate.service" ];
-      
       # Run before podman but after filesystems are mounted
+      before = [ "podman-frigate.service" ];
       after = [ "local-fs.target" ];
       
       # Run once at startup

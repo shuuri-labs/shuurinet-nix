@@ -63,7 +63,7 @@
           ./modules/hdd-spindown
           ./modules/intel-graphics
           ./modules/power-saving
-          ./modules/intel-virtualization
+          ./modules/virtualization
           ./modules/media-server
           ./modules/smb-provisioner
           ./modules/disk-care
@@ -80,7 +80,7 @@
           ./modules/hdd-spindown
           ./modules/intel-graphics
           ./modules/power-saving
-          ./modules/intel-virtualization
+          ./modules/virtualization
           ./modules/media-server
           ./modules/smb-provisioner
           ./modules/disk-care
@@ -97,7 +97,7 @@
           ./modules/hdd-spindown
           ./modules/intel-graphics
           ./modules/power-saving
-          ./modules/intel-virtualization
+          ./modules/virtualization
           ./modules/media-server
           ./modules/smb-provisioner
           ./modules/disk-care
