@@ -119,10 +119,8 @@ in
 
   # -------------------------------- HARDWARE FEATURES --------------------------------
 
-  # Intel-specific & Power Saving
   intelGraphics.enable = true;
   powersave.enable = true; 
-  virtualization.intel.enable = true;
 
   # -------------------------------- FILE SERVER --------------------------------
 
@@ -179,7 +177,12 @@ in
     configFile = builtins.readFile ./frigate/config.yml;
   };
 
-  # -------------------------------- VMs --------------------------------
+  # -------------------------------- Virtualisation & VMs --------------------------------
+
+  virtualization = {
+    intel.enable = true;
+    nixvirt.enable = true;
+  };
 
   # virtualisation.libvirt = {
   #   enable = true;
@@ -189,10 +192,10 @@ in
   #       {
   #         definition = nixvirt.lib.pool.writeXML {
   #           name = "default";
-  #           uuid = "4acdd24f-9649-4a24-8739-277c822c6639";
+  #           uuid = "8d45bdd4-74b8-47b8-b0f4-0d6b3d2f7e22"; # generate with 'uuidgen'
   #           type = "dir";
   #           target = {
-  #             path = "/var/lib/libvirt/images";
+  #             path = "/var/lib/vms/base-images";
   #           };
   #         };
   #         active = true;
@@ -208,8 +211,8 @@ in
   #         let
   #           baseTemplate = nixvirt.lib.domain.templates.linux {
   #             name = "home-assistant";
-  #             uuid = "2f8b3a91-c5d7-4e82-b9f3-6a0d5c8f1e4d";
-  #             memory = { count = 512; unit = "MiB"; }; 
+  #             uuid = "e9d8148c-ab37-4494-ad77-6db929891455"; # generate with 'uuidgen'
+  #             memory = { count = 3; unit = "GiB"; }; 
   #             storage_vol = null;
   #           };
   #         in
