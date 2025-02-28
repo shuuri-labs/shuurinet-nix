@@ -182,6 +182,9 @@ in
   virtualization = {
     intel.enable = true;
     nixvirt.enable = true;
+    pools.main = {
+      uuid = "8d45bdd4-74b8-47b8-b0f4-0d6b3d2f7e22";
+    };
   };
 
   # virtualisation.libvirt = {

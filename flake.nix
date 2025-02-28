@@ -107,6 +107,8 @@
           ./modules/frigate
           inputs.vpn-confinement.nixosModules.default
         ];
+
+        packages.x86_64-linux = import ./lib/openwrt-image-builder-definitions.nix { inherit inputs; };
       };
     };
 }
