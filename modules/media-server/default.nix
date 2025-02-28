@@ -22,6 +22,6 @@ in
   config = {
     mediaServer.vpnConfinement.enable = cfg.enable;
     mediaServer.services.enable = cfg.enable;
-    mediaServer.directories.enable = cfg.enable;
+    mediaServer.storage.enable = cfg.enable;
   };
 }
