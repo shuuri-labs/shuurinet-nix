@@ -3,37 +3,43 @@
 with lib;
 
 let
-  cfg = config.mediaServer;
+  cfg = config.mediaServer.directories;
 in
 {
-  options.mediaServer = {
-    mediaGroup = mkOption {
+  options.mediaServer.directories = {
+    enable = mkOption {
+      type = types.bool;
+      default = false;
+      description = "Enable media server directory service.";
+    };
+
+    group = mkOption {
       type = types.str;
       description = "The group name for media directories.";
     };
 
-    mediaDir = mkOption {
+    path = mkOption {
       type = types.str;
       default = "/mnt/media";
       description = "Base directory for media files.";
     };
 
-    paths = {
+    directories = {
       movies = mkOption {
         type = types.str;
-        default = "${cfg.mediaDir}/movies";
+        default = "${cfg.path}/movies";
         description = "Directory for movies.";
       };
 
       tv = mkOption {
         type = types.str;
-        default = "${cfg.mediaDir}/tv";
+        default = "${cfg.path}/tv";
         description = "Directory for TV shows.";
       };
 
       anime = mkOption {
         type = types.str;
-        default = "${cfg.mediaDir}/anime";
+        default = "${cfg.path}/anime";
         description = "Directory for anime.";
       };
     };
@@ -44,7 +50,7 @@ in
     };
   };
 
-  config = {
+  config = mkIf cfg.enable {
     systemd.services.media-server-permissions = {
       description = "Set media server directory permissions";
       wantedBy = [ "multi-user.target" ];
@@ -60,7 +66,7 @@ in
               ${pkgs.coreutils}/bin/chown -R ${cfg.hostMainStorageUser}:${cfg.mediaGroup} ${path}
               ${pkgs.coreutils}/bin/chmod -R u=rwX,g=rwX,o=rX ${path}
             '')
-            cfg.paths
+            cfg.directories
           )}
         '';
       };

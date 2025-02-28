@@ -19,8 +19,9 @@ in
     };
   };
 
-  config = lib.mkIf cfg.enable {
-    mediaServer.vpnConfinement.enable = true;
-    mediaServer.services.enable = true;
+  config = {
+    mediaServer.vpnConfinement.enable = cfg.enable;
+    mediaServer.services.enable = cfg.enable;
+    mediaServer.directories.enable = cfg.enable;
   };
 }

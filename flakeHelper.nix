@@ -44,6 +44,7 @@ in
       inputs.agenix.nixosModules.default
       inputs.home-manager.nixosModules.home-manager
       inputs.disko.nixosModules.disko
+      inputs.nixvirt.nixosModules.default
       commonConfig
     ] 
     ++ extraModules;

@@ -15,8 +15,7 @@ in
 {
   imports = [
     ./hardware-configuration.nix
-    # ./disk-config.nix
-    ./samba-config.nix
+    ./disk-config.nix
   ];
 
   # -------------------------------- HOST VARIABLES --------------------------------
@@ -25,8 +24,8 @@ in
   host.vars = {
     network = {
       config = {
-        hostName = "castform";
-        interfaces = [ "enp0s31f6" ]; 
+        hostName = "tatsugiri";
+        interfaces = [ ]; 
         bridge = "br0";
         unmanagedInterfaces = config.host.vars.network.config.interfaces ++ [ config.host.vars.network.config.bridge ];
         subnet = config.homelab.networks.subnets.bln; # see options-homelab/networks.nix
@@ -34,12 +33,6 @@ in
       };
 
       staticIpConfig.enable = true;
-    };
-
-    storage = {
-      paths = {
-        bulkStorage = "/castform-rust";
-      };
     };
   };
 
@@ -68,25 +61,12 @@ in
 
   # -------------------------------- DISK CONFIGURATION --------------------------------
 
-  zfs = {
-    pools = {
-      rust = {
-        name = "castform-rust";
-        autotrim = false;
-      };
-    };
-    network.hostId = "c8f36183"; 
-  };
-
   diskCare = {
     enableTrim = true;
     disksToSmartMonitor = [
       { device = "/dev/disk/by-id/ata-SanDisk_SDSSDH3_250G_214676446013"; } # boot drive
-      { device = "/dev/disk/by-id/ata-WDC_WD10EZEX-07WN4A0_WD-WCC6Y3ESH5SP"; } # drive 1
     ];
   };
-
-  hddSpindown.disks = [ "ata-WDC_WD10EZEX-07WN4A0_WD-WCC6Y3ESH5SP" ];
 
   # -------------------------------- MONITORING & DASHBOARD --------------------------------
 
@@ -96,29 +76,7 @@ in
 
   # Intel-specific & Power Saving
   intelGraphics.enable = true;
-  boot.kernelParams = [ "intremap=no_x2apic_optout" ]; # ignore fujitsu bios error 
   powersave.enable = true; 
-  
-  # -------------------------------- FILE SERVER --------------------------------
-
-  # Samba - configured in ./samba-config.nix
-  sambaProvisioner.enable = true;
-
-  # -------------------------------- HOSTED SERVICES --------------------------------
-
-  # Media Server
-  # mediaServer.enable = true;
-  # mediaServer.vpnConfinement.wireguardConfigFile = config.age.secrets.mullvad-wireguard-config.path; 
-  # mediaServer.vpnConfinement.lanSubnet = hostCfgVars.network.config.subnet.ipv4;
-  # mediaServer.vpnConfinement.lanSubnet6 = hostCfgVars.network.config.subnet.ipv6;
-
-  # mediaServer.mediaDir = hostCfgVars.storage.directories.media;
-  # mediaServer.mediaGroup = hostCfgVars.storage.accessGroups.media.name;
-  # mediaServer.hostMainStorageUser = "ashley";
-
-  # mediaServer.services.downloadDir = hostCfgVars.storage.directories.downloads; 
-  # mediaServer.services.downloadDirAccessGroup = hostCfgVars.storage.accessGroups.downloads.name;
-  # mediaServer.services.mediaDirAccessGroup = hostCfgVars.storage.accessGroups.media.name;
 
   # -------------------------------- Virtualisation & VMs --------------------------------
 
