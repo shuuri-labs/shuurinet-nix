@@ -162,7 +162,7 @@ in
             baseTemplate = linuxUefiVmTemplate.mkCustomVmTemplate {
               name = "openwrt";
               uuid = "cc7439ed-36af-4696-a6f2-1f0c4474d87e";
-              memoryMibCount = 256;
+              memoryMibCount = 512;
               hostInterface = "br0";
             };
           in
@@ -179,7 +179,7 @@ in
                   };
                   source = {
                     pool = "default";
-                    volume = "openwrt-24.10.0-x86-64-generic-ext4-combined-efi.raw";
+                    volume = "openwrt-build-1.raw";
                   };
                   target = {
                     dev = "vda";

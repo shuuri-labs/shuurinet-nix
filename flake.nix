@@ -49,6 +49,11 @@
       url = "github:AshleyYakeley/NixVirt";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    openwrt-imagebuilder = {
+      url = "github:astro/nix-openwrt-imagebuilder";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs@{ ... }:
@@ -107,8 +112,8 @@
           ./modules/frigate
           inputs.vpn-confinement.nixosModules.default
         ];
-
-        packages.x86_64-linux = import ./lib/openwrt-image-builder-definitions.nix { inherit inputs; };
       };
+
+      packages.x86_64-linux = import ./lib/openwrt-image-builder-definitions.nix { inherit inputs; };
     };
 }

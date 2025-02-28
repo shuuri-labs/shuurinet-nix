@@ -39,11 +39,11 @@
         };
 
         devices = baseTemplate.devices // {
-          interface = {
+          interface = [{
             type = "bridge";
             source = { bridge = hostInterface; };
             model = { type = "virtio"; };
-          };
+          }];
 
           serial = [{
             type = "pty";

@@ -25,9 +25,9 @@ in
     network = {
       config = {
         hostName = "tatsugiri";
-        interfaces = [ ]; 
+        interfaces = []; 
         bridge = "br0";
-        unmanagedInterfaces = config.host.vars.network.config.interfaces ++ [ config.host.vars.network.config.bridge ];
+        unmanagedInterfaces = config.host.vars.network.config.interfaces ++ [ config.host.vars.network.config.bridge "br1" ];
         subnet = config.homelab.networks.subnets.bln; # see options-homelab/networks.nix
         hostIdentifier = "121";
       };
@@ -85,159 +85,72 @@ in
   # 'vfio-pci ids='disable these devices from the host and pass them through on boot
   # (get device ids from lspci -nn, at end of each line is [vendorId:deviceId])
   boot.extraModprobeConfig = lib.mkAfter ''
-    options vfio-pci ids=15b3:1015,15b3:1015
+    options vfio-pci ids=8086:1521,8086:1521,8086:1521,8086:1521
   '';
-
-  boot.blacklistedKernelModules = [ "mlx5_core" ]; # block mellanox drivers on host to prevent passthrough interference
-  
-  networking.firewall = {
-    allowedTCPPorts = [ 67 68 5900 5901 ];
-    allowedUDPPorts = [ 67 68 5900 5901 ];
-    extraCommands = ''
-      iptables -A FORWARD -i br0 -j ACCEPT
-      iptables -A FORWARD -o br0 -j ACCEPT
-    '';
-  };
 
   virtualization = {
     intel.enable = true;
     nixvirt = {
       enable = true;
       pools.main = {
-        uuid = "4acdd24f-9649-4a24-8739-277c822c6639";
-        images.path = "/var/lib/libvirt/images";
+        uuid = "f2df67ce-da92-4462-8703-775f4af16dbb";
+        images.path = "/var/lib/vms/images";
       };
     };
-  };
 
-  virtualisation.libvirt = {
-    enable = true;
-    
-    connections."qemu:///system" = {      
-      domains = [{
-        definition = nixvirt.lib.domain.writeXML (
-          let
-            baseTemplate = linuxUefiVmTemplate.mkCustomVmTemplate {
-              name = "openwrt";
-              uuid = "cc7439ed-36af-4696-a6f2-1f0c4474d87e";
-              memoryMibCount = 256;
-              hostInterface = "br0";
+    openwrt.vm = {
+      uuid = "62aa3719-7cdc-4ed6-a1c6-5fbf5d735179";
+
+      hostManagementInterface = "br1";
+
+      nicHostDevs = [
+        {
+          type = "pci";
+          source = {
+            address = {
+              domain = 0;
+              bus = 1;
+              slot = 0;
+              function = 0;
             };
-          in
-            baseTemplate // {
-              devices = baseTemplate.devices // {
-                disk = [{
-                  type = "volume";
-                  device = "disk";
-                  driver = {
-                    name = "qemu";
-                    type = "raw";
-                    cache = "none";
-                    discard = "unmap";
-                  };
-                  source = {
-                    pool = "default";
-                    volume = "openwrt-24.10.0-x86-64-generic-ext4-combined-efi.raw";
-                  };
-                  target = {
-                    dev = "vda";
-                    bus = "virtio";
-                  };
-                }];
-
-                hostdev = [
-                  {
-                    type = "pci";
-                    source = {
-                      address = {
-                        domain = 0;
-                        bus = 1;
-                        slot = 0;
-                        function = 0;
-                      };
-                    };
-                  }
-                  {
-                    type = "pci";
-                    source = {
-                      address = {
-                        domain = 0;
-                        bus = 1;
-                        slot = 0;
-                        function = 1;
-                      };
-                    };
-                  }
-                ];
-              };
-            }
-        );
-        active = true;
-      }
-      {
-        definition = nixvirt.lib.domain.writeXML (
-          let
-            baseTemplate = linuxUefiVmTemplate.mkCustomVmTemplate {
-              name = "home-assistant";
-              uuid = "c87b7237-8169-42c1-b5cc-6d02624d6341"; # uuidgen 
-              memoryMibCount = 3072;
-              hostInterface = "br0";
+          };
+        }
+        {
+          type = "pci";
+          source = {
+            address = {
+              domain = 0;
+              bus = 1;
+              slot = 0;
+              function = 1;
             };
-          in
-            baseTemplate // {
-              devices = baseTemplate.devices // {
-                controller = [{
-                  type = "scsi";
-                  model = "virtio-scsi";
-                }];
-
-                disk = [{
-                  type = "volume";
-                  device = "disk";
-                  driver = {
-                    name = "qemu";
-                    type = "qcow2";
-                    cache = "none";
-                    discard = "unmap";
-                  };
-                  source = {
-                    pool = "default";
-                    volume = "haos_ova-14.2-newest-2.qcow2";
-                  };
-                  target = {
-                    dev = "sda";
-                    bus = "scsi";
-                  };
-                }];
-              };
-            }
-        );
-        active = true;
-      }];
+          };
+        }
+        {
+          type = "pci";
+          source = {
+            address = {
+              domain = 0;
+              bus = 1;
+              slot = 0;
+              function = 2;
+            };
+          };
+        }
+        {
+          type = "pci";
+          source = {
+            address = {
+              domain = 0;
+              bus = 1;
+              slot = 0;
+              function = 3;
+            };
+          };
+        }
+      ];
     };
   };
 }
-
-# sudo virsh list --all
-# ls -l /nix/store/*NixVirt*
-# sudo virsh console openwrt
-# sudo virsh start openwrt
-# sudo virsh destroy openwrt
-
-# List all pools
-# sudo virsh pool-list
-
-# Refresh the specific pool (in your case, "default")
-# sudo virsh pool-refresh default
-
-# You can also try stopping and starting the pool
-# sudo virsh pool-destroy default
-# sudo virsh pool-start default
-
-# To verify the volume exists
-# sudo virsh vol-list default
-
-#sudo virsh dumpxml home-assistant
-
-
-# ssh -L 5900:127.0.0.1:5900 castform
+    
+    
