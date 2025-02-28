@@ -136,9 +136,9 @@ in
   mediaServer.vpnConfinement.lanSubnet = hostCfgVars.network.config.subnet.ipv4;
   mediaServer.vpnConfinement.lanSubnet6 = hostCfgVars.network.config.subnet.ipv6;
 
-  mediaServer.mediaDir = hostCfgVars.storage.directories.media;
-  mediaServer.mediaGroup = hostCfgVars.storage.accessGroups.media.name;
-  mediaServer.hostMainStorageUser = "ashley";
+  mediaServer.storage.path = hostCfgVars.storage.directories.media;
+  mediaServer.storage.group = hostCfgVars.storage.accessGroups.media.name;
+  mediaServer.storage.hostMainStorageUser = "ashley";
 
   mediaServer.services.downloadDir = hostCfgVars.storage.directories.downloads; 
   mediaServer.services.downloadDirAccessGroup = hostCfgVars.storage.accessGroups.downloads.name;

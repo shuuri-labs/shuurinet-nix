@@ -54,8 +54,10 @@ in
   users.users.ashley.hashedPasswordFile = config.age.secrets.castform-main-user-password.path;
 
   environment.systemPackages = with pkgs; [
-    openseachest
+    openseachest # seagate disk utils
   ];
+
+  boot.kernelParams = [ "i915.disable_display=1" ]; # Fix 'EDID block 0 is all zeroes' log spam
   
   # -------------------------------- SECRETS --------------------------------
 
@@ -102,21 +104,13 @@ in
   diskCare = {
     enableTrim = true;
     disksToSmartMonitor = [
-      {
-        device = "/dev/disk/by-id/ata-CT1000MX500SSD1_2410E89DFB65"; # boot drive
-      }
-      {
-        device = "/dev/disk/by-id/nvme-SHPP41-2000GM_ADC8N569313409716"; # nvme 1
-      }
-      {
-        device = "/dev/disk/by-id/nvme-SHPP41-2000GM_ADC8N56931450976D"; # nvme 2
-      }
-      {
-        device = "/dev/disk/by-id/ata-ST16000NM000D-3PC101_ZVTAVSGR"; # HDD 1
-      }
-      {
-        device = "/dev/disk/by-id/ata-ST16000NM000D-3PC101_ZVTBH31T"; # HDD 2
-      }
+      { device = "/dev/disk/by-id/ata-CT1000MX500SSD1_2410E89DFB65"; } # boot drive 
+      { device = "/dev/disk/by-id/nvme-SHPP41-2000GM_ADC8N569313409716"; } # nvme 1
+      { device = "/dev/disk/by-id/nvme-SHPP41-2000GM_ADC8N569313409716"; } # nvme 1
+      { device = "/dev/disk/by-id/nvme-SHPP41-2000GM_ADC8N569313409716"; } # nvme 1
+      { device = "/dev/disk/by-id/nvme-SHPP41-2000GM_ADC8N56931450976D"; } # nvme 2
+      { device = "/dev/disk/by-id/ata-ST16000NM000D-3PC101_ZVTAVSGR"; } # HDD 1
+      { device = "/dev/disk/by-id/ata-ST16000NM000D-3PC101_ZVTBH31T"; } # HDD 2
     ];
   };
 
@@ -136,7 +130,6 @@ in
   # Intel-specific & Power Saving
   intelGraphics.enable = true;
   powersave.enable = true; 
-  virtualization.intel.enable = true;
 
   # -------------------------------- FILE SERVER --------------------------------
 
@@ -151,9 +144,9 @@ in
   mediaServer.vpnConfinement.lanSubnet = hostCfgVars.network.config.subnet.ipv4;
   mediaServer.vpnConfinement.lanSubnet6 = hostCfgVars.network.config.subnet.ipv6;
 
-  mediaServer.mediaDir = hostCfgVars.storage.directories.media;
-  mediaServer.mediaGroup = hostCfgVars.storage.accessGroups.media.name;
-  mediaServer.hostMainStorageUser = "ashley";
+  mediaServer.storage.path = hostCfgVars.storage.directories.media;
+  mediaServer.storage.group = hostCfgVars.storage.accessGroups.media.name;
+  mediaServer.storage.hostMainStorageUser = "ashley";
 
   mediaServer.services.downloadDir = hostCfgVars.storage.directories.downloads; 
   mediaServer.services.downloadDirAccessGroup = hostCfgVars.storage.accessGroups.downloads.name;
@@ -167,4 +160,18 @@ in
     documentsAccessGroup = config.host.vars.storage.accessGroups.documents.name;
     hostMainStorageUser = "ashley";
   };
+
+  # -------------------------------- VIRTUALISATION --------------------------------
+  
+  virtualization = {
+    intel.enable = true;
+    nixvirt = {
+      enable = true;
+      pools.main = {
+        uuid = "06ac9a66-074f-4308-a7b1-74897a81dea3";
+        images.path = "/var/lib/vms/images";
+      };
+    };
+  };
+
 }

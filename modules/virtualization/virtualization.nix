@@ -8,15 +8,17 @@ in
     enable = lib.mkEnableOption "virtualization";
 
     mainUser = lib.mkOption {
-      type = types.str;
+      type = lib.types.str;
       description = "Main user for virtualization";
       default = "ashley";
     };
   };
 
-  users.users.${cfg.mainUser}.extraGroups = [ "libvirtd" ];
+ 
 
   config = lib.mkIf cfg.enable {
+    users.users.${cfg.mainUser}.extraGroups = [ "libvirtd" ];
+    
     environment.systemPackages = with pkgs; [
       qemu
       libvirt

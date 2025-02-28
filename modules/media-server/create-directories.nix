@@ -3,10 +3,10 @@
 with lib;
 
 let
-  cfg = config.mediaServer.directories;
+  cfg = config.mediaServer.storage;
 in
 {
-  options.mediaServer.directories = {
+  options.mediaServer.storage = {
     enable = mkOption {
       type = types.bool;
       default = false;
@@ -63,7 +63,7 @@ in
           ${builtins.concatStringsSep "\n" (lib.mapAttrsToList 
             (name: path: ''
               ${pkgs.coreutils}/bin/mkdir -p ${path}
-              ${pkgs.coreutils}/bin/chown -R ${cfg.hostMainStorageUser}:${cfg.mediaGroup} ${path}
+              ${pkgs.coreutils}/bin/chown -R ${cfg.hostMainStorageUser}:${cfg.group} ${path}
               ${pkgs.coreutils}/bin/chmod -R u=rwX,g=rwX,o=rX ${path}
             '')
             cfg.directories
