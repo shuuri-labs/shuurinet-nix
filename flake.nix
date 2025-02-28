@@ -46,7 +46,7 @@
     vpn-confinement.url = "github:Maroka-chan/VPN-Confinement";
 
     nixvirt = {
-      url = "https://flakehub.com/f/AshleyYakeley/NixVirt/*.tar.gz";
+      url = "github:AshleyYakeley/NixVirt";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -88,7 +88,6 @@
           ./modules/uefi-boot
           ./modules/monitoring
           inputs.vpn-confinement.nixosModules.default
-          inputs.nixvirt.nixosModules.default
         ];
 
         "ludicolo" = mkNix "ludicolo" [
@@ -107,7 +106,6 @@
           ./modules/netbird/router
           ./modules/frigate
           inputs.vpn-confinement.nixosModules.default
-          inputs.nixvirt.nixosModules.default
         ];
       };
     };
