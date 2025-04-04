@@ -34,7 +34,8 @@ in
 
       staticIpConfig = {
         enable = true;
-
+        enableSourceRouting = true;
+        
         bridges = [{
           name = "br0";
           identifier = "121";
@@ -42,15 +43,15 @@ in
           subnetIpv4 = homelabNetworks.bln.ipv4;
           subnetIpv6 = homelabNetworks.bln.ipv6;
           vlan = homelabNetworks.bln.vlan;
+          isPrimary = true;
           # unmanagedInterfaces = [ "enp0s31f7" ];
         }
         {
-          name = "br1";
-          identifier = "122";
+          name = "br0-44";
+          identifier = "121";
           bridgedInterfaces = [ "enp0s31f6" ];
-          subnetIpv4 = "10.11.44";
+          subnetIpv4 = "10.10.44";
           vlan = 44;
-          egressTagged = true;
         }];
       };
     };

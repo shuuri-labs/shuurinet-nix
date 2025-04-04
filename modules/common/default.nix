@@ -79,6 +79,7 @@ in
       pciutils # lspci
       ethtool
       sysstat
+      tcpdump
     ];
 
     # Tell agenix which private keys to use for decryption

@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 let
   inherit (lib) mkOption types;
   cfg = config.host.vars.network.staticIpConfig;
@@ -10,6 +10,13 @@ in {
       type = types.listOf types.str;
       description = "Network interfaces that should not be managed automatically by networkmanager";
       default = [];
+    };
+
+    enableSourceRouting = mkOption {
+      type = types.bool;
+      default = false;
+      description = ''Enable source-based routing - required for multi-bridge setups with physical ports
+        untested for multi-bridge setups with no physical ports (might not be needed)'';
     };
 
     bridges = mkOption {
@@ -60,10 +67,10 @@ in {
             description = "VLAN ID for this bridge. If set, enables VLAN filtering.";
           };
 
-          egressTagged = mkOption {
+          isPrimary = mkOption {
             type = types.bool;
             default = false;
-            description = "If false, egress traffic will be untagged; if true, egress tags are preserved.";
+            description = "Whether this bridge should be used as the primary default route";
           };
         };
       }));
@@ -77,22 +84,16 @@ in {
       netdevs = lib.mkMerge [
         # Bridge netdevs
         (lib.listToAttrs (map (bridge: {
-          name = "50-${bridge.name}";
+          name = "10-${bridge.name}";
           value = {
             netdevConfig = {
               Name = bridge.name;
               Kind = "bridge";
             };
-          } 
-          // (lib.optionalAttrs (bridge.vlan != null) {
-            bridgeConfig = {
-              VLANFiltering = true;
-              DefaultPVID = bridge.vlan;
-            };
-          });
+          };
         }) cfg.bridges))
 
-        # VLAN netdevs: create separate netdevs for each physical interface that requires a VLAN
+        # loop bridge ports and create vlan subinterfaces for each
         (lib.listToAttrs (lib.flatten (map (bridge:
           lib.optionals (bridge.vlan != null)
             (map (iface: {
@@ -104,7 +105,6 @@ in {
                 };
                 vlanConfig = {
                   Id = bridge.vlan;
-                  EgressUntagged = lib.optional (!bridge.egressTagged) bridge.vlan;
                 };
               };
             }) bridge.bridgedInterfaces)
@@ -114,19 +114,33 @@ in {
       networks = lib.mkMerge [
         # Configure physical interfaces attached to a bridge
         (lib.listToAttrs (lib.flatten (map (bridge:
-          map (iface: {
-            name = "30-${iface}";
-            value = {
-              matchConfig.Name = iface;
-              networkConfig = {
-                Bridge = bridge.name;
-                ConfigureWithoutCarrier = true;
+          if (bridge.vlan == null)
+            then
+            # If NO VLAN specified, add physical interface to bridge
+            (map (iface: {
+              name = "30-${iface}";
+              value = {
+                matchConfig.Name = iface;
+                networkConfig = {
+                  Bridge = bridge.name;
+                  ConfigureWithoutCarrier = true;
+                };
               };
-            } // (lib.optionalAttrs (bridge.vlan != null) {
-              # Attach VLAN netdev names to the physical interface
-              vlan = [ "${iface}.${toString bridge.vlan}" ];
-            });
-          }) bridge.bridgedInterfaces
+            }) bridge.bridgedInterfaces)
+            else
+            # If VLAN specified, only set up VLAN tagging on physical interface but DON'T add to bridge
+            (map (iface: {
+              name = "30-${iface}";
+              value = {
+                matchConfig.Name = iface;
+                networkConfig = {
+                  ConfigureWithoutCarrier = true;
+                };
+                # Attach VLAN netdev names to the physical interface
+                vlan = map (b: "${iface}.${toString b.vlan}") 
+                  (lib.filter (b: b.vlan != null && lib.elem iface b.bridgedInterfaces) cfg.bridges);
+              };
+            }) bridge.bridgedInterfaces)
         ) cfg.bridges)))
 
         # Configure VLAN subinterface networks
@@ -164,13 +178,9 @@ in {
               );
             routes = lib.optional (bridge.gatewayIpv4 != null) {
               Gateway = bridge.gatewayIpv4;
+              Metric = if bridge.isPrimary then 10 else 100;
             };
             dns = bridge.dnsServers;
-            bridgeVLANs = lib.optional (bridge.vlan != null) {
-              VLAN = bridge.vlan;
-              PVID = bridge.vlan;
-              EgressUntagged = lib.optional (!bridge.egressTagged) bridge.vlan;
-            };
           };
         }) cfg.bridges))
       ];
@@ -190,5 +200,50 @@ in {
       ) cfg.bridges))
       ++
       cfg.unmanagedInterfaces;
+    
+    # Set up source-based routing when enabled
+    systemd.services.setup-source-routing = lib.mkIf cfg.enableSourceRouting {
+      description = "Setup source-based routing for multiple bridges";
+      after = [ "network.target" ];
+      wantedBy = [ "multi-user.target" ];
+      path = with pkgs; [ iproute2 ];
+      
+      script = let
+        createSourceRoutingForBridge = bridge: ''
+          # Create a routing table for this bridge (using vlan ID or a sequential number)
+          TABLE_NUM=${if bridge.vlan != null then toString bridge.vlan else toString bridge.identifier}
+          BRIDGE_IP=$(ip -4 addr show dev ${bridge.name} | grep -Po 'inet \K[\d.]+')
+          
+          # Skip if the bridge has no IP
+          if [ -z "$BRIDGE_IP" ]; then
+            echo "Bridge ${bridge.name} has no IPv4 address, skipping"
+            continue
+          fi
+          
+          # Create a specific routing table for this bridge
+          ip route add default via ${bridge.gatewayIpv4} dev ${bridge.name} table $TABLE_NUM
+          
+          # Add a rule to use this table for traffic from this bridge's IP
+          ip rule add from $BRIDGE_IP table $TABLE_NUM
+        '';
+      in ''
+        # Flush existing rules (except local and main)
+        ip rule flush
+        ip rule add from all lookup local pref 0
+        ip rule add from all lookup main pref 32766
+        ip rule add from all lookup default pref 32767
+        
+        # Add rules for each bridge
+        ${lib.concatMapStrings createSourceRoutingForBridge cfg.bridges}
+        
+        # Flush routing cache
+        ip route flush cache
+      '';
+      
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+      };
+    };
   };
 }
