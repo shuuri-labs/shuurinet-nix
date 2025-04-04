@@ -1,6 +1,6 @@
 # Edit this configuration file to define what should be installed on
 # your system.  Help is available in the configuration.nix(5) man page
-# and in the NixOS manual (accessible by running ‘nixos-help’).
+# and in the NixOS manual (accessible by running 'nixos-help').
 
 { config, pkgs, inputs, lib, ... }:
 
@@ -9,6 +9,10 @@ let
   secretsAbsolutePath = "/home/ashley/shuurinet-nix/secrets"; 
 
   linuxUefiVmTemplate = import ../../lib/vm-templates/nixvirt-linux-uefi-host-network.nix { inherit pkgs nixvirt; };
+
+  homelabNetworks = {
+    bln = config.homelab.networks.subnets.bln;
+  };
 
   inherit (inputs) nixvirt;
 in
@@ -26,14 +30,29 @@ in
     network = {
       config = {
         hostName = "castform";
-        interfaces = [ "enp0s31f6" ]; 
-        bridge = "br0";
-        unmanagedInterfaces = config.host.vars.network.config.interfaces ++ [ config.host.vars.network.config.bridge ];
-        subnet = config.homelab.networks.subnets.bln; # see options-homelab/networks.nix
-        hostIdentifier = "121";
       };
 
-      staticIpConfig.enable = true;
+      staticIpConfig = {
+        enable = true;
+
+        bridges = [{
+          name = "br0";
+          identifier = "121";
+          bridgedInterfaces = [ "enp0s31f6" ];
+          subnetIpv4 = homelabNetworks.bln.ipv4;
+          subnetIpv6 = homelabNetworks.bln.ipv6;
+          vlan = homelabNetworks.bln.vlan;
+          # unmanagedInterfaces = [ "enp0s31f7" ];
+        }
+        {
+          name = "br1";
+          identifier = "122";
+          bridgedInterfaces = [ "enp0s31f6" ];
+          subnetIpv4 = "10.11.44";
+          vlan = 44;
+          egressTagged = true;
+        }];
+      };
     };
 
     storage = {
