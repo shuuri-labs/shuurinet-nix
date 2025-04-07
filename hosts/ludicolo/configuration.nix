@@ -23,15 +23,21 @@ in
     network = {
       config = {
         hostName = "ludicolo";
-        interfaces = [ "enp1s0" ];
-        bridge = "br0";
-        unmanagedInterfaces = config.host.vars.network.config.interfaces ++ [ config.host.vars.network.config.bridge ];
-        subnet = config.homelab.networks.subnets.ldn; # see /options-homelab/networks.nix 
-        hostIdentifier = "10";
-        hostAddress6 = "${config.host.vars.network.config.subnet.ipv6}:${config.host.vars.network.config.hostIdentifier}";
       };
 
-      staticIpConfig.enable = true;
+      staticIpConfig = {
+        enable = true;
+        enableSourceRouting = false;
+
+        bridges = [{
+          name = "br0";
+          identifier = "10";
+          bridgedInterfaces = [ "enp1s0" ];
+          subnetIpv4 = homelabNetworks.ldn.ipv4;
+          subnetIpv6 = homelabNetworks.ldn.ipv6;
+          isPrimary = true;
+        }];
+      };
     };
 
     storage = {

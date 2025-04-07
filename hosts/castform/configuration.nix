@@ -44,14 +44,13 @@ in
           subnetIpv6 = homelabNetworks.bln.ipv6;
           vlan = homelabNetworks.bln.vlan;
           isPrimary = true;
-          # unmanagedInterfaces = [ "enp0s31f7" ];
         }
         {
           name = "br0-44";
           identifier = "121";
           bridgedInterfaces = [ "enp0s31f6" ];
-          subnetIpv4 = "10.10.44";
-          vlan = 44;
+          subnetIpv4 = homelabNetworks.bln-apps.ipv4;
+          vlan = homelabNetworks.bln-apps.vlan;
         }];
       };
     };

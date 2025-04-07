@@ -13,10 +13,10 @@ in {
     };
 
     enableSourceRouting = mkOption {
-      type = types.bool;
-      default = false;
+      type = types.nullOr types.bool;
+      default = null;
       description = ''Enable source-based routing - required for multi-bridge setups with physical ports
-        untested for multi-bridge setups with no physical ports (might not be needed)'';
+        untested for multi-bridge setups with no physical ports (may/may not be needed)'';
     };
 
     bridges = mkOption {
@@ -193,7 +193,7 @@ in {
       # …the physical interfaces…
       (lib.flatten (map (bridge: bridge.bridgedInterfaces) cfg.bridges))
       ++
-      # …and the VLAN netdevs (using the naming from our "20-..." keys)
+      # …and the VLAN netdevs
       (lib.flatten (map (bridge:
         lib.optionals (bridge.vlan != null)
           (map (iface: "${iface}.${toString bridge.vlan}") bridge.bridgedInterfaces)

@@ -20,19 +20,27 @@ in
   # See /options-host
 
 
+
   host.vars = {
     network = {
       config = {
         hostName = "dondozo";
-        interfaces = [ "enp2s0f1np1" "eno1"];
-        bridge = "br0";
-        unmanagedInterfaces = config.host.vars.network.config.interfaces ++ [ config.host.vars.network.config.bridge "eno2" ];
-        subnet = config.homelab.networks.subnets.bln; # see /options-homelab/networks.nix 
-        hostIdentifier = "10";
-        hostAddress6 = "${config.host.vars.network.config.subnet.ipv6}:${config.host.vars.network.config.hostIdentifier}";
       };
 
-      staticIpConfig.enable = true;
+      staticIpConfig = {
+        enable = true;
+        enableSourceRouting = false;
+        unmanagedInterfaces = [ "eno2" ];
+
+        bridges = [{
+          name = "br0";
+          identifier = "10";
+          bridgedInterfaces = [ "enp2s0f1np1" "eno1" ];
+          subnetIpv4 = homelabNetworks.bln.ipv4;
+          subnetIpv6 = homelabNetworks.bln.ipv6;
+          isPrimary = true;
+        }];
+      };
     };
 
     storage = {
