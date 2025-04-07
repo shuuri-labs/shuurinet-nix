@@ -7,6 +7,10 @@
 let
   hostCfgVars = config.host.vars;
   secretsAbsolutePath = "/home/ashley/shuurinet-nix/secrets"; 
+
+  homelabNetworks = {
+    ldn = config.homelab.networks.subnets.ldn;
+  };
 in
 {
   imports = [
