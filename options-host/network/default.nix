@@ -2,6 +2,5 @@
 {
   imports = [
     ./config.nix
-    ./static-ip.nix
   ];
 }

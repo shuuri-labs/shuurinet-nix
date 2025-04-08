@@ -24,16 +24,17 @@ in
 
   host.vars = {
     network = {
-      config = {
-        hostName = "castform";
-        interfaces = [ "enp0s31f6" ]; 
-        bridge = "br0";
-        unmanagedInterfaces = config.host.vars.network.config.interfaces ++ [ config.host.vars.network.config.bridge ];
-        subnet = config.homelab.networks.subnets.bln; # see options-homelab/networks.nix
-        hostIdentifier = "121";
-      };
-
+      hostName = "castform";
       staticIpConfig.enable = true;
+      
+      bridges = [
+        {
+          name = "br0";
+          memberInterfaces = [ "enp0s31f6" ];
+          subnet = config.homelab.networks.subnets.bln;
+          identifier = "121";
+        }
+      ];
     };
 
     storage = {
