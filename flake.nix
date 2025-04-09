@@ -49,66 +49,83 @@
       url = "github:AshleyYakeley/NixVirt";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    openwrt-imagebuilder.url = "github:astro/nix-openwrt-imagebuilder";
+
+    dewclaw.url = "github:MakiseKurisu/dewclaw";
+    flake-parts.url = "github:hercules-ci/flake-parts";
   };
 
-  outputs = inputs@{ ... }:
-    let
-      helper = import ./flakeHelper.nix inputs;
-      inherit (helper) mkNix mkDarwin;
-    in {
-      nixosConfigurations = {
-        "dondozo" = mkNix "dondozo" [
-          ./modules/homepage-dashboard
-          ./modules/zfs
-          ./modules/hdd-spindown
-          ./modules/intel-graphics
-          ./modules/power-saving
-          ./modules/virtualization
-          ./modules/media-server
-          ./modules/smb-provisioner
-          ./modules/disk-care
-          ./modules/iperf
-          ./modules/uefi-boot
-          ./modules/monitoring
-          ./modules/paperless-ngx
-          inputs.vpn-confinement.nixosModules.default
-        ];
+  outputs = inputs@{ flake-parts, ... }:
+    flake-parts.lib.mkFlake { inherit inputs; } {
+      systems = [ "x86_64-linux" ];
+      
+      flake = {
+        nixosConfigurations = let
+          helper = import ./flakeHelper.nix inputs;
+          inherit (helper) mkNix mkDarwin mkOpenWrtHosts;
+        in {
+          "dondozo" = mkNix "dondozo" [
+            ./modules/homepage-dashboard
+            ./modules/zfs
+            ./modules/hdd-spindown
+            ./modules/intel-graphics
+            ./modules/power-saving
+            ./modules/virtualization
+            ./modules/media-server
+            ./modules/smb-provisioner
+            ./modules/disk-care
+            ./modules/iperf
+            ./modules/uefi-boot
+            ./modules/monitoring
+            ./modules/paperless-ngx
+            inputs.vpn-confinement.nixosModules.default
+          ];
 
-        "castform" = mkNix "castform" [
-          ./modules/homepage-dashboard
-          ./modules/zfs
-          ./modules/hdd-spindown
-          ./modules/intel-graphics
-          ./modules/power-saving
-          ./modules/virtualization
-          ./modules/media-server
-          ./modules/smb-provisioner
-          ./modules/disk-care
-          ./modules/iperf
-          ./modules/uefi-boot
-          ./modules/monitoring
-          inputs.vpn-confinement.nixosModules.default
-        ];
+          "castform" = mkNix "castform" [
+            ./modules/homepage-dashboard
+            ./modules/zfs
+            ./modules/hdd-spindown
+            ./modules/intel-graphics
+            ./modules/power-saving
+            ./modules/virtualization
+            ./modules/media-server
+            ./modules/smb-provisioner
+            ./modules/disk-care
+            ./modules/iperf
+            ./modules/uefi-boot
+            ./modules/monitoring
+            inputs.vpn-confinement.nixosModules.default
+          ];
 
-        "ludicolo" = mkNix "ludicolo" [
-          ./modules/homepage-dashboard
-          ./modules/zfs
-          ./modules/hdd-spindown
-          ./modules/intel-graphics
-          ./modules/power-saving
-          ./modules/virtualization
-          ./modules/media-server
-          ./modules/smb-provisioner
-          ./modules/disk-care
-          ./modules/iperf
-          ./modules/uefi-boot
-          ./modules/monitoring
-          ./modules/netbird/router
-          ./modules/frigate
-          inputs.vpn-confinement.nixosModules.default
-        ];
+          "ludicolo" = mkNix "ludicolo" [
+            ./modules/homepage-dashboard
+            ./modules/zfs
+            ./modules/hdd-spindown
+            ./modules/intel-graphics
+            ./modules/power-saving
+            ./modules/virtualization
+            ./modules/media-server
+            ./modules/smb-provisioner
+            ./modules/disk-care
+            ./modules/iperf
+            ./modules/uefi-boot
+            ./modules/monitoring
+            ./modules/netbird/router
+            ./modules/frigate
+            inputs.vpn-confinement.nixosModules.default
+          ];
+        };
+      };
 
-        packages.x86_64-linux = import ./lib/openwrt-image-builder-definitions.nix { inherit inputs; };
+      perSystem = { config, self', inputs', pkgs, system, ... }: {
+        formatter = pkgs.nixpkgs-fmt;
+        
+        packages = 
+          (import ./modules/openwrt/image-builder-definitions.nix { inherit inputs; }) //
+          (let
+            helper = import ./flakeHelper.nix inputs;
+          in helper.mkOpenWrtHosts system);
       };
     };
 }

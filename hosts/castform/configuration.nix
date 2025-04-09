@@ -33,6 +33,7 @@ in
           memberInterfaces = [ "enp0s31f6" ];
           subnet = config.homelab.networks.subnets.bln;
           identifier = "121";
+          isPrimary = true;
         }
       ];
     };

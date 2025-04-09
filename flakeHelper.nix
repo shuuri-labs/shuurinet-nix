@@ -2,6 +2,14 @@ inputs:
 let
   mkHostPath = hostName: ./hosts/${hostName}/configuration.nix;
 
+  mkOpenWrt = configPath: system: 
+    let
+      pkgs = inputs.nixpkgs.legacyPackages.${system};
+    in
+    pkgs.callPackage inputs.dewclaw {
+      configuration = import (./. + configPath);
+    };
+
   commonConfig = { config, pkgs, inputs, stateVersion, ... }: {
     nixpkgs.config.allowUnfree = true;
     
@@ -62,5 +70,10 @@ in
       (mkHostPath hostName)
     ] 
     ++ extraModules;
+  };
+
+  mkOpenWrtHosts = system: {
+    default = mkOpenWrt "/modules/openwrt/configs/berlin-router.nix" system;
+    berlin-router = mkOpenWrt "/modules/openwrt/configs/berlin-router.nix" system;
   };
 }

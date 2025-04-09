@@ -15,13 +15,10 @@ in {
         release = "24.10.0";
         
         packages = [
-          "tcpdump"
           "luci-app-sqm"
           "attendedsysupgrade-common"
           "avahi-daemon-service-http"
           "avahi-daemon-service-ssh"
-          "ethtool"
-          "pciutils"
         ];
         
         # Include custom files and configurations
@@ -30,6 +27,7 @@ in {
           cat > $out/etc/uci-defaults/99-custom <<EOF
           uci -q batch << EOI
           set system.@system[0].hostname='ludicolo-router'
+          set network.lan.ipaddr='192.168.11.51'
           commit
           EOI
           EOF
@@ -45,16 +43,20 @@ in {
   berlin-ap = 
     let
       config = profiles.identifyProfile "xiaomi_redmi-router-ax6s" // {
-        release = "SNAPSHOT";
+        target = "mediatek/mt7622";
+        variant = "generic";
+        profile = "xiaomi_redmi-router-ax6s";
+        release = "snapshot";
         packages = [
           "luci"
-          "tcpdump"
         ];
+        disabledServices = [ "dnsmasq" "odhcpd" ];
         files = pkgs.runCommand "fritz-files" {} ''
           mkdir -p $out/etc/uci-defaults
           cat > $out/etc/uci-defaults/99-custom <<EOF
           uci -q batch << EOI
-          set system.@system[0].hostname='fritz-router'
+          set system.@system[0].hostname='shuurinet-router'
+          set network.lan.ipaddr='192.168.11.3'
           commit
           EOI
           EOF

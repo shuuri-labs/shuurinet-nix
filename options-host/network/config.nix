@@ -20,7 +20,6 @@ in
 
     staticIpConfig.enable = lib.mkEnableOption "staticNetworkConfig";
 
-    # Network manager is now a separate option
     networkManager = {
       enable = mkOption {
         type = types.bool;
@@ -156,6 +155,7 @@ in
               routes = [{ 
                 Gateway = bridge.subnet.gateway;
                 # ipv6 gateway/dns will be configured automatically by SLAAC
+                Metric = if bridge.isPrimary then 10 else 100;
               }];
               dns = [ bridge.subnet.gateway ];
             };
