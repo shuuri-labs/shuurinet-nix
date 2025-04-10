@@ -121,11 +121,15 @@
       perSystem = { config, self', inputs', pkgs, system, ... }: {
         formatter = pkgs.nixpkgs-fmt;
         
-        packages = 
-          (import ./modules/openwrt/image-builder-definitions.nix { inherit inputs; }) //
-          (let
-            helper = import ./flakeHelper.nix inputs;
-          in helper.mkOpenWrtHosts system);
+        packages = {
+          berlin-ap-img = (import ./modules/openwrt/image-definitions/berlin/ap.nix) { inherit inputs; };
+          berlin-router-img = (import ./modules/openwrt/image-definitions/berlin/router.nix) { inherit inputs; };
+          london-router-img = (import ./modules/openwrt/image-definitions/london/router.nix) { inherit inputs; };
+        } // 
+        (import ./modules/openwrt/image-builder-definitions.nix { inherit inputs; }) //
+        (let
+          helper = import ./flakeHelper.nix inputs;
+        in helper.mkOpenWrtHosts system);
       };
     };
 }
