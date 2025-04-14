@@ -11,6 +11,8 @@ let
   mkBaseConfig = { 
     hostname,
     ipAddress,
+    gateway ? null,
+    dnsServer ? null,
     target,
     variant,
     profile,
@@ -40,6 +42,8 @@ let
       uci -q batch << EOI
       set system.@system[0].hostname='${hostname}'
       set network.lan.ipaddr='${ipAddress}'
+      set network.lan.gateway='${gateway}'
+      set network.lan.dns='${dnsServer}'
       ${extraUciCommands}
       commit
       EOI

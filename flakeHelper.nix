@@ -73,8 +73,8 @@ in
   };
 
   mkOpenWrtHosts = system: {
-    default = mkOpenWrt "/modules/openwrt/configs/vm-test-router.nix" system;
-    berlin-router = mkOpenWrt "/modules/openwrt/configs/berlin-router.nix" system;
-    vm-test-router = mkOpenWrt "/modules/openwrt/configs/vm-test-router.nix" system;  
+    default = mkOpenWrt "/modules/openwrt/configs/berlin/router.nix" system;
+    berlin-router = mkOpenWrt "/modules/openwrt/configs/berlin/router.nix" system;
+    vm-test-router = mkOpenWrt "/modules/openwrt/configs/berlin/vm-test-router.nix" system;  
   };
 }

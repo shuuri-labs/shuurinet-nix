@@ -1,37 +1,9 @@
-{ pkgs, ... }:
-let
-  sqmConfigFile = pkgs.writeText "sqm.apk-new" ''
-    config queue 'eth1'
-    	option interface 'eth2'
-    	option enabled '1'
-    	option download '178000'
-    	option upload '44000'
-    	option qdisc 'cake'
-    	option script 'piece_of_cake.qos'
-    	option linklayer 'ethernet'
-    	option overhead '34'
-    	option debug_logging '0'
-    	option verbosity '5'
-  '';
-in
 {
   openwrt.vm-test-router = {
-    deploy.host = "192.168.11.132";
+    deploy.host = "192.168.11.51";
     deploy.sshConfig = {
       Port = 22;
-      IdentityFile = "/home/ashley/.ssh/id_ed25519";
-    };
-
-    deploySteps.sqmConfig = {
-      priority = 50;
-      copy = ''
-        echo "Copying sqm config..."
-        scp ${sqmConfigFile} device:/tmp/sqm.apk-new
-        ssh 'mv /tmp/sqm.apk-new /etc/config/sqm.apk-new'
-      '';
-      apply = ''
-        echo "Nothing to apply for sqm config"
-      '';
+      IdentityFile = "~/.ssh/id_ed25519";
     };
 
     services = {
@@ -90,7 +62,7 @@ in
           lan = {
             device = "br-lan.11";
             proto = "static";
-            ipaddr = "192.168.11.132";
+            ipaddr = "192.168.11.51";
             gateway = "192.168.11.1";
             netmask = "255.255.255.0";
             ip6assign = "60";
@@ -269,26 +241,8 @@ in
           }
         ];
       };
-
-      sqm = {
-        eth1 = {
-          main = {
-            enabled = true;
-            interface = "eth2";
-            download = 178000;
-            upload = 44000;
-            qdisc = "cake";
-            script = "piece_of_cake.qos";
-            linklayer = "ethernet";
-            debug_logging = false;
-            verbosity = 5;
-            overhead = 34;
-          };
-        };
-      };
     };
   };
 }
-
 
 # nix build .#vm-test-router --show-trace

@@ -66,6 +66,7 @@ in
     # mullvad-wireguard-config.file = "${secretsAbsolutePath}/wg-mullvad.conf.age";
     ashley-samba-user-pw.file = "${secretsAbsolutePath}/samba-ashley-password.age";
     media-samba-user-pw.file = "${secretsAbsolutePath}/samba-media-password.age";
+    sops-key.file = "${secretsAbsolutePath}/keys/sops-key.txt.age";
   };
 
   # -------------------------------- DISK CONFIGURATION --------------------------------
@@ -181,7 +182,7 @@ in
                   };
                   source = {
                     pool = "default";
-                    volume = "openwrt-24.10.0-x86-64-generic-ext4-combined-efi.raw";
+                    volume = "openwrt-24.10.0-x86-64-generic-ext4-combined-efi-newest.raw";
                   };
                   target = {
                     dev = "vda";
@@ -260,6 +261,8 @@ in
       }];
     };
   };
+
+  environment.variables.SOPS_AGE_KEY_FILE = config.age.secrets.sops-key.path;
 }
 
 # sudo virsh list --all

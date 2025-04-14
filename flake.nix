@@ -53,6 +53,7 @@
     openwrt-imagebuilder.url = "github:astro/nix-openwrt-imagebuilder";
 
     dewclaw.url = "github:MakiseKurisu/dewclaw";
+    
     flake-parts.url = "github:hercules-ci/flake-parts";
   };
 
@@ -122,8 +123,8 @@
         formatter = pkgs.nixpkgs-fmt;
         
         packages = {
-          berlin-ap-img = (import ./modules/openwrt/image-definitions/berlin/ap.nix) { inherit inputs; };
           berlin-router-img = (import ./modules/openwrt/image-definitions/berlin/router.nix) { inherit inputs; };
+          berlin-ap-img = (import ./modules/openwrt/image-definitions/berlin/ap.nix) { inherit inputs; };
           london-router-img = (import ./modules/openwrt/image-definitions/london/router.nix) { inherit inputs; };
         } // 
         (import ./modules/openwrt/image-builder-definitions.nix { inherit inputs; }) //

@@ -6,8 +6,8 @@ let
   ax6sBase = import ../base/ax6s.nix;
 in
   inputs.openwrt-imagebuilder.lib.build (routerBase.mkRouterConfig {
-    hostname = "shuurinet-router";
-    ipAddress = "192.168.11.51";
+    hostname = "shuurinet-router-ldn";
+    ipAddress = "192.168.10.1";
     # sqmConfig = {
     #   queue = "eth4";
     #   interface = "eth4";

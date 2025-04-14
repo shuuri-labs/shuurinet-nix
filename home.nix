@@ -43,6 +43,10 @@
       lsgen = "sudo nix-env --list-generations --profile /nix/var/nix/profiles/system";
       nxrlbk = "sudo nixos-rebuild switch --flake ~/shuurinet-nix --rollback";
     };
+
+    sessionVariables = {
+      SOPS_AGE_KEY_FILE = "/run/agenix/sops-key";
+    };
   };
 
   programs.git = {

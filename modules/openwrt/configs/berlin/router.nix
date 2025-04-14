@@ -3,7 +3,7 @@
     deploy.host = "192.168.11.51";
     deploy.sshConfig = {
       Port = 22;
-      IdentityFile = "/home/ashley/.ssh/id_ed25519";
+      IdentityFile = "~/.ssh/id_ed25519";
     };
 
     packages = [ "htop" ];
@@ -71,7 +71,8 @@
             ipaddr = "192.168.11.1";
             netmask = "255.255.255.0";
             ip6assign = "60";
-            dns = [ "fd8f:2e0e:4eed::3ee" "192.168.11.136" ];
+            gateway = null;
+            dns = null; # [ "fd8f:2e0e:4eed::3ee" "192.168.11.136" ];
           };
 
           wan = {
@@ -94,7 +95,7 @@
             device = "br-lan.22";
             ipaddr = "10.10.22.1";
             netmask = "255.255.255.0";
-            dns = [ "fd8f:2e0e:4eed::3ee" "192.168.11.136" ];
+            dns = null; # [ "fd8f:2e0e:4eed::3ee" "192.168.11.136" ];
           };
 
           iot = {
@@ -102,7 +103,7 @@
             device = "br-lan.33";
             ipaddr = "10.10.33.1";
             netmask = "255.255.255.0";
-            dns = [ "fd8f:2e0e:4eed::3ee" "192.168.11.136" ];
+            dns = null; # [ "fd8f:2e0e:4eed::3ee" "192.168.11.136" ];
           };
 
           apps = {
@@ -110,7 +111,7 @@
             device = "br-lan.44";
             ipaddr = "10.10.44.1";
             netmask = "255.255.255.0";
-            dns = [ "192.168.11.136" "fd8f:2e0e:4eed::3ee" ];
+            dns = null; # [ "192.168.11.136" "fd8f:2e0e:4eed::3ee" ];
           };
         };
       };
@@ -222,23 +223,6 @@
             mac = [ "90:0E:B3:FD:5A:3C" ];
           }
         ];
-      };
-
-      sqm = {
-        eth1 = {
-          main = {
-            enabled = true;
-            interface = "eth4";
-            download = 178000;
-            upload = 44000;
-            qdisc = "cake";
-            script = "piece_of_cake.qos";
-            linklayer = "ethernet";
-            debug_logging = false;
-            verbosity = 5;
-            overhead = 34;
-          };
-        };
       };
     };
   };

@@ -75,6 +75,7 @@ in
       wget
       util-linux
       age
+      sops
       wireguard-tools
       pciutils # lspci
       ethtool
