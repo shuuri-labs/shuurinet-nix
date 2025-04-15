@@ -5,27 +5,27 @@ let
   
   base = import ./base.nix { inherit inputs; };
 
-  mkSqmConfig = {
-    queue,
-    interface,
-    enabled ? true,
-    download,
-    upload,
-    linklayer ? "ethernet",
-    overhead
-  }: ''
-    config queue '${queue}'
-      option enabled ${if enabled then "1" else "0"}
-      option interface '${interface}'
-      option download '${toString download}'
-      option upload '${toString upload}'
-      option qdisc 'cake'
-      option script 'piece_of_cake.qos'
-      option linklayer '${linklayer}'
-      option debug_logging '0'
-      option verbosity '5'
-      option overhead '${toString overhead}'
-  '';
+  # mkSqmConfig = {
+  #   queue,
+  #   interface,
+  #   enabled ? true,
+  #   download,
+  #   upload,
+  #   linklayer ? "ethernet",
+  #   overhead
+  # }: ''
+  #   config queue '${queue}'
+  #     option enabled ${if enabled then "1" else "0"}
+  #     option interface '${interface}'
+  #     option download '${toString download}'
+  #     option upload '${toString upload}'
+  #     option qdisc 'cake'
+  #     option script 'piece_of_cake.qos'
+  #     option linklayer '${linklayer}'
+  #     option debug_logging '0'
+  #     option verbosity '5'
+  #     option overhead '${toString overhead}'
+  # '';
 
   # Router-specific configuration builder
   mkRouterConfig = args@{ 
@@ -37,7 +37,7 @@ let
     release ? "24.10.0",
     rootFsPartSize ? null,
     extraPackages ? [],
-    sqmConfig ? null,
+    # sqmConfig ? null,
     ...
   }: base.mkBaseConfig (args // {
     extraPackages = [
@@ -47,17 +47,17 @@ let
     ] ++ extraPackages;
 
     # Router-specific files
-    extraFiles = args.extraFiles or "" + ''
-      # Add router-specific configurations
-      mkdir -p $out/etc/config
+    # extraFiles = args.extraFiles or "" + ''
+    #   # Add router-specific configurations
+    #   mkdir -p $out/etc/config
       
-      # SQM config (if provided)
-      ${if sqmConfig != null then ''
-        cat > $out/etc/config/sqm.apk-new <<EOF
-        ${mkSqmConfig sqmConfig}
-        EOF
-      '' else ""}
-    '';
+    #   # SQM config (if provided)
+    #   ${if sqmConfig != null then ''
+    #     cat > $out/etc/config/sqm.apk-new <<EOF
+    #     ${mkSqmConfig sqmConfig}
+    #     EOF
+    #   '' else ""}
+    # '';
 
     inherit rootFsPartSize;
   });

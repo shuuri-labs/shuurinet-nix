@@ -263,6 +263,10 @@ in
   };
 
   environment.variables.SOPS_AGE_KEY_FILE = config.age.secrets.sops-key.path;
+
+  environment.systemPackages = with pkgs; [
+    jq
+  ];
 }
 
 # sudo virsh list --all

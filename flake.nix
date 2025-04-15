@@ -1,35 +1,21 @@
 {
-  description = "shuurinet nixos config flake";
-
-  nixConfig = {
-    trusted-substituters = [
-      "https://cachix.cachix.org"
-      "https://nixpkgs.cachix.org"
-      "https://nix-community.cachix.org"
-    ];
-    trusted-public-keys = [
-      "cachix.cachix.org-1:eWNHQldwUO7G2VkjpnjDbWwy4KQ/HNxht7H4SSoMckM="
-      "nixpkgs.cachix.org-1:q91R6hxbwFvDqTSDKwDAV4T5PxqXGxswD8vhONFMeOE="
-      "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
-    ];
-  };
+  description = "shuurinet nix config flake";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11"; # update flakeHelper.nix stateVersion to match
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
 
-    # nix-darwin = {
-    #   url = "github:LnL7/nix-darwin";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };
-
-    disko = {
-      url = "github:nix-community/disko";
-      inputs.nixpkgs.follows = "nixpkgs";
+    flake-parts = {
+      url = "github:hercules-ci/flake-parts";
     };
 
     home-manager = {
       url = "github:nix-community/home-manager/release-24.11";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    disko = {
+      url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -50,23 +36,32 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    openwrt-imagebuilder.url = "github:astro/nix-openwrt-imagebuilder";
+    dewclaw = {
+      url = "github:MakiseKurisu/dewclaw";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
-    dewclaw.url = "github:MakiseKurisu/dewclaw";
-    
-    flake-parts.url = "github:hercules-ci/flake-parts";
+    openwrt-imagebuilder = {
+      url = "github:astro/nix-openwrt-imagebuilder";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # secrets = {
+    #   url = "path:/home/ashley/shuurinet-nix/secrets";
+    #   flake = false;
+    # };
   };
 
-  outputs = inputs@{ flake-parts, ... }:
+  outputs = inputs@{ flake-parts, ... }: let
+    helper = import ./flakeHelper.nix { inherit inputs; };
+    inherit (helper) mkNixosHost mkDarwinHost mkOpenWrtConfig;
+  in
     flake-parts.lib.mkFlake { inherit inputs; } {
-      systems = [ "x86_64-linux" ];
-      
+      systems = [ "x86_64-linux" "aarch64-darwin" ]; # for flake-parts perSystem below 
+
       flake = {
-        nixosConfigurations = let
-          helper = import ./flakeHelper.nix inputs;
-          inherit (helper) mkNix mkDarwin mkOpenWrtHosts;
-        in {
-          "dondozo" = mkNix "dondozo" [
+        nixosConfigurations = {
+          dondozo = mkNixosHost "dondozo" [
             ./modules/homepage-dashboard
             ./modules/zfs
             ./modules/hdd-spindown
@@ -81,9 +76,9 @@
             ./modules/monitoring
             ./modules/paperless-ngx
             inputs.vpn-confinement.nixosModules.default
-          ];
+          ] "x86_64-linux";
 
-          "castform" = mkNix "castform" [
+          castform = mkNixosHost "castform" [
             ./modules/homepage-dashboard
             ./modules/zfs
             ./modules/hdd-spindown
@@ -97,9 +92,9 @@
             ./modules/uefi-boot
             ./modules/monitoring
             inputs.vpn-confinement.nixosModules.default
-          ];
+          ] "x86_64-linux";
 
-          "ludicolo" = mkNix "ludicolo" [
+          ludicolo = mkNixosHost "ludicolo" [
             ./modules/homepage-dashboard
             ./modules/zfs
             ./modules/hdd-spindown
@@ -115,22 +110,22 @@
             ./modules/netbird/router
             ./modules/frigate
             inputs.vpn-confinement.nixosModules.default
-          ];
+          ] "x86_64-linux";
         };
       };
 
-      perSystem = { config, self', inputs', pkgs, system, ... }: {
+      perSystem = { system, pkgs, ... }: {
         formatter = pkgs.nixpkgs-fmt;
-        
         packages = {
-          berlin-router-img = (import ./modules/openwrt/image-definitions/berlin/router.nix) { inherit inputs; };
-          berlin-ap-img = (import ./modules/openwrt/image-definitions/berlin/ap.nix) { inherit inputs; };
-          london-router-img = (import ./modules/openwrt/image-definitions/london/router.nix) { inherit inputs; };
-        } // 
-        (import ./modules/openwrt/image-builder-definitions.nix { inherit inputs; }) //
-        (let
-          helper = import ./flakeHelper.nix inputs;
-        in helper.mkOpenWrtHosts system);
+          # OpenWRT Images
+          berlin-router-img = import ./modules/openwrt/image-definitions/berlin/router.nix { inherit inputs; };
+          berlin-ap-img = import ./modules/openwrt/image-definitions/berlin/ap.nix { inherit inputs; };
+          london-router-img = import ./modules/openwrt/image-definitions/london/router.nix { inherit inputs; };
+
+          # OpenWRT Configs
+          berlin-router-config = helper.mkOpenWrtConfig "/modules/openwrt/configs/berlin/router.nix" system;
+          vm-test-router-config = helper.mkOpenWrtConfig "/modules/openwrt/configs/berlin/vm-test-router.nix" system;
+        };
       };
     };
 }

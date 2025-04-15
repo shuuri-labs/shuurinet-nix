@@ -9,13 +9,13 @@ in
     ipAddress = "192.168.11.51"; # initial ip address - will be changed by config step
     gateway = "192.168.11.1";
     dnsServer = "192.168.11.1";
-    sqmConfig = {
-      queue = "eth4";
-      interface = "eth4";
-      enabled = true;
-      download = 178000;
-      upload = 44000;
-      linklayer = "ethernet";
-      overhead = 34;
-    };
+    # sqmConfig = {
+    #   queue = "eth4";
+    #   interface = "eth4";
+    #   enabled = true;
+    #   download = 178000;
+    #   upload = 44000;
+    #   linklayer = "ethernet";
+    #   overhead = 34;
+    # };
   })

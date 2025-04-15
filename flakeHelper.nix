@@ -1,21 +1,29 @@
-inputs:
+{ inputs }:
+
 let
+  inherit (inputs.nixpkgs.lib) nixosSystem;
+
+  stateVersion = "24.11";
+
   mkHostPath = hostName: ./hosts/${hostName}/configuration.nix;
 
-  mkOpenWrt = configPath: system: 
-    let
-      pkgs = inputs.nixpkgs.legacyPackages.${system};
-    in
-    pkgs.callPackage inputs.dewclaw {
-      configuration = import (./. + configPath);
-    };
+  commonModules = [
+    ./modules/common
+    ./options-host
+    ./options-homelab
+    inputs.vscode-server.nixosModules.default
+    inputs.agenix.nixosModules.default
+    inputs.home-manager.nixosModules.home-manager
+    inputs.disko.nixosModules.disko
+    inputs.nixvirt.nixosModules.default
+  ];
 
   commonConfig = { config, pkgs, inputs, stateVersion, ... }: {
     nixpkgs.config.allowUnfree = true;
-    
+
     environment.systemPackages = [
-      inputs.agenix.packages."${pkgs.system}".default
-      inputs.home-manager.packages."${pkgs.system}".default
+      inputs.agenix.packages.${pkgs.system}.default
+      inputs.home-manager.packages.${pkgs.system}.default
     ];
 
     nixpkgs.overlays = [
@@ -32,49 +40,33 @@ let
     };
   };
 
-  stateVersion = "24.11";
-in
-{
-  mkNix = hostName: extraModules: inputs.nixpkgs.lib.nixosSystem {
-    system = "x86_64-linux";
-    
-    specialArgs = {
-      inherit inputs;
-      stateVersion = stateVersion;
+  mkNixosHost = hostName: extraModules: system:
+    nixosSystem {
+      inherit system;
+      specialArgs = { inherit inputs stateVersion; };
+      modules = [
+        (mkHostPath hostName)
+        commonConfig
+      ] ++ commonModules ++ extraModules;
     };
 
-    modules = [
-      (mkHostPath hostName)
-      ./modules/common
-      ./options-host
-      ./options-homelab
-      inputs.vscode-server.nixosModules.default
-      inputs.agenix.nixosModules.default
-      inputs.home-manager.nixosModules.home-manager
-      inputs.disko.nixosModules.disko
-      inputs.nixvirt.nixosModules.default
-      commonConfig
-    ] 
-    ++ extraModules;
-  };
-
-  mkDarwin = hostName: extraModules: inputs.nix-darwin.lib.darwinSystem {
-    system = "aarch64-darwin";
-    
-    specialArgs = {
-      inherit inputs;
-      stateVersion = stateVersion;
+  mkDarwinHost = hostName: extraModules: system:
+    inputs.nix-darwin.lib.darwinSystem {
+      inherit system;
+      specialArgs = { inherit inputs stateVersion; };
+      modules = [
+        ./darwin/${hostName}/configuration.nix
+      ] ++ extraModules;
     };
 
-    modules = [ 
-      (mkHostPath hostName)
-    ] 
-    ++ extraModules;
-  };
+  mkOpenWrtConfig = configPath: system:
+    let
+      pkgs = inputs.nixpkgs.legacyPackages.${system};
+    in
+    pkgs.callPackage inputs.dewclaw {
+      configuration = import (./. + configPath) { inherit inputs; };
+    };
 
-  mkOpenWrtHosts = system: {
-    default = mkOpenWrt "/modules/openwrt/configs/berlin/router.nix" system;
-    berlin-router = mkOpenWrt "/modules/openwrt/configs/berlin/router.nix" system;
-    vm-test-router = mkOpenWrt "/modules/openwrt/configs/berlin/vm-test-router.nix" system;  
-  };
+in {
+  inherit mkNixosHost mkDarwinHost mkOpenWrtConfig;
 }
