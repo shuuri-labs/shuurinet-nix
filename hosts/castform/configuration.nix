@@ -146,149 +146,35 @@ in
 
   virtualization = {
     intel.enable = true;
-    # nixvirt = {
-    #   enable = true;
-    #   pools.main = {
-    #     uuid = "4acdd24f-9649-4a24-8739-277c822c6639";
-    #     images.path = "/var/lib/libvirt/images";
-    #   };
-    # };
   };
 
-    virtualisation.qemu.manager = {
-      services = {
-        "openwrt" = {
-          enable    = true;
-          imagePath = "/var/lib/libvirt/images/openwrt-24.10.0-x86-64-generic-ext4-combined-efi-newest.raw";
-          uefi      = true;
-          memory    = 256;
-          smp       = 4;
-          format    = "raw";
-          bridges   = [ "br0" ];
-          pciHosts  = [ "01:00.0" "01:00.1" ];
-          vncPort   = 1;
-        };
+  virtualisation.qemu.manager = {
+    services = {
+      "openwrt" = {
+        enable    = true;
+        imagePath = "/var/lib/libvirt/images/openwrt-24.10.0-x86-64-generic-ext4-combined-efi-newest.raw";
+        uefi      = true;
+        memory    = 256;
+        smp       = 4;
+        format    = "raw";
+        bridges   = [ "br0" ];
+        pciHosts  = [ "01:00.0" "01:00.1" ];
+        vncPort   = 1;
+      };
 
-        "home-assistant" = {
-          enable     = true;
-          imagePath  = "/var/lib/libvirt/images/haos_ova-14.2-newest-2.qcow2";
-          uefi       = true;
-          memory     = 3072;
-          smp        = 2;
-          format     = "qcow2";
-          bridges    = [ "br0" ];
-          rootScsi   = true;
-          vncPort    = 2;
-        };
+      "home-assistant" = {
+        enable     = true;
+        imagePath  = "/var/lib/libvirt/images/haos_ova-14.2-newest-2.qcow2";
+        uefi       = true;
+        memory     = 3072;
+        smp        = 2;
+        format     = "qcow2";
+        bridges    = [ "br0" ];
+        rootScsi   = true;
+        vncPort    = 2;
       };
     };
-
-  # virtualisation.libvirt = {
-  #   enable = true;
-    
-  #   connections."qemu:///system" = {      
-  #     domains = [{
-  #       definition = nixvirt.lib.domain.writeXML (
-  #         let
-  #           baseTemplate = linuxUefiVmTemplate.mkCustomVmTemplate {
-  #             name = "openwrt";
-  #             uuid = "cc7439ed-36af-4696-a6f2-1f0c4474d87e";
-  #             memoryMibCount = 256;
-  #             hostInterface = "br0";
-  #           };
-  #         in
-  #           baseTemplate // {
-  #             devices = baseTemplate.devices // {
-  #               disk = [{
-  #                 type = "volume";
-  #                 device = "disk";
-  #                 driver = {
-  #                   name = "qemu";
-  #                   type = "raw";
-  #                   cache = "none";
-  #                   discard = "unmap";
-  #                 };
-  #                 source = {
-  #                   pool = "default";
-  #                   volume = "openwrt-24.10.0-x86-64-generic-ext4-combined-efi-newest.raw";
-  #                 };
-  #                 target = {
-  #                   dev = "vda";
-  #                   bus = "virtio";
-  #                 };
-  #               }];
-
-  #               hostdev = [
-  #                 {
-  #                   type = "pci";
-  #                   source = {
-  #                     address = {
-  #                       domain = 0;
-  #                       bus = 1;
-  #                       slot = 0;
-  #                       function = 0;
-  #                     };
-  #                   };
-  #                 }
-  #                 {
-  #                   type = "pci";
-  #                   source = {
-  #                     address = {
-  #                       domain = 0;
-  #                       bus = 1;
-  #                       slot = 0;
-  #                       function = 1;
-  #                     };
-  #                   };
-  #                 }
-  #               ];
-  #             };
-  #           }
-  #       );
-  #       active = true;
-  #     }
-  #     {
-  #       definition = nixvirt.lib.domain.writeXML (
-  #         let
-  #           baseTemplate = linuxUefiVmTemplate.mkCustomVmTemplate {
-  #             name = "home-assistant";
-  #             uuid = "c87b7237-8169-42c1-b5cc-6d02624d6341"; # uuidgen 
-  #             memoryMibCount = 3072;
-  #             hostInterface = "br0";
-  #           };
-  #         in
-  #           baseTemplate // {
-  #             devices = baseTemplate.devices // {
-  #               controller = [{
-  #                 type = "scsi";
-  #                 model = "virtio-scsi";
-  #               }];
-
-  #               disk = [{
-  #                 type = "volume";
-  #                 device = "disk";
-  #                 driver = {
-  #                   name = "qemu";
-  #                   type = "qcow2";
-  #                   cache = "none";
-  #                   discard = "unmap";
-  #                 };
-  #                 source = {
-  #                   pool = "default";
-  #                   volume = "haos_ova-14.2-newest-2.qcow2";
-  #                 };
-  #                 target = {
-  #                   dev = "sda";
-  #                   bus = "scsi";
-  #                 };
-  #               }];
-  #             };
-  #           }
-  #       );
-  #       active = true;
-  #     }];
-  #   };
-  # };
+  };
 
   environment.variables.SOPS_AGE_KEY_FILE = config.age.secrets.sops-key.path;
 
