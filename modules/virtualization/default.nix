@@ -5,10 +5,11 @@ let
 in
 {
   imports = [
-    ./virtualization.nix
+    ./base.nix
     ./bare-metal.nix
     ./intel.nix
-    ./nixvirt.nix
+    # ./nixvirt.nix
+    ./make-qemu-vm-service.nix
   ];
 
   config = {

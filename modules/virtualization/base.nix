@@ -14,8 +14,6 @@ in
     };
   };
 
- 
-
   config = lib.mkIf cfg.enable {
     users.users.${cfg.mainUser}.extraGroups = [ "libvirtd" ];
     

@@ -87,7 +87,9 @@ in
       "/home/ashley/.ssh/id_ed25519"     # User SSH key
       # "/etc/ssh/ssh_host_ed25519_key"   # Host SSH key, does not work with agenix
     ];
-
+    
+    environment.variables.SOPS_AGE_KEY_FILE = config.age.secrets.sops-key.path;
+    
     # enable vscode connection
     services.vscode-server.enable = true;
     # enable cursor vscode server
