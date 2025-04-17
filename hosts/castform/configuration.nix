@@ -267,6 +267,11 @@ in
   environment.systemPackages = with pkgs; [
     jq
   ];
+
+  environment.etc."qemu/bridge.conf".text = ''
+    allow br0
+    allow virbr0
+  '';
 }
 
 # sudo virsh list --all

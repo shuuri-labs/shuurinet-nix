@@ -11,6 +11,7 @@ let
   }: base.mkBaseConfig (args // {
     inherit disabledServices;
   });
-in {
+in 
+{
   inherit mkApConfig;
 }

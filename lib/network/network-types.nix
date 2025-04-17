@@ -17,7 +17,7 @@ in {
         };
 
         gateway = mkOption {
-          type = types.str;
+          type = types.nullOr types.str;
           description = "IPv4 gateway";
           default = "${config.ipv4}.1";
         };
@@ -35,7 +35,7 @@ in {
         dnsServers = mkOption {
           type = types.listOf types.str;
           description = "DNS servers for this subnet";
-          default = [ "${config.gateway}" ];
+          default = if config.gateway != null then [ "${config.gateway}" ] else [];
         };
 
         vlan = mkOption {

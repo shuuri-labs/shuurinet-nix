@@ -9,7 +9,7 @@ let
     target ? "x86",
     variant ? "64",
     profile ? "generic",
-    rootFsPartSize ? 4096,
+    rootFsPartSize ? 1024,
     release ? "24.10.0",
     ...
   }: routerBase.mkRouterConfig (args // {

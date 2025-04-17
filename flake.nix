@@ -112,6 +112,21 @@
             inputs.vpn-confinement.nixosModules.default
           ] "x86_64-linux";
         };
+
+        tatsugiri = mkNixosHost "tatsugiri" [
+          ./modules/uefi-boot
+          ./modules/virtualization
+          ./modules/power-saving
+          ./modules/intel-graphics
+          ./modules/disk-care
+
+          ./modules/openwrt
+          ./modules/netbird/router
+          
+          ./modules/homepage-dashboard
+          ./modules/iperf
+          ./modules/monitoring
+        ] "x86_64-linux";
       };
 
       perSystem = { system, pkgs, ... }: {

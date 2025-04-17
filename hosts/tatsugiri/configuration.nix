@@ -1,6 +1,6 @@
 # Edit this configuration file to define what should be installed on
 # your system.  Help is available in the configuration.nix(5) man page
-# and in the NixOS manual (accessible by running ‘nixos-help’).
+# and in the NixOS manual (accessible by running 'nixos-help').
 
 { config, pkgs, inputs, lib, ... }:
 
@@ -11,6 +11,14 @@ let
   linuxUefiVmTemplate = import ../../lib/vm-templates/nixvirt-linux-uefi-host-network.nix { inherit pkgs nixvirt; };
 
   inherit (inputs) nixvirt;
+
+  uuidgen = import ../../lib/utils/uuidgen.nix { inherit pkgs; };
+  libvirtPoolUUID = uuidgen "libvirt-pool-uuid";
+  bridgeUUID = uuidgen "bridge-uuid";
+
+  deploymentMode = true; 
+  homeAssistantImageName = "haos_ova-15.2.qcow2";
+  openwrtImageName = "openwrt-24.10.0-x86-64-generic-ext4-combined-efi.raw";
 in
 {
   imports = [
@@ -21,20 +29,32 @@ in
   # -------------------------------- HOST VARIABLES --------------------------------
   # See /options-host
 
-  host.vars = {
-    network = {
-      config = {
-        hostName = "tatsugiri";
-        interfaces = [ ]; 
-        bridge = "br0";
-        unmanagedInterfaces = config.host.vars.network.config.interfaces ++ [ config.host.vars.network.config.bridge ];
-        subnet = config.homelab.networks.subnets.bln; # see options-homelab/networks.nix
-        hostIdentifier = "121";
-      };
 
-      staticIpConfig.enable = true;
+    host.vars = {
+      network = {
+        hostName = "tatsugiri";
+        staticIpConfig.enable = !deploymentMode;
+        
+        bridges = [
+          {
+            name = "br0";
+            memberInterfaces = []; # TODO: find correct interface name
+            subnet = config.homelab.networks.subnets.bln;
+            identifier = "2";
+            isPrimary = true;
+          }
+          {
+            name = "mgmt0";
+            memberInterfaces = []; # TODO: find correct interface name
+            subnet = {
+                ipv4 = "10.10.55";
+            };
+            identifier = "21";
+            isPrimary = true;
+          }
+        ];
+      };
     };
-  };
 
   # -------------------------------- SYSTEM CONFIGURATION --------------------------------
 
@@ -43,20 +63,17 @@ in
   # Bootloader
   host.uefi-boot.enable = true;
 
-  users.users.ashley.hashedPasswordFile = config.age.secrets.castform-main-user-password.path;
+  # users.users.ashley.hashedPasswordFile = config.age.secrets.castform-main-user-password.path;
 
   swapDevices = [{
     device = "/swapfile";
-    size = 16 * 1024; # 16GB
+    size = 8 * 1024; # 16GB
   }];
 
   # -------------------------------- SECRETS --------------------------------
 
   age.secrets = {
-    castform-main-user-password.file = "${secretsAbsolutePath}/castform-main-user-password.age";
-    # mullvad-wireguard-config.file = "${secretsAbsolutePath}/wg-mullvad.conf.age";
-    ashley-samba-user-pw.file = "${secretsAbsolutePath}/samba-ashley-password.age";
-    media-samba-user-pw.file = "${secretsAbsolutePath}/samba-media-password.age";
+    sops-key.file = "${secretsAbsolutePath}/keys/sops-key.txt.age";
   };
 
   # -------------------------------- DISK CONFIGURATION --------------------------------
@@ -64,7 +81,7 @@ in
   diskCare = {
     enableTrim = true;
     disksToSmartMonitor = [
-      { device = "/dev/disk/by-id/ata-SanDisk_SDSSDH3_250G_214676446013"; } # boot drive
+      { device = "/dev/disk/by-id/ata-SanDisk_SDSSDH3_250G_214676446013"; } # boot drive TODO: find correct device id
     ];
   };
 
@@ -86,17 +103,33 @@ in
   # (get device ids from lspci -nn, at end of each line is [vendorId:deviceId])
   boot.extraModprobeConfig = lib.mkAfter ''
     options vfio-pci ids=15b3:1015,15b3:1015
-  '';
+  ''; # TODO: populate with correct device ids
 
-  boot.blacklistedKernelModules = [ "mlx5_core" ]; # block mellanox drivers on host to prevent passthrough interference
+  boot.blacklistedKernelModules = []; # block intel i350 drivers on host to prevent passthrough interference # TODO: find i350 driver name
   
+
+
+  # -------------------------------- VIRTUALISATION --------------------------------
+
+  # Unblock VNC ports, allow forwarding on bridges connected to VMs
+  # TODO: move forwarding to network module, enable with flag
   networking.firewall = {
-    allowedTCPPorts = [ 67 68 5900 5901 ];
-    allowedUDPPorts = [ 67 68 5900 5901 ];
+    allowedTCPPorts = [ 5900 5901 ];
+    allowedUDPPorts = [ 5900 5901 ];
     extraCommands = ''
-      iptables -A FORWARD -i br0 -j ACCEPT
+      iptables -A FORWARD -i br0 -j ACCEPT 
       iptables -A FORWARD -o br0 -j ACCEPT
     '';
+  };
+
+  home-assistant.deploy = {
+    enable = deploymentMode;
+    imageName = homeAssistantImageName;
+  };
+
+  openwrt.deploy = {
+    enable = deploymentMode;
+    imageName = openwrtImageName;
   };
 
   virtualization = {
@@ -104,8 +137,8 @@ in
     nixvirt = {
       enable = true;
       pools.main = {
-        uuid = "4acdd24f-9649-4a24-8739-277c822c6639";
-        images.path = "/var/lib/libvirt/images";
+        uuid = uuidgen "libvirt-pool";;
+        images.path = "/var/lib/vm/images";
       };
     };
   };
@@ -119,8 +152,8 @@ in
           let
             baseTemplate = linuxUefiVmTemplate.mkCustomVmTemplate {
               name = "openwrt";
-              uuid = "cc7439ed-36af-4696-a6f2-1f0c4474d87e";
-              memoryMibCount = 256;
+              uuid = uuidgen "openwrt";
+              memoryMibCount = 1024;
               hostInterface = "br0";
             };
           in
@@ -137,7 +170,7 @@ in
                   };
                   source = {
                     pool = "default";
-                    volume = "openwrt-24.10.0-x86-64-generic-ext4-combined-efi.raw";
+                    volume = openwrtImageName;
                   };
                   target = {
                     dev = "vda";
@@ -179,7 +212,7 @@ in
           let
             baseTemplate = linuxUefiVmTemplate.mkCustomVmTemplate {
               name = "home-assistant";
-              uuid = "c87b7237-8169-42c1-b5cc-6d02624d6341"; # uuidgen 
+              uuid = uuidgen "home-assistant";
               memoryMibCount = 3072;
               hostInterface = "br0";
             };
@@ -202,7 +235,7 @@ in
                   };
                   source = {
                     pool = "default";
-                    volume = "haos_ova-14.2-newest-2.qcow2";
+                    volume = homeAssistantImageName;
                   };
                   target = {
                     dev = "sda";
