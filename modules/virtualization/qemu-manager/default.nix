@@ -1,7 +1,7 @@
 { config, lib, pkgs, ... }:
 {
   imports = [
-    ./convert-images.nix
-    ./make-vm-service.nix
+    ./images.nix
+    ./services.nix
   ];    
 }

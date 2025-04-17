@@ -9,7 +9,7 @@ in
     ./bare-metal.nix
     ./intel.nix
     # ./nixvirt.nix
-    ./make-qemu-vm-service.nix
+    ./qemu-manager
   ];
 
   config = {

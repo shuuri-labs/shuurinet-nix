@@ -1,8 +1,6 @@
 { config, lib, pkgs, ... }:
 
 let
-  cfg = config.virtualisation.qemu.imageConversions;
-
   # Helper function to create conversion command based on source format
   mkConvertCommand = name: imgConfig: ''
     mkdir -p "$(dirname ${imgConfig.targetPath})"
@@ -16,8 +14,10 @@ let
   mkResizeCommand = name: imgConfig: ''
     ${pkgs.qemu}/bin/qemu-img resize ${imgConfig.targetPath} ${toString imgConfig.size}G
   '';
+
+  cfg = config.virtualisation.qemu.manager.images;
 in {
-  options.virtualisation.qemu.imageConversions = lib.mkOption {
+  options.virtualisation.qemu.manager.images = lib.mkOption {
     type = lib.types.attrsOf (lib.types.submodule ({ config, ... }: {
       options = {
         enable = lib.mkEnableOption "QEMU image conversion";

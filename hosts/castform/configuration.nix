@@ -155,6 +155,34 @@ in
     # };
   };
 
+    virtualisation.qemu.manager = {
+      services = {
+        "openwrt" = {
+          enable    = true;
+          imagePath = "/var/lib/libvirt/images/openwrt-24.10.0-x86-64-generic-ext4-combined-efi-newest.raw";
+          uefi      = true;
+          memory    = 256;
+          smp       = 4;
+          format    = "raw";
+          bridges   = [ "br0" ];
+          pciHosts  = [ "01:00.0" "01:00.1" ];
+          vncPort   = 1;
+        };
+
+        "home-assistant" = {
+          enable     = true;
+          imagePath  = "/var/lib/libvirt/images/haos_ova-14.2-newest-2.qcow2";
+          uefi       = true;
+          memory     = 3072;
+          smp        = 2;
+          format     = "qcow2";
+          bridges    = [ "br0" ];
+          rootScsi   = true;
+          vncPort    = 2;
+        };
+      };
+    };
+
   # virtualisation.libvirt = {
   #   enable = true;
     
