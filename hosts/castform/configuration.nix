@@ -127,23 +127,6 @@ in
 
   users.users.ashley.extraGroups = [ "libvirtd" ];
 
-  # 'vfio-pci ids='disable these devices from the host and pass them through on boot
-  # (get device ids from lspci -nn, at end of each line is [vendorId:deviceId])
-  boot.extraModprobeConfig = lib.mkAfter ''
-    options vfio-pci ids=15b3:1015,15b3:1015
-  '';
-
-  boot.blacklistedKernelModules = [ "mlx5_core" ]; # block mellanox drivers on host to prevent passthrough interference
-  
-  networking.firewall = {
-    allowedTCPPorts = [ 67 68 5900 5901 ];
-    allowedUDPPorts = [ 67 68 5900 5901 ];
-    extraCommands = ''
-      iptables -A FORWARD -i br0 -j ACCEPT
-      iptables -A FORWARD -o br0 -j ACCEPT
-    '';
-  };
-
   virtualization = {
     intel.enable = true;
   };
@@ -158,7 +141,7 @@ in
         smp       = 4;
         format    = "raw";
         bridges   = [ "br0" ];
-        pciHosts  = [ "01:00.0" "01:00.1" ];
+        pciHosts  = [ { address = "01:00.0"; vendorDeviceId = "15b3:1015"; } { address = "01:00.1"; } ];
         vncPort   = 1;
       };
 
@@ -175,14 +158,6 @@ in
       };
     };
   };
-
-  environment.variables.SOPS_AGE_KEY_FILE = config.age.secrets.sops-key.path;
-
-  environment.systemPackages = with pkgs; [
-    jq
-  ];
-
-  
 }
 
 # sudo virsh list --all
