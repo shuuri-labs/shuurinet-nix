@@ -2,6 +2,7 @@
 let
   system = "x86_64-linux";
   pkgs = inputs.nixpkgs.legacyPackages.${system};
+  profiles = inputs.openwrt-imagebuilder.lib.profiles { inherit pkgs; };
 
   routerBase = import ./router.nix { inherit inputs; };
 
@@ -9,11 +10,10 @@ let
     target ? "x86",
     variant ? "64",
     profile ? "generic",
-    rootFsPartSize ? 1024,
-    release ? "24.10.0",
+    rootFsPartSize ? 512,
     ...
   }: routerBase.mkRouterConfig (args // {
-    inherit target variant profile rootFsPartSize release;
+    inherit target variant profile rootFsPartSize;
   });
 
 in {

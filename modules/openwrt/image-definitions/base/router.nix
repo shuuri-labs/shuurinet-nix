@@ -12,7 +12,6 @@ let
     target,
     variant,
     profile,
-    release ? "24.10.0",
     rootFsPartSize ? null,
     extraPackages ? [],
     ...

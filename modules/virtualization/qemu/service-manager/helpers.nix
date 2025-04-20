@@ -23,10 +23,11 @@ rec {
     lib.optional enable "-drive if=pflash,format=raw,readonly=on,file=${code}"
   ++ lib.optional enable "-drive if=pflash,format=raw,file=${varsFile}";
 
-  mkUefiPreStart = name: enable: lib.optional enable ''
-    ${pkgs.coreutils}/bin/install -m0644 -o root -D \
-      ${pkgs.OVMF.fd}/FV/OVMF_VARS.fd /var/lib/libvirt/images/${name}-ovmf-vars.fd
-  '';
+  mkUefiPreStart = name: enable: 
+    if enable then ''
+      ${pkgs.coreutils}/bin/install -m0644 -o root -D \
+        ${pkgs.OVMF.fd}/FV/OVMF_VARS.fd /var/lib/libvirt/images/${name}-ovmf-vars.fd
+    '' else "";
 
   prettyArgs = args: lib.concatStringsSep " \\\n  " args;
 }

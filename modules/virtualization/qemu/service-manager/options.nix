@@ -20,7 +20,7 @@ in
     type = lib.types.attrsOf (lib.types.submodule ({ ... }: {
       options = {
         enable    = lib.mkEnableOption "QEMU virtual machine";
-        imagePath = lib.mkOption { type = lib.types.path; };
+        baseImage = lib.mkOption { type = lib.types.str; };
         rootScsi  = lib.mkOption { type = lib.types.bool; default = false; };
         uefi      = lib.mkOption { type = lib.types.bool; default = false; };
         memory    = lib.mkOption { type = lib.types.ints.positive; default = 512; };

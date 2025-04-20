@@ -1,6 +1,6 @@
 # Edit this configuration file to define what should be installed on
 # your system.  Help is available in the configuration.nix(5) man page
-# and in the NixOS manual (accessible by running ‘nixos-help’).
+# and in the NixOS manual (accessible by running 'nixos-help').
 
 { config, pkgs, inputs, lib, ... }:
 
@@ -63,7 +63,6 @@ in
 
   age.secrets = {
     castform-main-user-password.file = "${secretsAbsolutePath}/castform-main-user-password.age";
-    # mullvad-wireguard-config.file = "${secretsAbsolutePath}/wg-mullvad.conf.age";
     ashley-samba-user-pw.file = "${secretsAbsolutePath}/samba-ashley-password.age";
     media-samba-user-pw.file = "${secretsAbsolutePath}/samba-media-password.age";
     sops-key.file = "${secretsAbsolutePath}/keys/sops-key.txt.age";
@@ -101,27 +100,6 @@ in
   intelGraphics.enable = true;
   boot.kernelParams = [ "intremap=no_x2apic_optout" ]; # ignore fujitsu bios error 
   powersave.enable = true; 
-  
-  # -------------------------------- FILE SERVER --------------------------------
-
-  # Samba - configured in ./samba-config.nix
-  sambaProvisioner.enable = true;
-
-  # -------------------------------- HOSTED SERVICES --------------------------------
-
-  # Media Server
-  # mediaServer.enable = true;
-  # mediaServer.vpnConfinement.wireguardConfigFile = config.age.secrets.mullvad-wireguard-config.path; 
-  # mediaServer.vpnConfinement.lanSubnet = hostCfgVars.network.config.subnet.ipv4;
-  # mediaServer.vpnConfinement.lanSubnet6 = hostCfgVars.network.config.subnet.ipv6;
-
-  # mediaServer.storage.path = hostCfgVars.storage.directories.media;
-  # mediaServer.storage.group = hostCfgVars.storage.accessGroups.media.name;
-  # mediaServer.storage.hostMainStorageUser = "ashley";
-
-  # mediaServer.services.downloadDir = hostCfgVars.storage.directories.downloads; 
-  # mediaServer.services.downloadDirAccessGroup = hostCfgVars.storage.accessGroups.downloads.name;
-  # mediaServer.services.mediaDirAccessGroup = hostCfgVars.storage.accessGroups.media.name;
 
   # -------------------------------- Virtualisation & VMs --------------------------------
 
@@ -132,10 +110,29 @@ in
   };
 
   virtualisation.qemu.manager = {
+    images = {
+      "openwrt" = {
+        enable = true;
+        sourcePath = pkgs.copyPathToStore /var/lib/libvirt/images/openwrt-24.10.0-x86-64-generic-ext4-combined-efi-newest.raw;
+        sourceFormat = "raw";
+      };
+
+      # https://github.com/home-assistant/operating-system/releases/download/15.2/haos_generic-x86-64-15.2.img.xz
+      # 1rjgxjz0bs9bv88qqmpk5iln5h4iln4jn8g0crlk62pqxjs67aaz
+      
+      "haos" = {
+        enable = true;
+        sourceUrl = "https://github.com/home-assistant/operating-system/releases/download/15.2/haos_ova-15.2.qcow2.xz";
+        sourceFormat = "qcow2";
+        sourceSha256 = "0jbjajfnv3m37khk9446hh71g338xpnbnzxjij8v86plymxi063d";
+        compressedFormat = "xz";
+      };
+    };
+
     services = {
       "openwrt" = {
         enable    = true;
-        imagePath = "/var/lib/libvirt/images/openwrt-24.10.0-x86-64-generic-ext4-combined-efi-newest.raw";
+        baseImage = "openwrt";
         uefi      = true;
         memory    = 256;
         smp       = 4;
@@ -147,7 +144,7 @@ in
 
       "home-assistant" = {
         enable     = true;
-        imagePath  = "/var/lib/libvirt/images/haos_ova-14.2-newest-2.qcow2";
+        baseImage  = "haos";
         uefi       = true;
         memory     = 3072;
         smp        = 2;
@@ -160,26 +157,4 @@ in
   };
 }
 
-# sudo virsh list --all
-# ls -l /nix/store/*NixVirt*
-# sudo virsh console openwrt
-# sudo virsh start openwrt
-# sudo virsh destroy openwrt
-
-# List all pools
-# sudo virsh pool-list
-
-# Refresh the specific pool (in your case, "default")
-# sudo virsh pool-refresh default
-
-# You can also try stopping and starting the pool
-# sudo virsh pool-destroy default
-# sudo virsh pool-start default
-
-# To verify the volume exists
-# sudo virsh vol-list default
-
-#sudo virsh dumpxml home-assistant
-
-
-# ssh -L 5900:127.0.0.1:5900 castform
+# ssh -L 5901:127.0.0.1:5901 castform
