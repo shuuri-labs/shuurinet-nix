@@ -2,27 +2,23 @@
 let
   images = config.virtualisation.qemu.manager.images;
 
+  # Build each enabled image: copy/fetch, unpack, convert, and install
   makeImage = name: img:
-    # Ensure that if you specify a URL, you also pinned its sha256
-    # Simple built‑in assert (no message)
-    assert (img.sourceUrl == null || img.sourceSha256 != null);
-
     let
-      # If sourcePath is a derivation (like our flake package), use it directly
-      sourceFile = if lib.isDerivation img.sourcePath
-                  then img.sourcePath
-                  else if img.sourceUrl != null then
-                    pkgs.fetchurl {
-                      url = img.sourceUrl;
-                      sha256 = img.sourceSha256;
-                    }
-                  else img.sourcePath;
+      isHttp = (builtins.match "^https?://.*" img.source) != null;
+      # Strip any file:// prefix for local paths
+      # Fetch or copy the source file into the store
+      srcDrv = if isHttp then
+        pkgs.fetchurl { url = img.source; sha256 = img.sourceSha256; }
+      else
+        pkgs.copyPathToStore img.source;
+
     in
       pkgs.stdenv.mkDerivation {
         name = "qemu-image-${name}";
 
         # 1) fetch (with sha256) or use local
-        src = sourceFile;
+        src = srcDrv;
 
         # Skip default unpack phase if we're not dealing with a compressed file
         dontUnpack = img.compressedFormat == null;
@@ -31,34 +27,37 @@ let
         phases = [ "unpackPhase" "buildPhase" "installPhase" ];
 
         # 2) unpack if compressedFormat is set
-        unpackPhase = lib.optionalString (img.compressedFormat != null)
-          ''
-            # Get just the filename without path
-            srcFile=$(basename "$src")
-            
-            # Copy source file to current directory
-            cp "$src" "$srcFile"
-            
+        unpackPhase = ''
+          # Get just the filename without path
+          srcFile=$(basename "$src")
+          
+          # Copy source file to current directory
+          cp "$src" "$srcFile"
+          
+          ${lib.optionalString (img.compressedFormat != null) ''
             case "${img.compressedFormat}" in
               zip) unzip "$srcFile"        ;;
               gz)  gunzip -f "$srcFile"    ;;
               bz2) bunzip2 -f "$srcFile"   ;;
               xz)  unxz -f "$srcFile"      ;;
             esac
-          '';
+            
+            # Remove compression file extension from srcFile
+            srcFile=''${srcFile%%.${img.compressedFormat}}
+          ''}
+        '';
 
         # 3) convert → qcow2, then maybe resize
         buildInputs = [ pkgs.qemu pkgs.xz ];
 
         buildPhase = ''
           outFile=${name}.qcow2
-          inFile=$(basename "$src" .${img.compressedFormat})
 
           if [ "${img.sourceFormat}" != "qcow2" ] || [ ! -f "$outFile" ]; then
             qemu-img convert \
               -f ${img.sourceFormat} \
               -O qcow2 \
-              "$inFile" \
+              "$srcFile" \
               "$outFile"
           fi
 
@@ -87,23 +86,18 @@ in
       options = {
         enable = lib.mkEnableOption "Build and convert this QEMU image";
 
-        sourcePath = lib.mkOption {
-          type        = lib.types.nullOr lib.types.path;
-          default     = null;
-          description = "Local path to an image file (instead of sourceUrl).";
-        };
 
-        sourceUrl = lib.mkOption {
+        source = lib.mkOption {
           type        = lib.types.nullOr lib.types.str;
           default     = null;
-          description = "Remote URL to fetch the image from.";
+          description = "Remote URL or local path to fetch the image from.";
         };
 
         sourceSha256 = lib.mkOption {
           type        = lib.types.nullOr lib.types.str;
           default     = null;
           description = '' 
-            Required if `sourceUrl` is set.  
+            Required if `source` is a remote URL.  
             Pin the URL by its sha256 to avoid floating updates.
             You can get the sha256 by running `nix-prefetch-url <url>`
           '';

@@ -113,16 +113,14 @@ in
     images = {
       "openwrt" = {
         enable = true;
-        sourcePath = pkgs.copyPathToStore /var/lib/libvirt/images/openwrt-24.10.0-x86-64-generic-ext4-combined-efi-newest.raw;
+        source = "/var/lib/libvirt/images/openwrt-24.10.0-x86-64-generic-ext4-combined-efi-newest.raw";
         sourceFormat = "raw";
+        # sourceSha256 = "198gr1j3lcjwvf1vqk8ldk1ddwd9n2sv44yza63ziz1dw2643a0g";
       };
-
-      # https://github.com/home-assistant/operating-system/releases/download/15.2/haos_generic-x86-64-15.2.img.xz
-      # 1rjgxjz0bs9bv88qqmpk5iln5h4iln4jn8g0crlk62pqxjs67aaz
       
       "haos" = {
         enable = true;
-        sourceUrl = "https://github.com/home-assistant/operating-system/releases/download/15.2/haos_ova-15.2.qcow2.xz";
+        source = "https://github.com/home-assistant/operating-system/releases/download/15.2/haos_ova-15.2.qcow2.xz";
         sourceFormat = "qcow2";
         sourceSha256 = "0jbjajfnv3m37khk9446hh71g338xpnbnzxjij8v86plymxi063d";
         compressedFormat = "xz";
