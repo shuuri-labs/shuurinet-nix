@@ -38,10 +38,7 @@ in {
 
       # Add these lines to make the service depend on the image
       path = [ pkgs.qemu pkgs.jq pkgs.socat ];
-      restartTriggers = [
-        # Get the store path of the base image from builtImages
-        (lib.mapAttrs (n: drv: "${drv}//${n}.qcow2") config.virtualisation.qemu.manager.builtImages).${v.baseImage}
-      ];
+      restartTriggers = [ config.virtualisation.qemu.manager.builtImages.${v.baseImage} ];
 
       serviceConfig = {
         Type    = "simple";

@@ -6,8 +6,7 @@ let
   makeImage = name: img:
     let
       isHttp = (builtins.match "^https?://.*" img.source) != null;
-      # Strip any file:// prefix for local paths
-      # Fetch or copy the source file into the store
+      
       srcDrv = if isHttp then
         pkgs.fetchurl { url = img.source; sha256 = img.sourceSha256; }
       else
@@ -19,9 +18,6 @@ let
 
         # 1) fetch (with sha256) or use local
         src = srcDrv;
-
-        # Skip default unpack phase if we're not dealing with a compressed file
-        dontUnpack = img.compressedFormat == null;
 
         # Explicitly set the phases we want to run
         phases = [ "unpackPhase" "buildPhase" "installPhase" ];
@@ -37,12 +33,10 @@ let
           ${lib.optionalString (img.compressedFormat != null) ''
             case "${img.compressedFormat}" in
               zip) unzip "$srcFile"        ;;
-              gz)  gunzip -f "$srcFile"    ;;
+              gz)  gunzip -f "$srcFile" || true  ;;
               bz2) bunzip2 -f "$srcFile"   ;;
               xz)  unxz -f "$srcFile"      ;;
             esac
-            
-            # Remove compression file extension from srcFile
             srcFile=''${srcFile%%.${img.compressedFormat}}
           ''}
         '';
@@ -137,7 +131,7 @@ in
   config = lib.mkIf (lib.any (img: img.enable) (lib.attrValues images)) {
      environment.etc."qemu-images.json".text = builtins.toJSON (
        lib.mapAttrs (name: drv: {
-         path = "${drv}//${name}.qcow2";
+         path = "${drv}/${name}.qcow2";
          format = "qcow2";  # All our converted images are qcow2
        }) builtImages
      );
