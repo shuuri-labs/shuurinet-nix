@@ -7,7 +7,6 @@ let
   pciIds         = lib.concatStringsSep "," (
                      lib.flatten (lib.mapAttrsToList (_: v:
                        lib.map (h: h.vendorDeviceId) v.pciHosts) cfg));
-  imageDirectory = "/var/lib/vm/images";
 in {
   options = {};  # all your options live in options.nix
 
@@ -27,7 +26,7 @@ in {
     '';
 
     # ensure overlay dir exists
-    systemd.tmpfiles.rules = [ "d ${imageDirectory} 0755 root root - -" ];
+    systemd.tmpfiles.rules = [ "d ${cfg.imageOverlayDir} 0755 root root - -" ];
 
     # so we can parse /etc/qemu-images.json and do console aliases
     environment.systemPackages = [ pkgs.socat pkgs.jq ];
@@ -38,11 +37,16 @@ in {
 
       # Add these lines to make the service depend on the image
       path = [ pkgs.qemu pkgs.jq pkgs.socat ];
-      restartTriggers = [ config.virtualisation.qemu.manager.builtImages.${v.baseImage} ];
+      restartTriggers = [ 
+        config.virtualisation.qemu.manager.builtImages.${v.baseImage} 
+        (config.virtualisation.qemu.manager.builtImages.${v.baseImage}).drvPath
+      ];
 
       serviceConfig = {
         Type    = "simple";
         Restart = v.restart;
+
+        ReadWritePaths = [ "${cfg.imageOverlayDir}" ];
 
         # Add a hash file alongside the overlay
         ExecStartPre = let
@@ -63,7 +67,7 @@ in {
               format="qcow2"  # default to qcow2 if not specified
             fi
 
-            overlay=${imageDirectory}/${name}.qcow2
+            overlay=${cfg.imageOverlayDir}/${name}.qcow2
 
             if [ ! -f "$overlay" ] || [ "$base" -nt "$overlay" ]; then
               mkdir -p "$(dirname "$overlay")"
@@ -86,10 +90,10 @@ in {
               # root disk: virtio vs SCSI
               ++ (if v.rootScsi then [
                    "-device" "virtio-scsi-pci"
-                   "-drive"  "file=${imageDirectory}/${name}.qcow2,if=none,id=drive0,format=qcow2"
+                   "-drive"  "file=${cfg.imageOverlayDir}/${name}.qcow2,if=none,id=drive0,format=qcow2"
                    "-device" "scsi-hd,drive=drive0"
                  ] else [
-                   "-drive" "file=${imageDirectory}/${name}.qcow2,if=virtio,format=qcow2"
+                   "-drive" "file=${cfg.imageOverlayDir}/${name}.qcow2,if=virtio,format=qcow2"
                  ])
 
               # core machine options

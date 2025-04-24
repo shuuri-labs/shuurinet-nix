@@ -6,7 +6,7 @@ let
   makeImage = name: img:
     let
       isHttp = (builtins.match "^https?://.*" img.source) != null;
-      
+
       srcDrv = if isHttp then
         pkgs.fetchurl { url = img.source; sha256 = img.sourceSha256; }
       else
@@ -32,6 +32,7 @@ let
           
           ${lib.optionalString (img.compressedFormat != null) ''
             case "${img.compressedFormat}" in
+              # formats besides gz may also need || true or some other way to escape warning messages! untested
               zip) unzip "$srcFile"        ;;
               gz)  gunzip -f "$srcFile" || true  ;;
               bz2) bunzip2 -f "$srcFile"   ;;
