@@ -122,8 +122,8 @@ in {
 
     # console aliases
     environment.shellAliases = lib.mapAttrs' (n: _: {
-      name  = "${n}-console";
-      value = "socat UNIX-CONNECT:/tmp/${n}-console.sock stdio";
+      name  = "console-${n}";
+      value = "sudo socat UNIX-CONNECT:/tmp/${n}-console.sock stdio";
     }) cfg;
   };
 }
