@@ -114,11 +114,8 @@ in
       "openwrt" = {
         enable = true;
         source = "file:///var/lib/libvirt/images/openwrt-24.10.0-x86-64-generic-ext4-combined-efi-newest.raw";
-        # source = "https://downloads.openwrt.org/releases/24.10.1/targets/x86/64/openwrt-24.10.1-x86-64-generic-ext4-combined-efi.img.gz";
         sourceFormat = "raw";
-        # compressedFormat = "gz";
-        # sourceSha256 = "15mlywm76ffi758f11ad35qynwxx17qkr0j5dgl92y3k61p684m3";
-        sourceSha256 = "198gr1j3lcjwvf1vqk8ldk1ddwd9n2sv44yza63ziz1dw2643a0g"; # local file
+        sourceSha256 = "198gr1j3lcjwvf1vqk8ldk1ddwd9n2sv44yza63ziz1dw2643a0g";
       };
       
       "haos" = {

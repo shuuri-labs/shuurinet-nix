@@ -29,7 +29,7 @@ in
         bridges   = lib.mkOption { type = lib.types.listOf lib.types.str; default = []; };
         pciHosts  = lib.mkOption { type = lib.types.listOf pciHost; default = []; };
         usbHosts  = lib.mkOption { type = lib.types.listOf usbHost; default = []; };
-        vncPort   = lib.mkOption { type = lib.types.ints.between 0 9; };
+        vncPort   = lib.mkOption { type = lib.types.ints.between 0 99; };
         extraArgs = lib.mkOption { type = lib.types.listOf lib.types.str; default = []; };
         restart   = lib.mkOption { type = lib.types.str; default = "always"; };
       };
