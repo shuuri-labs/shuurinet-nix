@@ -5,12 +5,8 @@ let
   # Build each enabled image: copy/fetch, unpack, convert, and install
   makeImage = name: img:
     let
-      isHttp = (builtins.match "^https?://.*" img.source) != null;
-
-      srcDrv = if isHttp then
-        pkgs.fetchurl { url = img.source; sha256 = img.sourceSha256; }
-      else
-        pkgs.copyPathToStore img.source;
+      srcDrv = # if isHttp then
+        pkgs.fetchurl { url = img.source; sha256 = img.sourceSha256; };
 
     in
       pkgs.stdenv.mkDerivation {
