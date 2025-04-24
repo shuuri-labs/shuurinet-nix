@@ -81,7 +81,10 @@ in
         source = lib.mkOption {
           type        = lib.types.nullOr lib.types.str;
           default     = null;
-          description = "Remote URL or local path to fetch the image from.";
+          description = ''
+            Remote URL or local path to fetch the image from.
+            If local path, prefix with: file://
+          '';
         };
 
         sourceSha256 = lib.mkOption {

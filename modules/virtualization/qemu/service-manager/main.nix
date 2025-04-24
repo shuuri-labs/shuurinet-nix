@@ -32,7 +32,8 @@ in {
     # so we can parse /etc/qemu-images.json and do console aliases
     environment.systemPackages = [ pkgs.socat pkgs.jq ];
 
-    systemd.services = lib.mapAttrs (name: v: lib.mkIf v.enable (let
+    systemd.services = lib.mapAttrs (name: v: lib.mkIf v.enable (
+    let
       # precompute the backing-store image for this service
       base   = "${config.virtualisation.qemu.manager.builtImages.${v.baseImage}}/${v.baseImage}.qcow2";
       format = "qcow2";
