@@ -133,9 +133,14 @@
         formatter = pkgs.nixpkgs-fmt;
         packages = {
           # OpenWRT Images
-          berlin-router-img = import ./modules/openwrt/image-definitions/berlin/router.nix { inherit inputs; };
-          berlin-ap-img = import ./modules/openwrt/image-definitions/berlin/ap.nix { inherit inputs; };
-          london-router-img = import ./modules/openwrt/image-definitions/london/router.nix { inherit inputs; };
+          berlin-ap-imgs = import ./modules/openwrt/image-definitions/berlin/ap.nix { inherit inputs; };
+          london-router-imgs = import ./modules/openwrt/image-definitions/london/router.nix { inherit inputs; };
+
+          berlin-router-img = (import ./modules/openwrt/image-definitions/base/extract-image.nix { inherit inputs; }).mkImageExtractor {
+            name = "berlin-router";
+            imageDerivation = (import ./modules/openwrt/image-definitions/berlin/router.nix { inherit inputs; });
+            format = "ext4-combined-efi";
+          };
 
           # OpenWRT Configs
           berlin-router-config = helper.mkOpenWrtConfig "/modules/openwrt/configs/berlin/router.nix" system;

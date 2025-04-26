@@ -7,7 +7,6 @@ let
   hostKey = builtins.readFile /home/ashley/.ssh/id_ed25519.pub;
   laptopKey = builtins.readFile /home/ashley/shuurinet-nix/secrets/keys/laptop-key.pub;
 
-  openWrtVersion = "24.10.1";
   # Common function to create router configurations
   mkBaseConfig = { 
     hostname,
@@ -17,7 +16,7 @@ let
     target,
     variant,
     profile,
-    release ? openWrtVersion,
+    release ? "24.10.1",
     extraPackages ? [],
     extraServices ? [],
     disabledServices ? [],
@@ -58,21 +57,6 @@ let
       ${extraFiles}
     '';
   };
-
-  # Helper function to generate image name
-  mkImageName = {
-    version ? openWrtVersion,  # Use openwrtVersion instead of version
-    target ? "x86-64",
-    profile ? "generic",
-    type ? "ext4-combined-efi"
-  }: "openwrt-${version}-${target}-${profile}-${type}.img.gz";
-
-  qemuImage = pkgs.stdenv.mkDerivation rec {
-    pname    = "qemu-image-${name}";
-    version  = if img.sourceUrl != null 
-               then builtins.substring 0 8 img.sourceSha256
-               else "1";
-  };
 in {
-  inherit mkBaseConfig mkImageName;
+  inherit mkBaseConfig;
 }

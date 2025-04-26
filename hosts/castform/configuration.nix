@@ -113,9 +113,11 @@ in
     images = {
       "openwrt" = {
         enable = true;
-        source = "file:///var/lib/libvirt/images/openwrt-24.10.0-x86-64-generic-ext4-combined-efi-newest.raw";
+        # source = "file:///var/lib/libvirt/images/openwrt-24.10.0-x86-64-generic-ext4-combined-efi-newest.raw";
+        source = inputs.self.packages.${pkgs.system}.berlin-router-img;
         sourceFormat = "raw";
-        sourceSha256 = "198gr1j3lcjwvf1vqk8ldk1ddwd9n2sv44yza63ziz1dw2643a0g";
+        compressedFormat = "gz";
+        # sourceSha256 = "198gr1j3lcjwvf1vqk8ldk1ddwd9n2sv44yza63ziz1dw2643a0g";
       };
       
       "haos" = {

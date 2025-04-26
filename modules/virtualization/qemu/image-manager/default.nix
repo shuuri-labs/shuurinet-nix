@@ -5,9 +5,10 @@ let
   # Build each enabled image: copy/fetch, unpack, convert, and install
   makeImage = name: img:
     let
-      srcDrv = # if isHttp then
-        pkgs.fetchurl { url = img.source; sha256 = img.sourceSha256; };
-
+      srcDrv = if lib.isString img.source then 
+                  pkgs.fetchurl { url = img.source; sha256 = img.sourceSha256; } 
+                else 
+                  img.source;
     in
       pkgs.stdenv.mkDerivation {
         name = "qemu-image-${name}";
@@ -23,19 +24,24 @@ let
           # Get just the filename without path
           srcFile=$(basename "$src")
           
-          # Copy source file to current directory
-          cp "$src" "$srcFile"
-          
-          ${lib.optionalString (img.compressedFormat != null) ''
-            case "${img.compressedFormat}" in
-              # formats besides gz may also need || true or some other way to escape warning messages! untested
-              zip) unzip "$srcFile"        ;;
-              gz)  gunzip -f "$srcFile" || true  ;;
-              bz2) bunzip2 -f "$srcFile"   ;;
-              xz)  unxz -f "$srcFile"      ;;
-            esac
-            srcFile=''${srcFile%%.${img.compressedFormat}}
-          ''}
+          # If source is a directory, copy recursively
+          if [ -d "$src" ]; then
+            cp -r "$src"/* .
+          else
+            # Copy source file to current directory
+            cp "$src" "$srcFile"
+            
+            ${lib.optionalString (img.compressedFormat != null) ''
+              case "${img.compressedFormat}" in
+                # formats besides gz may also need || true or some other way to escape warning messages! untested
+                zip) unzip "$srcFile"        ;;
+                gz)  gunzip -f "$srcFile" || true  ;;
+                bz2) bunzip2 -f "$srcFile"   ;;
+                xz)  unxz -f "$srcFile"      ;;
+              esac
+              srcFile=''${srcFile%%.${img.compressedFormat}}
+            ''}
+          fi
         '';
 
         # 3) convert → qcow2, then maybe resize
@@ -79,7 +85,7 @@ in
 
 
         source = lib.mkOption {
-          type        = lib.types.nullOr lib.types.str;
+          type        = lib.types.nullOr (lib.types.either lib.types.str lib.types.package);
           default     = null;
           description = ''
             Remote URL or local path to fetch the image from.
