@@ -132,10 +132,11 @@
       perSystem = { system, pkgs, ... }: {
         formatter = pkgs.nixpkgs-fmt;
         packages = {
-          # OpenWRT Images
+          # OpenWRT Images (folder with multiple image files)
           berlin-ap-imgs = import ./modules/openwrt/image-definitions/berlin/ap.nix { inherit inputs; };
           london-router-imgs = import ./modules/openwrt/image-definitions/london/router.nix { inherit inputs; };
 
+          # single image file derivation for berlin router
           berlin-router-img = (import ./modules/openwrt/image-definitions/base/extract-image.nix { inherit inputs; }).mkImageExtractor {
             name = "berlin-router";
             imageDerivation = (import ./modules/openwrt/image-definitions/berlin/router.nix { inherit inputs; });

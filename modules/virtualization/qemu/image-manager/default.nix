@@ -25,6 +25,7 @@ let
           srcFile=$(basename "$src")
           
           # If source is a directory, copy recursively
+          # can probably remove since openwrt single image derivation now outputs a single file
           if [ -d "$src" ]; then
             cp -r "$src"/* .
           else

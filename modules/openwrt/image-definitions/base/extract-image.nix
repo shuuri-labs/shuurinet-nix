@@ -8,14 +8,16 @@ let
   mkImageExtractor = {
     name,  # Name for the extracted image derivation
     imageDerivation,  # The OpenWRT image derivation to extract from
-    format ? "ext4-combined-efi",  # The image format to extract
+    format ? "ext4-combined-efi", 
+    imageFormat ? "img",
+    compressedFormat ? "gz" # The image format to extract
   }:
     let
       # Get the version, target, variant, and profile from the image derivation's config
       inherit (imageDerivation.config) release target variant profile;
 
-      imageName = "openwrt-${release}-${target}-${variant}-${profile}-${format}.img.gz";
-      outputName = "${name}.img.gz";
+      imageName = "openwrt-${release}-${target}-${variant}-${profile}-${format}.${imageFormat}.${compressedFormat}";
+      outputName = "${name}.${imageFormat}.${compressedFormat}";
     in
       pkgs.runCommand outputName {
         src = imageDerivation;
