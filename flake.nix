@@ -94,6 +94,20 @@
             inputs.vpn-confinement.nixosModules.default
           ] "x86_64-linux";
 
+          missingno = mkNixosHost "missingno" [
+            ./modules/homepage-dashboard
+            ./modules/zfs
+            ./modules/hdd-spindown
+            ./modules/intel-graphics
+            ./modules/power-saving
+            ./modules/virtualization
+            ./modules/disk-care
+            ./modules/iperf
+            ./modules/uefi-boot
+            ./modules/monitoring
+            inputs.vpn-confinement.nixosModules.default
+          ] "x86_64-linux";
+
           ludicolo = mkNixosHost "ludicolo" [
             ./modules/homepage-dashboard
             ./modules/zfs
