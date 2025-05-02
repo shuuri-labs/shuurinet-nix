@@ -67,6 +67,8 @@ in
     networking.firewall.enable = true; 
 
     environment.systemPackages = with pkgs; [
+      tmux
+      neofetch
       curl
       git
       sudo 

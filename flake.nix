@@ -2,7 +2,7 @@
   description = "shuurinet nix config flake";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable"; # "github:nixos/nixpkgs/nixos-24.11";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
 
     flake-parts = {
@@ -96,7 +96,7 @@
 
           missingno = mkNixosHost "missingno" [
             ./modules/homepage-dashboard
-            ./modules/zfs
+            # ./modules/zfs
             ./modules/hdd-spindown
             ./modules/intel-graphics
             ./modules/power-saving
@@ -104,7 +104,7 @@
             ./modules/disk-care
             ./modules/iperf
             ./modules/uefi-boot
-            ./modules/monitoring
+            # ./modules/monitoring
             inputs.vpn-confinement.nixosModules.default
           ] "x86_64-linux";
 

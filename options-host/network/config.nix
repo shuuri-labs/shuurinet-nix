@@ -1,9 +1,17 @@
 { config, lib, ... }:
 let
-  inherit (lib) mkOption types;
+  inherit (lib) mkOption mkEnableOption types mkIf mkMerge flatten optional hasSuffix listToAttrs;
   inherit (import ../../lib/network/network-types.nix { inherit lib; }) networkTypes;
 
   cfg = config.host.vars.network;
+
+  # Collect all tap devices with their parent bridge name
+  allTapDevices = flatten (map (bridge:
+    map (tap: {
+      name = tap;
+      bridge = bridge.name;
+    }) bridge.tapDevices
+  ) cfg.bridges);
 in
 {
   options.host.vars.network = {
@@ -18,12 +26,12 @@ in
       description = "Whether to enable IPv6";
     };
 
-    staticIpConfig.enable = lib.mkEnableOption "staticNetworkConfig";
+    staticIpConfig.enable = mkEnableOption "staticNetworkConfig";
 
     networkManager = {
       enable = mkOption {
         type = types.bool;
-        default = true;  # Enable by default
+        default = true;
         description = "Whether to enable NetworkManager";
       };
 
@@ -62,7 +70,7 @@ in
             type = types.str;
             description = "Interface IPv6 address";
             default = if config.subnet.ipv6 != null then
-              if lib.strings.hasSuffix "::" config.subnet.ipv6
+              if hasSuffix "::" config.subnet.ipv6
                 then "${config.subnet.ipv6}:${config.identifier}"
                 else "${config.subnet.ipv6}::${config.identifier}"
               else null;
@@ -70,24 +78,28 @@ in
 
           memberInterfaces = mkOption {
             type = types.listOf types.str;
-            description = "List of member interfaces to attach to this bridge";
             default = [];
+            description = "List of member interfaces to attach to this bridge";
+          };
+          
+          tapDevices = mkOption {
+            type = types.listOf types.str;
+            default = [];
+            description = "TAP interfaces to attach to this bridge";
           };
 
-          # TODO: implement this
           isPrimary = mkOption {
             type = types.bool;
             default = false;
-              description = "Whether this is the primary interface";
-            };
+            description = "Whether this is the primary interface";
           };
+        };
       }));
     };
   };
 
-  # Split into two config blocks
-  config = lib.mkMerge [
-    (lib.mkIf cfg.networkManager.enable {
+  config = mkMerge [
+    (mkIf cfg.networkManager.enable {
       networking = {
         hostName = cfg.hostName;
         enableIPv6 = cfg.enableIPv6;
@@ -99,20 +111,21 @@ in
       };
     })
 
-    (lib.mkIf cfg.staticIpConfig.enable {
-      # Update unmanaged interfaces when static networking is enabled
-      # add to option rather than networking.networkmanager.unmanaged directly to ensure proper merging
+    (mkIf cfg.staticIpConfig.enable {
+      # Mark bridge and member interfaces as unmanaged for NetworkManager
       host.vars.network.networkManager.unmanaged =  
         (map (bridge: bridge.name) cfg.bridges)
         ++
-        (lib.flatten (map (bridge: bridge.memberInterfaces) cfg.bridges));
+        (flatten (map (bridge: bridge.memberInterfaces) cfg.bridges))
+        ++
+        (map (tap: tap.name) allTapDevices);
 
       systemd.network = {
         enable = true;
 
-        # Define the bridge netdev
-        netdevs = lib.mkMerge [
-          (lib.listToAttrs (map (bridge: {
+        # Bridge devices and TAP devices
+        netdevs = mkMerge [
+          (listToAttrs (map (bridge: {
             name = "10-${bridge.name}";
             value = {
               netdevConfig = {
@@ -121,12 +134,23 @@ in
               };
             };
           }) cfg.bridges))
+          
+          (listToAttrs (map (tap: {
+            name = "90-${tap.name}";
+            value = {
+              netdevConfig = {
+                Name = tap.name;
+                Kind = "tap";
+              };
+            };
+          }) allTapDevices))
         ];
 
-        # Configure each ethernet port to be part of the bridge
-        networks = lib.mkMerge [
-          (lib.listToAttrs (lib.flatten (map (bridge:
-            (map (iface: {
+        # Interfaces (ethernet, tap) attached to bridges
+        networks = mkMerge [
+          # Bridge member physical interfaces
+          (listToAttrs (flatten (map (bridge:
+            map (iface: {
               name = "30-${iface}";
               value = {
                 matchConfig.Name = iface;
@@ -135,11 +159,11 @@ in
                   ConfigureWithoutCarrier = true;
                 };
               };
-            }) bridge.memberInterfaces)
+            }) bridge.memberInterfaces
           ) cfg.bridges)))
 
-          # Configure the bridge interface
-          (lib.listToAttrs (map (bridge: {
+          # Bridge interface settings
+          (listToAttrs (map (bridge: {
             name = "50-${bridge.name}";
             value = {
               matchConfig.Name = bridge.name;
@@ -151,15 +175,26 @@ in
               };
               address = [
                 "${bridge.address}/24"
-              ] ++ lib.optional (bridge.address6 != null) "${bridge.address6}/64";
-              routes = [{ 
+              ] ++ optional (bridge.address6 != null) "${bridge.address6}/64";
+              routes = [{
                 Gateway = bridge.subnet.gateway;
-                # ipv6 gateway/dns will be configured automatically by SLAAC
                 Metric = if bridge.isPrimary then 10 else 100;
               }];
               dns = [ bridge.subnet.gateway ];
             };
           }) cfg.bridges))
+          
+          # TAP interfaces
+          (listToAttrs (map (tap: {
+            name = "90-${tap.name}";
+            value = {
+              matchConfig.Name = tap.name;
+              networkConfig = {
+                Bridge = tap.bridge;
+                ConfigureWithoutCarrier = true;
+              };
+            };
+          }) allTapDevices))
         ];
       };
     })

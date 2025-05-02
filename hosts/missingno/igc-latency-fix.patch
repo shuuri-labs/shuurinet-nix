@@ -1,0 +1,17 @@
+diff --git a/drivers/net/ethernet/intel/igc/igc_i225.c b/drivers/net/ethernet/intel/igc/igc_i225.c
+index 0dd61719f1ed..1c0c3d665a0c 100644
+--- a/drivers/net/ethernet/intel/igc/igc_i225.c
++++ b/drivers/net/ethernet/intel/igc/igc_i225.c
+@@ -612,6 +612,9 @@ s32 igc_set_ltr_i225(struct igc_hw *hw, bool link)
+                  */
+                 ltr_min = (1000 * size) / speed;
+                 ltr_max = ltr_min + tw_system;
++               if (speed == SPEED_1000) {
++                       ltr_min = ltr_max = 100 * 1000;
++               }
+
+                 scale_min = (ltr_min / 1024) < 1024 ? IGC_LTRMINV_SCALE_1024 :
+
+                             IGC_LTRMINV_SCALE_32768;
+
+                 scale_max = (ltr_max / 1024) < 1024 ? IGC_LTRMAXV_SCALE_1024 : 

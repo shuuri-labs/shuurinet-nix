@@ -23,6 +23,8 @@ in
       spice-gtk
     ];
 
+    boot.kernelModules = [ "vhost_net" ];
+
     virtualisation.libvirtd = {
       enable = true;
       onShutdown = "shutdown"; # shutdown the VMs when the host shuts down

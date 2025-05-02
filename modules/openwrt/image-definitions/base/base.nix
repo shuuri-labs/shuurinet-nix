@@ -16,7 +16,7 @@ let
     target,
     variant,
     profile,
-    release ? "24.10.1",
+    release ? "24.10.0",
     extraPackages ? [],
     extraServices ? [],
     disabledServices ? [],

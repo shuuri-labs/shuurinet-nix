@@ -14,6 +14,7 @@ in {
   config = lib.mkIf (cfg != {}) {
     # libvirt / firewall / vfio bits unchanged
     virtualisation.libvirtd.allowedBridges = [ "virbr0" ] ++ bridgeNames;
+
     networking.firewall.extraCommands = lib.mkAfter ''
       ${lib.concatStringsSep "\n"
         (map (br: ''
@@ -22,9 +23,14 @@ in {
         '') bridgeNames)}
     '';
     networking.firewall.allowedTCPPorts = vncPorts;
+
     boot.extraModprobeConfig = lib.mkAfter ''
       options vfio‐pci ids=${pciIds}
     '';
+
+    boot.kernelParams = [
+      "vfio-pci.ids=${pciIds}"
+    ];
 
     # ensure overlay dir exists
     systemd.tmpfiles.rules = [ "d ${imageDirectory} 0755 root root - -" ];
@@ -110,12 +116,26 @@ in {
                  ]
 
               # bridges, PCI & USB passthrough, extra args
-              ++ helpers.mkBridgeArgs         v.bridges
+              ++ helpers.mkTapArgs            v.taps v.smp
               ++ helpers.mkPciPassthroughArgs v.pciHosts
               ++ helpers.mkUsbPassthroughArgs v.usbHosts
               ++ helpers.mkExtraArgs          v.extraArgs
             )}
         '';
+        # ExecStop = ''
+        #   # Connect to the serial console and send shutdown command
+        #   echo -e "\n\nshutdown -h now\n" | ${pkgs.socat}/bin/socat UNIX-CONNECT:/tmp/${name}-console.sock STDIO
+          
+        #   # Wait for VM to shut down gracefully
+        #   sleep 15
+          
+        #   # Check if VM is still running and force kill if necessary
+        #   pid=$(cat /run/${name}.pid)
+        #   if kill -0 $pid 2>/dev/null; then
+        #     echo "VM did not shut down gracefully within timeout, forcing termination"
+        #     kill -9 $pid
+        #   fi
+        # '';
       };
     }
     )) cfg;
