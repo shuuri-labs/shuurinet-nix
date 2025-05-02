@@ -37,7 +37,15 @@ let
 
     inherit rootFsPartSize;
   });
+  
+  # Function to create both router config and image
+  mkRouterImage = args:
+    let
+      config = mkRouterConfig args;
+      image = inputs.openwrt-imagebuilder.lib.build config;
+    in
+      image // { inherit config; };
 
 in {
-  inherit mkRouterConfig;
+  inherit mkRouterConfig mkRouterImage;
 }

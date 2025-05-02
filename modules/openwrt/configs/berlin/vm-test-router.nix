@@ -1,4 +1,24 @@
-{
+{ inputs ? {} }:
+let
+  common = import ./common.nix;
+
+  bridge = common.mkBridge [ "eth0" "eth1" "eth2" "eth3" ];
+
+  bridgeVlans = common.mkBridgeVlans {
+    trunkPorts = [ "eth1" "eth2" ];
+    lanPorts = [ "eth0" ];
+  };
+
+  interfaces = common.mkInterfaces {
+    hostAddress = 51;
+    dnsAddress = 1;
+  }; 
+
+  firewallZones = common.firewallZones;
+  firewallForwarding = common.firewallForwarding;
+
+  wanPort = "eth3";
+in {
   openwrt.vm-test-router-config = {
     deploy.host = "192.168.11.51";
 
@@ -15,7 +35,7 @@
       "htop" 
       "nano" 
       "tcpdump" 
-      "kmod-mlx5-core" 
+      # "kmod-mlx5-core" 
     ];
 
     uci.sopsSecrets = "/home/ashley/shuurinet-nix/secrets/sops/openwrt.yaml";
@@ -31,80 +51,14 @@
         ];
 
         device = [
-          {
-            name = "br-lan";
-            type = "bridge";
-            ports = [ "eth0" "eth1" ];
-          }
+          bridge
         ];
 
-        "bridge-vlan" = [
-          {
-            device = "br-lan";
-            vlan = "11";
-            ports = [ "eth0:u*" "eth1:t" ];
-          }
-          {
-            device = "br-lan";
-            vlan = "22";
-            ports = [ "eth1:t" ];
-          }
-          {
-            device = "br-lan";
-            vlan = "33";
-            ports = [ "eth0:t" "eth1:t" ];
-          }
-          {
-            device = "br-lan";
-            vlan = "44";
-            ports = [ "eth0:t" ];
-          }
-        ];
+        "bridge-vlan" = bridgeVlans;
 
-        interface = {
-          loopback = {
-            device = "lo";
-            proto = "static";
-            ipaddr = "127.0.0.1";
-            netmask = "255.0.0.0";
-          };
-
-          lan = {
-            device = "br-lan.11";
-            proto = "static";
-            ipaddr = "192.168.11.51";
-            gateway = "192.168.11.1";
-            netmask = "255.255.255.0";
-            ip6assign = "60";
-            dns = [ "192.168.11.1" ];
-          };
-
-          guest = {
-            proto = "static";
-            device = "br-lan.22";
-            ipaddr = "10.10.23.1";
-            netmask = "255.255.255.0";
-            dns._secret = "host.dns.ipList";
-          };
-
-          iot = {
-            proto = "static";
-            device = "br-lan.33";
-            ipaddr = "10.10.34.1";
-            netmask = "255.255.255.0";
-            dns._secret = "host.dns.ipList";
-          };
-
-          apps = {
-            proto = "static";
-            device = "br-lan.44";
-            ipaddr = "10.10.45.1";
-            netmask = "255.255.255.0";
-            dns._secret = "host.dns.ipList";
-          };
-
+        interface = interfaces // {
           wan = {
-            device = "eth2";
+            device = wanPort;
             proto = "pppoe";
             username._secret = "pppoe.username";
             password._secret = "pppoe.password";
@@ -112,7 +66,7 @@
           };
 
           wan6 = {
-            device = "eth2";
+            device = wanPort;
             proto = "dhcpv6";
             reqaddress = "try";
             reqprefix = "auto";
@@ -121,18 +75,12 @@
       };
       
       firewall = {
-        zone = [
-          { name = "lan"; input = "ACCEPT"; output = "ACCEPT"; forward = "ACCEPT"; network = [ "lan" ]; }
+        zone = firewallZones ++ [
           { name = "wan"; input = "REJECT"; output = "ACCEPT"; forward = "REJECT"; masq = true; mtu_fix = true; network = [ "wan" "wan6" ]; }
-          { name = "guest"; input = "REJECT"; output = "ACCEPT"; forward = "REJECT"; network = [ "guest" ]; }
-          { name = "iot"; input = "REJECT"; output = "ACCEPT"; forward = "REJECT"; network = [ "iot" ]; }
-          { name = "apps"; input = "REJECT"; output = "ACCEPT"; forward = "REJECT"; network = [ "apps" ]; }
         ];
 
-        forwarding = [
-          { src = "lan"; dest = "wan"; }
-          { src = "lan"; dest = "iot"; }
-          { src = "lan"; dest = "apps"; }
+        forwarding = firewallForwarding ++ 
+        [
           { src = "guest"; dest = "wan"; }
           { src = "iot"; dest = "wan"; }
           { src = "apps"; dest = "wan"; }
@@ -214,6 +162,13 @@
             ra = "server";
             dhcpv6 = "server";
           };
+
+          management = {
+            interface = "management";
+            start = 100;
+            limit = 150;
+            leasetime = "12h";
+          };
         };
 
         host = [
@@ -252,9 +207,9 @@
 
       sqm = {
         queue = {
-          eth1 = {
+          "${wanPort}" = {
             enabled = true;
-            interface = "eth1";
+            interface = wanPort;
             download = 178000;
             upload = 44000;
             qdisc = "cake";

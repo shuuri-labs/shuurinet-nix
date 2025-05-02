@@ -165,12 +165,11 @@ in
         smp       = 8;
         taps      = [ "openwrt-tap" ];
         bridges   = [ "br0" ];
-        # pciHosts  = [ { address = "01:00.0"; vendorDeviceId = "15b3:1015"; } { address = "01:00.1"; } ];
         pciHosts  = [ 
           { address = "01:00.0"; vendorDeviceId = "8086:150e"; } 
-          { address = "01:00.1"; vendorDeviceId = "8086:150e"; }
-          { address = "01:00.2"; vendorDeviceId = "8086:150e"; }
-          { address = "01:00.3"; vendorDeviceId = "8086:150e"; }
+          { address = "01:00.1"; }
+          { address = "01:00.2"; }
+          { address = "01:00.3"; }
         ];
         vncPort   = 1;
       };

@@ -14,7 +14,15 @@ let
   }: base.mkBaseConfig (args // {
     inherit target variant profile release;
   });
+  
+  # Function to create both config and image
+  mkAx6sImage = args:
+    let
+      config = mkAx6sConfig args;
+      image = inputs.openwrt-imagebuilder.lib.build config;
+    in
+      image // { inherit config; };
 
 in {
-  inherit mkAx6sConfig;
+  inherit mkAx6sConfig mkAx6sImage;
 }

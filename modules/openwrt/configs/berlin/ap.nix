@@ -1,7 +1,14 @@
 let
-  berlinCommonConfig = import ./common.nix;
-in
-{
+  common = import ./common.nix;
+  
+  interfaces = common.mkInterfaces 
+    "192.168.11.1"  # dns
+    "192.168.11.2" # lanIp
+    "10.10.23.2"    # guestIp
+    "10.10.34.2"    # iotIp
+    "10.10.45.2"    # appsIp
+    "10.10.56.2";   # managementIp
+in {
   openwrt.berlin-ap-config = {
     deploy.host = "192.168.11.3";
 
@@ -63,43 +70,7 @@ in
           }
         ];
 
-        interface = {
-          loopback = {
-            device = "lo";
-            proto = "static";
-            ipaddr = "127.0.0.1";
-            netmask = "255.0.0.0";
-          };
-
-          lan = {
-            device = "br-lan.11";
-            proto = "static";
-            ipaddr = "192.168.11.3";
-            netmask = "255.255.255.0";
-            dns = [ "192.168.11.1" ];
-          };
-
-          guest = {
-            proto = "static";
-            device = "br-lan.22";
-            ipaddr = "10.10.22.2";
-            netmask = "255.255.255.0";
-          };
-
-          iot = {
-            proto = "static";
-            device = "br-lan.33";
-            ipaddr = "10.10.33.2";
-            netmask = "255.255.255.0";
-          };
-
-          apps = {
-            proto = "static";
-            device = "br-lan.44";
-            ipaddr = "10.10.44.2";
-            netmask = "255.255.255.0";
-          };
-        };
+        interface = interfaces;
       };
 
       wifi = {

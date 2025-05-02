@@ -2,10 +2,11 @@
 let
   system = "x86_64-linux";
   pkgs = inputs.nixpkgs.legacyPackages.${system};
-  routerBase = import ../base/router.nix;
-  ax6sBase = import ../base/ax6s.nix;
-in
-  inputs.openwrt-imagebuilder.lib.build (routerBase.mkRouterConfig {
+  routerBase = import ../base/router.nix { inherit inputs; };
+  ax6sBase = import ../base/ax6s.nix { inherit inputs; };
+  
+  # Router configuration parameters
+  routerArgs = {
     hostname = "shuurinet-router-ldn";
     ipAddress = "192.168.10.1";
     # sqmConfig = {
@@ -17,5 +18,12 @@ in
     #   linklayer = "ethernet";
     #   overhead = 34;
     # };
-  } // ax6sBase.mkAx6sConfig {
-  })
+  };
+  
+  # Create the configuration by combining router and AX6S configs
+  config = routerBase.mkRouterConfig routerArgs // ax6sBase.mkAx6sConfig {};
+  
+  # Build the image
+  image = inputs.openwrt-imagebuilder.lib.build config;
+in
+  image // { inherit config; }

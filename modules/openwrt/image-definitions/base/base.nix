@@ -16,7 +16,7 @@ let
     target,
     variant,
     profile,
-    release ? "24.10.0",
+    release ? "24.10.1",
     extraPackages ? [],
     extraServices ? [],
     disabledServices ? [],
@@ -57,6 +57,14 @@ let
       ${extraFiles}
     '';
   };
+  
+  # Function to create both configuration and image with accessible config
+  mkBaseImage = args:
+    let
+      config = mkBaseConfig args;
+      image = inputs.openwrt-imagebuilder.lib.build config;
+    in
+      image // { inherit config; };
 in {
-  inherit mkBaseConfig;
+  inherit mkBaseConfig mkBaseImage;
 }
