@@ -21,17 +21,17 @@ in
 
   host.vars = {
     network = {
-      config = {
-        hostName = "ludicolo";
-        interfaces = [ "enp1s0" ];
-        bridge = "br0";
-        unmanagedInterfaces = config.host.vars.network.config.interfaces ++ [ config.host.vars.network.config.bridge ];
-        subnet = config.homelab.networks.subnets.ldn; # see /options-homelab/networks.nix 
-        hostIdentifier = "10";
-        hostAddress6 = "${config.host.vars.network.config.subnet.ipv6}:${config.host.vars.network.config.hostIdentifier}";
-      };
-
+      hostName = "ludicolo";
       staticIpConfig.enable = true;
+      bridges = [
+        {
+          name = "br0";
+          memberInterfaces = [ "enp1s0" ];  
+          subnet = config.homelab.networks.subnets.ldn;
+          identifier = "10";
+          isPrimary = true;
+        }
+      ];
     };
 
     storage = {
@@ -181,138 +181,7 @@ in
 
   virtualization = {
     intel.enable = true;
-    nixvirt.enable = true;
-    pools.main = {
-      uuid = "8d45bdd4-74b8-47b8-b0f4-0d6b3d2f7e22";
-    };
   };
-
-  # virtualisation.libvirt = {
-  #   enable = true;
-    
-  #   connections."qemu:///system" = {
-  #     pools = [
-  #       {
-  #         definition = nixvirt.lib.pool.writeXML {
-  #           name = "default";
-  #           uuid = "8d45bdd4-74b8-47b8-b0f4-0d6b3d2f7e22"; # generate with 'uuidgen'
-  #           type = "dir";
-  #           target = {
-  #             path = "/var/lib/vms/base-images";
-  #           };
-  #         };
-  #         active = true;
-  #         # volumes = [
-  #           # {
-  #           # }
-  #         # ];
-  #       }
-  #     ];
-      
-  #     domains = [{
-  #       definition = nixvirt.lib.domain.writeXML (
-  #         let
-  #           baseTemplate = nixvirt.lib.domain.templates.linux {
-  #             name = "home-assistant";
-  #             uuid = "e9d8148c-ab37-4494-ad77-6db929891455"; # generate with 'uuidgen'
-  #             memory = { count = 3; unit = "GiB"; }; 
-  #             storage_vol = null;
-  #           };
-  #         in
-  #           baseTemplate // {
-  #             vcpu = {
-  #               count = 2;
-  #             };
-
-  #             os = baseTemplate.os // {
-  #               loader = {
-  #                 readonly = true;
-  #                 type = "pflash";
-  #                 path = "${pkgs.OVMFFull.fd}/FV/OVMF_CODE.fd";
-  #               };
-  #               nvram = {
-  #                 template = "${pkgs.OVMFFull.fd}/FV/OVMF_VARS.fd";
-  #                 path = "/var/lib/libvirt/qemu/nvram/home-assistant_VARS.fd";
-  #               };
-  #               boot = [{ dev = "hd"; }];
-  #             };
-
-  #             devices = baseTemplate.devices // {
-  #               serial = [{
-  #                 type = "pty";
-  #               }];
-  #               console = [{
-  #                 type = "pty";
-  #                 target = {
-  #                   type = "serial";
-  #                   port = 0;
-  #                 };
-  #               }];
-
-  #               controller = [{
-  #                 type = "scsi";
-  #                 model = "virtio-scsi";
-  #               }];
-
-  #               disk = [{
-  #                 type = "volume";
-  #                 device = "disk";
-  #                 driver = {
-  #                   name = "qemu";
-  #                   type = "qcow2";
-  #                   cache = "none";
-  #                   discard = "unmap";
-  #                 };
-  #                 source = {
-  #                   pool = "default";
-  #                   volume = "haos_ova-14.2-2.qcow2";
-  #                 };
-  #                 target = {
-  #                   dev = "sda";
-  #                   bus = "scsi";
-  #                 };
-  #                 boot = { order = 1; };
-  #               }];
-
-  #               interface = {
-  #                 type = "bridge";
-  #                 source = { bridge = "br0"; };
-  #                 model = { type = "virtio"; };
-  #               };
-
-  #               graphics = [
-  #                 {
-  #                   type = "vnc";
-  #                   listen = { type = "address"; address = "127.0.0.1"; };
-  #                   port = 5901;
-  #                   attrs = {
-  #                     passwd = "changeme";
-  #                   };
-  #                 }
-  #                 {
-  #                   type = "spice";
-  #                   listen = { type = "address"; address = "127.0.0.1"; };
-  #                   autoport = true;
-  #                   image = { compression = false; };
-  #                   gl = { enable = false; };
-  #                 }
-  #               ];
-
-  #               video = {
-  #                 model = {
-  #                   type = "virtio";
-  #                   vram = 32768;
-  #                   heads = 1;
-  #                   primary = true;
-  #                 };
-  #               };
-  #             };
-  #           }
-  #       );
-  #       active = true;
-  #     }];
-  #   };
-  # };
 
   # -------------------------------- VPNs & REMOTE ACCESS --------------------------------
 

@@ -31,11 +31,6 @@
 
     vpn-confinement.url = "github:Maroka-chan/VPN-Confinement";
 
-    nixvirt = {
-      url = "github:AshleyYakeley/NixVirt";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     dewclaw = {
       url = "github:MakiseKurisu/dewclaw";
       inputs.nixpkgs.follows = "nixpkgs";

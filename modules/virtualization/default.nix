@@ -8,13 +8,12 @@ in
     ./base.nix
     ./bare-metal.nix
     ./intel.nix
-    # ./nixvirt.nix
     ./qemu/service-manager
     ./qemu/image-manager
   ];
 
   config = {
-    virtualization.enable = cfg.bareMetal.enable || cfg.intel.enable || cfg.nixvirt.enable;
+    virtualization.enable = cfg.bareMetal.enable || cfg.intel.enable;
     virtualization.bareMetal.enable = cfg.intel.enable;
   };
 }

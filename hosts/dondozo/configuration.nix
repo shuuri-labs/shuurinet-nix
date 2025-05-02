@@ -19,20 +19,19 @@ in
   # -------------------------------- HOST VARIABLES --------------------------------
   # See /options-host
 
-
   host.vars = {
     network = {
-      config = {
-        hostName = "dondozo";
-        interfaces = [ "enp2s0f1np1" "eno1"];
-        bridge = "br0";
-        unmanagedInterfaces = config.host.vars.network.config.interfaces ++ [ config.host.vars.network.config.bridge "eno2" ];
-        subnet = config.homelab.networks.subnets.bln; # see /options-homelab/networks.nix 
-        hostIdentifier = "10";
-        hostAddress6 = "${config.host.vars.network.config.subnet.ipv6}:${config.host.vars.network.config.hostIdentifier}";
-      };
-
+      hostName = "dondozo";
       staticIpConfig.enable = true;
+      bridges = [
+        {
+          name = "br0";
+          memberInterfaces = [ "enp2s0f1np1" "eno1" "eno2" ];  
+          subnet = config.homelab.networks.subnets.bln;
+          identifier = "10";
+          isPrimary = true;
+        }
+      ];
     };
 
     storage = {
@@ -165,13 +164,5 @@ in
   
   virtualization = {
     intel.enable = true;
-    nixvirt = {
-      enable = true;
-      pools.main = {
-        uuid = "06ac9a66-074f-4308-a7b1-74897a81dea3";
-        images.path = "/var/lib/vms/images";
-      };
-    };
   };
-
 }

@@ -2,11 +2,10 @@
 let
   common = import ./common.nix;
 
-  bridge = common.mkBridge [ "eth0" "eth1" "eth2" "eth3" ];
-
-  bridgeVlans = common.mkBridgeVlans {
+  lanBridge = common.mkBridge [ "eth0" "eth1" "eth2" "eth3" ];
+  lanBridgeVlans = common.mkBridgeVlans {
     trunkPorts = [ "eth1" "eth2" ];
-    lanPorts = [ "eth0" ];
+    lanPorts = [ "eth0" "eth3" ];
   };
 
   interfaces = common.mkInterfaces {
@@ -17,7 +16,7 @@ let
   firewallZones = common.firewallZones;
   firewallForwarding = common.firewallForwarding;
 
-  wanPort = "eth3";
+  wanPort = "eth4";
 in {
   openwrt.vm-test-router-config = {
     deploy.host = "192.168.11.51";
@@ -46,15 +45,15 @@ in {
       network = {
         globals = [
           {
-            ula_prefix = "fdbb:25f1:9e8a::/48";
+            ula_prefix = "fd0b:b19b:f355::/48";
           }
         ];
 
         device = [
-          bridge
+          lanBridge
         ];
 
-        "bridge-vlan" = bridgeVlans;
+        "bridge-vlan" = lanBridgeVlans;
 
         interface = interfaces // {
           wan = {
