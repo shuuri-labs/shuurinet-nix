@@ -15,6 +15,9 @@ let
     undervolt 3 'System Agent' -30.00
     undervolt 4 'Analog I/O' 0.00
   '';
+
+  hostAddress = "151"; 
+  hostIp = "${config.homelab.networks.subnets.bln.ipv4}.${hostAddress}";
 in
 {
   imports = [
@@ -34,7 +37,7 @@ in
           name = "br0";
           memberInterfaces = [ "enp2s0" "enp1s0f0" ];  
           subnet = config.homelab.networks.subnets.bln;
-          identifier = "151";
+          identifier = hostAddress;
           isPrimary = true;
           tapDevices = [ "openwrt-tap" "haos-tap" ];
         }
@@ -199,7 +202,7 @@ in
   services.couchdb = {
     enable = true;
     configFile = config.age.secrets.obsd-couchdb-config.path;
-    bindAddress = "0.0.0.0";
+    bindAddress = hostIp;
   };
 
   networking.firewall = {

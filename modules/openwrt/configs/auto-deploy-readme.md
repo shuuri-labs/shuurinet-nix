@@ -65,8 +65,4 @@ openwrt.config-auto-deploy = {
 
 ## Notes
 
-- This service requires systemd
-- Each derivation must contain a deployment script named `deploy-<name>` in its `bin` directory
-- The service runs as root to ensure it has the necessary permissions
-- When NixOS rebuilds with a new derivation, the service will detect the change and trigger a deployment
-- Each configuration can optionally specify which service it depends on, allowing for complex deployment scenarios 
+- Each configuration can optionally specify which openwrt service it depends on

@@ -98,7 +98,7 @@
             ./modules/disk-care
             ./modules/iperf
             ./modules/uefi-boot
-            ./modules/openwrt/services
+            ./modules/openwrt/configs/auto-deploy.nix
             # ./modules/monitoring
             inputs.vpn-confinement.nixosModules.default
           ] "x86_64-linux";
