@@ -94,6 +94,12 @@ in
 
   age.secrets = {
     sops-key.file = "${secretsAbsolutePath}/keys/sops-key.agekey.age";
+
+    obsd-couchdb-config = {  
+      file = "${secretsAbsolutePath}/obsd-couchdb-config.ini.age";
+      owner = "couchdb";
+      group = "couchdb";
+    };
   };
 
   # -------------------------------- DISK CONFIGURATION --------------------------------
@@ -127,11 +133,9 @@ in
     images = {
       "openwrt" = {
         enable = true;
-        # source = "file:///var/lib/libvirt/images/openwrt-24.10.0-x86-64-generic-ext4-combined-efi-newest.raw";
         source = inputs.self.packages.${pkgs.system}.berlin-router-img;
         sourceFormat = "raw";
         compressedFormat = "gz";
-        # sourceSha256 = "198gr1j3lcjwvf1vqk8ldk1ddwd9n2sv44yza63ziz1dw2643a0g";
       };
       
       "haos" = {
@@ -187,5 +191,18 @@ in
         serviceName = "openwrt";
       };  
     };
+  };
+
+  # -------------------------------- Services --------------------------------
+
+  ### Obsidian Livesync
+  services.couchdb = {
+    enable = true;
+    configFile = config.age.secrets.obsd-couchdb-config.path;
+    bindAddress = "0.0.0.0";
+  };
+
+  networking.firewall = {
+    allowedTCPPorts = [ 5984 ];
   };
 }

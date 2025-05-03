@@ -99,7 +99,7 @@ in
           default     = null;
           description = '' 
             Required if `source` is a remote URL.  
-            Pin the URL by its sha256 to avoid floating updates.
+            If source is a local path, prefix with: file://
             You can get the sha256 by running `nix-prefetch-url <url>`
           '';
         };
