@@ -8,13 +8,6 @@ let
   hostCfgVars = config.host.vars;
   secretsAbsolutePath = "/home/ashley/shuurinet-nix/secrets"; 
 
-  linuxUefiVmTemplate = import ../../lib/vm-templates/nixvirt-linux-uefi-host-network.nix { inherit pkgs nixvirt; };
-
-  inherit (inputs) nixvirt;
-
-  uuidgen = import ../../lib/utils/uuidgen.nix { inherit pkgs; };
-  libvirtPoolUUID = uuidgen "libvirt-pool-uuid";
-  bridgeUUID = uuidgen "bridge-uuid";
 
   deploymentMode = true; 
   homeAssistantImageName = "haos_ova-15.2.qcow2";
@@ -134,121 +127,9 @@ in
 
   virtualization = {
     intel.enable = true;
-    nixvirt = {
-      enable = true;
-      pools.main = {
-        uuid = uuidgen "libvirt-pool";;
-        images.path = "/var/lib/vm/images";
-      };
-    };
   };
 
-  virtualisation.libvirt = {
-    enable = true;
-    
-    connections."qemu:///system" = {      
-      domains = [{
-        definition = nixvirt.lib.domain.writeXML (
-          let
-            baseTemplate = linuxUefiVmTemplate.mkCustomVmTemplate {
-              name = "openwrt";
-              uuid = uuidgen "openwrt";
-              memoryMibCount = 1024;
-              hostInterface = "br0";
-            };
-          in
-            baseTemplate // {
-              devices = baseTemplate.devices // {
-                disk = [{
-                  type = "volume";
-                  device = "disk";
-                  driver = {
-                    name = "qemu";
-                    type = "raw";
-                    cache = "none";
-                    discard = "unmap";
-                  };
-                  source = {
-                    pool = "default";
-                    volume = openwrtImageName;
-                  };
-                  target = {
-                    dev = "vda";
-                    bus = "virtio";
-                  };
-                }];
 
-                hostdev = [
-                  {
-                    type = "pci";
-                    source = {
-                      address = {
-                        domain = 0;
-                        bus = 1;
-                        slot = 0;
-                        function = 0;
-                      };
-                    };
-                  }
-                  {
-                    type = "pci";
-                    source = {
-                      address = {
-                        domain = 0;
-                        bus = 1;
-                        slot = 0;
-                        function = 1;
-                      };
-                    };
-                  }
-                ];
-              };
-            }
-        );
-        active = true;
-      }
-      {
-        definition = nixvirt.lib.domain.writeXML (
-          let
-            baseTemplate = linuxUefiVmTemplate.mkCustomVmTemplate {
-              name = "home-assistant";
-              uuid = uuidgen "home-assistant";
-              memoryMibCount = 3072;
-              hostInterface = "br0";
-            };
-          in
-            baseTemplate // {
-              devices = baseTemplate.devices // {
-                controller = [{
-                  type = "scsi";
-                  model = "virtio-scsi";
-                }];
-
-                disk = [{
-                  type = "volume";
-                  device = "disk";
-                  driver = {
-                    name = "qemu";
-                    type = "qcow2";
-                    cache = "none";
-                    discard = "unmap";
-                  };
-                  source = {
-                    pool = "default";
-                    volume = homeAssistantImageName;
-                  };
-                  target = {
-                    dev = "sda";
-                    bus = "scsi";
-                  };
-                }];
-              };
-            }
-        );
-        active = true;
-      }];
-    };
-  };
 }
 
 # sudo virsh list --all

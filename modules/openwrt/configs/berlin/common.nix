@@ -1,5 +1,9 @@
 let
-  lanSubnet = "192.168.11";
+  lanSubnet        = "192.168.11";
+  guestSubnet      = "10.10.22";
+  iotSubnet        = "10.10.33";
+  appsSubnet       = "10.10.44";
+  managementSubnet = "10.10.55";
 
   /* ============================================================================== */
   /* =========================== Bridge Helper Functions ========================== */
@@ -7,23 +11,19 @@ let
 
   mkBridge = ports: 
     {
-      device = "br-lan";
-      type = "bridge";
-      ports = ports;
+      name   = "br-lan";
+      type   = "bridge";
+      ports  = ports;
     };
+  
 
   /* =================================================================================== */
   /* =========================== Bridge VLAN Helper Functions ========================== */
   /* =================================================================================== */
 
-  interfacePortsFormatted = interfacePorts:
-    map (port: "${port}:u*") interfacePorts;
-
-  trunkPortsFormatted = trunkPorts: interfacePorts:
-    map (port: "${port}:t") (builtins.filter (port: !(builtins.elem port interfacePorts)) trunkPorts);
-
   portsFormatted = interfacePorts: trunkPorts:
-    interfacePortsFormatted interfacePorts ++ trunkPortsFormatted trunkPorts interfacePorts;
+    map (port: "${port}:u*") interfacePorts ++ 
+    map (port: "${port}:t") (builtins.filter (port: !(builtins.elem port interfacePorts)) trunkPorts);
 
   mkBridgeVlans = {
     trunkPorts      ? [],
@@ -33,36 +33,36 @@ let
     appsPorts       ? [],
     managementPorts ? []
   }: {
-    "bridge_vlan" = [
+    "bridge-vlan" = [
       {
       # lan
-      device = "br-lan";
-        vlan = "11";
-        ports = portsFormatted lanPorts trunkPorts;
+      device   = "br-lan";
+        vlan   = "11";
+        ports  = portsFormatted lanPorts trunkPorts;
       }
       # guest
       {
         device = "br-lan";
-        vlan = "22";
-        ports = portsFormatted guestPorts trunkPorts;
+        vlan   = "22";
+        ports  = portsFormatted guestPorts trunkPorts;
       }
       # iot
       {
         device = "br-lan";
-        vlan = "33";
-        ports = portsFormatted iotPorts trunkPorts;
+        vlan   = "33";
+        ports  = portsFormatted iotPorts trunkPorts;
       }
       # apps
       {
         device = "br-lan";
-        vlan = "44";
-        ports = portsFormatted appsPorts trunkPorts;
+        vlan   = "44";
+        ports  = portsFormatted appsPorts trunkPorts;
       }
       # management
       {
         device = "br-lan";
-        vlan = "55";
-        ports = portsFormatted managementPorts trunkPorts;
+        vlan   = "55";
+        ports  = portsFormatted managementPorts trunkPorts;
       }
     ];
   };
@@ -75,70 +75,80 @@ let
     address: subnet + "." + toString address;
   mkDns = address: 
     if address != null then [ "${lanSubnet}.${toString address}" ] else [];
+
+  mkGateway = 
+    setGateway: 
+    subnet: 
+      if setGateway then "${subnet}.1" else "";
   
   mkInterfaces = {
     hostAddress,
     dnsAddress ? null,
+    setGateway ? false
   }: {
     loopback = {
-      device = "lo";
-      proto = "static";
-      ipaddr = "127.0.0.1";
+      device  = "lo";
+      proto   = "static";
+      ipaddr  = "127.0.0.1";
       netmask = "255.0.0.0";
     };
         
     lan = {
-      device = "br-lan.11";
-      proto = "static";
-      ipaddr = mkAddress lanSubnet hostAddress;
+      device  = "br-lan.11";
+      proto   = "static";
+      ipaddr  = mkAddress lanSubnet hostAddress;
       netmask = "255.255.255.0";
-      dns = mkDns dnsAddress;
+      dns     = mkDns dnsAddress;
+      gateway = mkGateway setGateway lanSubnet;
     };
 
     guest = {
-      device = "br-lan.22";
-      proto = "static";
-      ipaddr = mkAddress "10.10.22" hostAddress;
+      device  = "br-lan.22";
+      proto   = "static";
+      ipaddr  = mkAddress guestSubnet hostAddress;
       netmask = "255.255.255.0";
-      dns = mkDns dnsAddress;
+      dns     = mkDns dnsAddress;
+      gateway = mkGateway setGateway guestSubnet;
     };
 
     iot = {
-      device = "br-lan.33";
-      proto = "static";
-      ipaddr = mkAddress "10.10.33" hostAddress;
+      device  = "br-lan.33";
+      proto   = "static";
+      ipaddr  = mkAddress iotSubnet hostAddress;
       netmask = "255.255.255.0";
-      dns = mkDns dnsAddress;
+      dns     = mkDns dnsAddress;
+      gateway = mkGateway setGateway iotSubnet;
     };
 
     apps = {
-      device = "br-lan.44";
-      proto = "static";
-      ipaddr = mkAddress "10.10.44" hostAddress;
+      device  = "br-lan.44";
+      proto   = "static";
+      ipaddr  = mkAddress appsSubnet hostAddress;
       netmask = "255.255.255.0";
-      dns = mkDns dnsAddress;
+      dns     = mkDns dnsAddress;
+      gateway = mkGateway setGateway appsSubnet;
     };
 
     management = {
-      device = "br-lan.55";
-      proto = "static";
-      ipaddr = mkAddress "10.10.55" hostAddress;
+      device  = "br-lan.55";
+      proto   = "static";
+      ipaddr  = mkAddress managementSubnet hostAddress;
       netmask = "255.255.255.0";
-      dns = mkDns dnsAddress;
+      dns     = mkDns dnsAddress;
+      gateway = mkGateway setGateway managementSubnet;
     };
   };
 in 
 {
   firewallZones = [
-    { name = "lan"; input = "ACCEPT"; output = "ACCEPT"; forward = "ACCEPT"; network = [ "lan" ]; }
-    { name = "guest"; input = "REJECT"; output = "ACCEPT"; forward = "REJECT"; network = [ "guest" ]; }
-    { name = "iot"; input = "REJECT"; output = "ACCEPT"; forward = "REJECT"; network = [ "iot" ]; }
-    { name = "apps"; input = "REJECT"; output = "ACCEPT"; forward = "REJECT"; network = [ "apps" ]; }
+    { name = "lan";        input = "ACCEPT"; output = "ACCEPT"; forward = "ACCEPT"; network = [ "lan" ]; }
+    { name = "guest";      input = "REJECT"; output = "ACCEPT"; forward = "REJECT"; network = [ "guest" ]; }
+    { name = "iot";        input = "REJECT"; output = "ACCEPT"; forward = "REJECT"; network = [ "iot" ]; }
+    { name = "apps";       input = "REJECT"; output = "ACCEPT"; forward = "REJECT"; network = [ "apps" ]; }
     { name = "management"; input = "REJECT"; output = "ACCEPT"; forward = "REJECT"; network = [ "management" ]; }
   ];
 
   firewallForwarding = [
-    { src = "lan"; dest = "wan"; }
     { src = "lan"; dest = "guest"; }
     { src = "lan"; dest = "iot"; }
     { src = "lan"; dest = "apps"; }

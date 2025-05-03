@@ -8,9 +8,6 @@ let
   hostCfgVars = config.host.vars;
   secretsAbsolutePath = "/home/ashley/shuurinet-nix/secrets"; 
 
-  linuxUefiVmTemplate = import ../../lib/vm-templates/nixvirt-linux-uefi-host-network.nix { inherit pkgs nixvirt; };
-
-  inherit (inputs) nixvirt;
 in
 {
   imports = [

@@ -1,9 +1,31 @@
-{
+{ inputs ? {} }:
+let
+  common = import ./common.nix;
+
+  lanBridge = common.mkBridge [ "eth0" "eth1" "eth2" "eth3" ];
+  lanBridgeVlans = common.mkBridgeVlans {
+    trunkPorts = [ "eth1" "eth2" ];
+    lanPorts   = [ "eth0" "eth3" ];
+  };
+
+  interfaces = common.mkInterfaces {
+    hostAddress = 1;
+    # dnsAddress  = 1;
+    # setGateway  = true;
+  }; 
+
+  firewallZones      = common.firewallZones;
+  firewallForwarding = common.firewallForwarding;
+
+  wanPort = "eth4";
+
+  # dnsIp = "192.168.11.1";
+in {
   openwrt.vm-test-router-config = {
-    deploy.host = "192.168.11.51";
+    deploy.host = "192.168.11.1";
 
     deploy.sshConfig = {
-      Port = 22;
+      Port         = 22;
       IdentityFile = "~/.ssh/id_ed25519";
     };
 
@@ -15,6 +37,7 @@
       "htop" 
       "nano" 
       "tcpdump" 
+      "pciutils"
     ];
 
     uci.sopsSecrets = "/home/ashley/shuurinet-nix/secrets/sops/openwrt.yaml";
@@ -30,219 +53,173 @@
         ];
 
         device = [
-          {
-            name = "br-lan";
-            type = "bridge";
-            ports = [ "eth0" "eth1" "eth2" "eth3" ];
-          }
+          lanBridge
         ];
 
-        "bridge-vlan" = [
-          {
-            device = "br-lan";
-            vlan = "11";
-            ports = [ "eth0:u*" "eth1:t" "eth2:t" "eth3:u*" ];
-          }
-          {
-            device = "br-lan";
-            vlan = "22";
-            ports = [ "eth1:t" "eth2:t" ];
-          }
-          {
-            device = "br-lan";
-            vlan = "33";
-            ports = [ "eth1:t" "eth2:t" ];
-          }
-          {
-            device = "br-lan";
-            vlan = "44";
-            ports = [ "eth1:t" "eth2:t" ];
-          }
-        ];
+        "bridge-vlan" = lanBridgeVlans.bridge-vlan;
 
-        interface = {
-          loopback = {
-            device = "lo";
-            proto = "static";
-            ipaddr = "127.0.0.1";
-            netmask = "255.0.0.0";
-          };
-
-          lan = {
-            device = "br-lan.11";
-            proto = "static";
-            ipaddr = "192.168.11.1";
-            netmask = "255.255.255.0";
-            ip6assign = "60";
-            # dns = [ "192.168.11.1" ];
-          };
-
-          guest = {
-            proto = "static";
-            device = "br-lan.22";
-            ipaddr = "10.10.23.1";
-            netmask = "255.255.255.0";
-            # dns._secret = "host.dns.ipList";
-          };
-
-          iot = {
-            proto = "static";
-            device = "br-lan.33";
-            ipaddr = "10.10.34.1";
-            netmask = "255.255.255.0";
-            # dns._secret = "host.dns.ipList";
-          };
-
-          apps = {
-            proto = "static";
-            device = "br-lan.44";
-            ipaddr = "10.10.45.1";
-            netmask = "255.255.255.0";
-            # dns._secret = "host.dns.ipList";
-          };
-
+        interface = interfaces // {
           wan = {
-            device = "eth4";
-            proto = "pppoe";
+            device           = wanPort;
+            proto            = "pppoe";
             username._secret = "pppoe.username";
             password._secret = "pppoe.password";
-            ipv6 = "auto";
+            ipv6             = "auto";
           };
 
           wan6 = {
-            device = "eth4";
-            proto = "dhcpv6";
+            device     = wanPort;
+            proto      = "dhcpv6";
             reqaddress = "try";
-            reqprefix = "auto";
+            reqprefix  = "auto";
           };
         };
       };
       
       firewall = {
-        zone = [
-          { name = "lan"; input = "ACCEPT"; output = "ACCEPT"; forward = "ACCEPT"; network = [ "lan" ]; }
+        zone = firewallZones ++ [
           { name = "wan"; input = "REJECT"; output = "ACCEPT"; forward = "REJECT"; masq = true; mtu_fix = true; network = [ "wan" "wan6" ]; }
-          { name = "guest"; input = "REJECT"; output = "ACCEPT"; forward = "REJECT"; network = [ "guest" ]; }
-          { name = "iot"; input = "REJECT"; output = "ACCEPT"; forward = "REJECT"; network = [ "iot" ]; }
-          { name = "apps"; input = "REJECT"; output = "ACCEPT"; forward = "REJECT"; network = [ "apps" ]; }
         ];
 
-        forwarding = [
-          { src = "lan"; dest = "wan"; }
-          { src = "lan"; dest = "iot"; }
-          { src = "lan"; dest = "apps"; }
-          { src = "guest"; dest = "wan"; }
-          { src = "iot"; dest = "wan"; }
-          { src = "apps"; dest = "wan"; }
+        forwarding = firewallForwarding ++ 
+        [
+          { src = "lan";        dest = "wan"; }
+          { src = "guest";      dest = "wan"; }
+          { src = "iot";        dest = "wan"; }
+          { src = "apps";       dest = "wan"; }
+          { src = "management"; dest = "wan"; }
         ];
 
         rule = [
-          { name = "guest_dns_dhcp"; src = "guest"; dest_port = "53 67 68"; target = "ACCEPT"; }
-          { name = "iot_dns_dhcp"; src = "iot"; dest_port = "53 67 68"; target = "ACCEPT"; }
-          { name = "apps_dns_dhcp"; src = "apps"; dest_port = "53 67 68"; target = "ACCEPT"; }
-          { name = "avr_block_forward"; src = "iot"; src_ip._secret = "host.avr.ip"; dest = "*"; target = "REJECT"; }
-          { name = "living_room_switch_block_forward"; src = "lan"; src_ip = "192.168.11.5"; dest = "*"; target = "REJECT"; }
-          { name = "living_room_switch_block_input"; src = "lan"; src_ip = "192.168.11.5"; target = "REJECT"; }
-          { name = "kitchen_led_mqtt"; src = "iot"; src_ip = "10.10.33.194"; dest = "lan"; dest_ip = "192.168.11.127"; dest_port = "1883"; target = "ACCEPT"; }
           { name = "allow_mdns"; src = "*"; src_port = "5353"; dest_port = "5353"; proto = "udp"; dest_ip = "224.0.0.251"; target = "ACCEPT"; }
-          { name = "guest_adguard_dns"; src = "guest"; dest = "lan"; dest_port = "53"; dest_ip._secret = "host.dns.ipList"; target = "ACCEPT"; }
-          { name = "iot_adguard_dns"; src = "iot"; dest = "lan"; dest_port = "53"; dest_ip._secret = "host.dns.ipList"; target = "ACCEPT"; }
-          { name = "dmz_adguard_dns"; src = "apps"; dest = "lan"; dest_port = "53"; dest_ip._secret = "host.dns.ipList"; target = "ACCEPT"; }
-          { name = "apps_nb_router_allow_jellyfin"; src = "apps"; src_ip._secret = "host.nbApps.ip"; dest = "lan"; dest_port = "8096"; dest_ip = "192.168.11.10"; target = "ACCEPT"; }
-          { name = "tv_allow_airplay"; src = "iot"; src_ip._secret = "host.tv.ip"; dest = "lan"; dest_port = "6002 7000 49152-65535"; target = "ACCEPT"; }
+
+          { name = "guest_dns_dhcp";      src = "guest";      dest_port = "53 67 68"; target = "ACCEPT"; }
+          { name = "iot_dns_dhcp";        src = "iot";        dest_port = "53 67 68"; target = "ACCEPT"; }
+          { name = "apps_dns_dhcp";       src = "apps";       dest_port = "53 67 68"; target = "ACCEPT"; }
+          { name = "management_dns_dhcp"; src = "management"; dest_port = "53 67 68"; target = "ACCEPT"; }
+
+          # { name = "guest_adguard_dns";      src = "guest";      dest = "lan"; dest_port = "53"; dest_ip = dnsIp; target = "ACCEPT"; }
+          # { name = "iot_adguard_dns";        src = "iot";        dest = "lan"; dest_port = "53"; dest_ip = dnsIp; target = "ACCEPT"; }
+          # { name = "dmz_adguard_dns";        src = "apps";       dest = "lan"; dest_port = "53"; dest_ip = dnsIp; target = "ACCEPT"; }
+          # { name = "management_adguard_dns"; src = "management"; dest = "lan"; dest_port = "53"; dest_ip = dnsIp; target = "ACCEPT"; }
+          
+          { name = "avr_block_forward";                src = "iot"; src_ip._secret = "host.avr.ip"; dest = "*"; target = "REJECT"; }
+          { name = "living_room_switch_block_forward"; src = "lan"; src_ip = "192.168.11.5";        dest = "*"; target = "REJECT"; }
+          { name = "kitchen_led_mqtt";                 src = "iot"; src_ip = "10.10.33.194";        dest = "lan"; dest_ip = "192.168.11.127"; dest_port = "1883"; target = "ACCEPT"; }
+          { name = "tv_allow_airplay";                 src = "iot"; src_ip._secret = "host.tv.ip";  dest = "lan"; dest_port = "6002 7000 49152-65535"; target = "ACCEPT"; }
+          { name = "living_room_switch_block_input";   src = "lan"; src_ip = "192.168.11.5";        target = "REJECT"; }
+
+          # { name = "apps_nb_router_allow_jellyfin"; src = "apps"; src_ip._secret = "host.nbApps.ip"; dest = "lan"; dest_port = "8096"; dest_ip = "192.168.11.10"; target = "ACCEPT"; }
         ];
       };
 
       dhcp = {
         dnsmasq = [
           {
-            domainneeded = true;
-            localise_queries = true;
+            domainneeded      = true;
+            localise_queries  = true;
             rebind_protection = true;
-            rebind_localhost = true;
-            local = "/lan/";
-            domain = "lan";
-            expandhosts = true;
-            cachesize = 1000;
-            authoritative = true;
-            readethers = true;
-            leasefile = "/tmp/dhcp.leases";
-            resolvfile = "/tmp/resolv.conf.d/resolv.conf.auto";
-            localservice = true;
-            ednspacket_max = 1232;
+            rebind_localhost  = true;
+            local             = "/lan/";
+            domain            = "lan";
+            expandhosts       = true;
+            cachesize         = 1000;
+            authoritative     = true;
+            readethers        = true;
+            leasefile         = "/tmp/dhcp.leases";
+            resolvfile        = "/tmp/resolv.conf.d/resolv.conf.auto";
+            localservice      = true;
+            ednspacket_max    = 1232;
           }
         ];
 
         dhcp = {
           lan = {
             interface = "lan";
-            start = 100;
-            limit = 150;
+            start     = 100;
+            limit     = 150;
             leasetime = "12h";
-            dhcpv4 = "server";
-            ra = "server";
-            dhcpv6 = "server";
-            ra_flags = [ "managed-config" "other-config" ];
+            dhcpv4    = "server";
+            ra        = "server";
+            dhcpv6    = "server";
+            ra_flags  = [ "managed-config" "other-config" ];
           };
 
           wan = {
             interface = "wan";
-            ignore = true;
+            ignore    = true;
           };
 
           guest = {
             interface = "guest";
-            start = 100;
-            limit = 150;
+            start     = 100;
+            limit     = 150;
             leasetime = "12h";
           };
 
           iot = {
             interface = "iot";
-            start = 100;
-            limit = 150;
+            start     = 100;
+            limit     = 150;
             leasetime = "12h";
           };
 
           apps = {
             interface = "apps";
-            start = 100;
-            limit = 150;
+            start     = 100;
+            limit     = 150;
             leasetime = "12h";
-            ra = "server";
-            dhcpv6 = "server";
+            ra        = "server";
+            dhcpv6    = "server";
+          };
+
+          management = {
+            interface = "management";
+            start     = 100;
+            limit     = 150;
+            leasetime = "12h";
           };
         };
 
         host = [
+          # {
+          #   name = "DNS";
+          #   ip = "host.dns.ip";
+          #   mac = "host.dns.mac";
+          # }
+          # {
+          #   name = "DNS";
+          #   duid = "host.dns.duid";
+          #   mac = "host.dns.mac";
+          # }
           {
             name._secret = "host.tv.name";
-            ip._secret = "host.tv.ip";
-            mac._secret = "host.tv.mac";
+            ip._secret   = "host.tv.ip";
+            mac._secret  = "host.tv.mac";
           }
           {
             name._secret = "host.avr.name";
-            ip._secret = "host.avr.ip";
-            mac._secret = "host.avr.mac";
+            ip._secret   = "host.avr.ip";
+            mac._secret  = "host.avr.mac";
           }
           {
             name._secret = "host.zigbee.name";
-            ip._secret = "host.zigbee.ip";
-            mac._secret = "host.zigbee.mac";
+            ip._secret   = "host.zigbee.ip";
+            mac._secret  = "host.zigbee.mac";
           }
           {
             name._secret = "host.kodi.name";
-            ip._secret = "host.kodi.ip";
-            mac._secret = "host.kodi.mac";
+            ip._secret   = "host.kodi.ip";
+            mac._secret  = "host.kodi.mac";
           }
         ];
       };
 
       sqm = {
         queue = {
-          eth4 = {
+          "${wanPort}" = {
             enabled = true;
-            interface = "eth4";
+            interface = wanPort;
             download = 178000;
             upload = 44000;
             qdisc = "cake";
@@ -258,8 +235,6 @@
     
     etc."avahi/avahi-daemon.conf".text = ''
       [server]
-      #host-name=foo
-      #domain-name=local
       use-ipv4=yes
       use-ipv6=yes
       check-response-ttl=no
@@ -270,15 +245,12 @@
       publish-hinfo=yes
       publish-workstation=no
       publish-domain=yes
-      #publish-dns-servers=192.168.11.1
-      #publish-resolv-conf-dns-servers=yes
 
       [reflector]
       enable-reflector=yes
       reflect-ipv=no
 
       [rlimits]
-      #rlimit-as=
       rlimit-core=0
       rlimit-data=4194304
       rlimit-fsize=0

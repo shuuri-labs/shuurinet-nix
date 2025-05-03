@@ -5,14 +5,16 @@
 { config, pkgs, inputs, lib, ... }:
 
 let
-  hostCfgVars = config.host.vars;
+  hostCfgVars         = config.host.vars;
   secretsAbsolutePath = "/home/ashley/shuurinet-nix/secrets"; 
-  
-  # Create a derivation that contains just the AML file
-  # facp_package = pkgs.runCommand "facp-override" {} ''
-  #   mkdir -p $out/kernel/firmware/acpi
-  #   cp ${./FADT_override.aml} $out/kernel/firmware/acpi/FACP.aml
-  # '';
+
+  undervoltConfig = ''
+    undervolt 0 'CPU' -125.00
+    undervolt 1 'GPU' 0.00
+    undervolt 2 'CPU Cache' -125.00
+    undervolt 3 'System Agent' -30.00
+    undervolt 4 'Analog I/O' 0.00
+  '';
 in
 {
   imports = [
@@ -22,7 +24,6 @@ in
 
   # -------------------------------- HOST VARIABLES --------------------------------
   # See /options-host
-
   
   host.vars = {
     network = {
@@ -49,33 +50,32 @@ in
 
   # -------------------------------- SYSTEM CONFIGURATION --------------------------------
 
-  # Custom kernel with igc patch for PCIE L1.2 state exit latency fix
-
-  # boot.kernelPatches = [{
-  #   name = "acpi-table-upgrade";
-  #   patch = null;
-  #   extraConfig = ''
-  #     ACPI_TABLE_UPGRADE y
-  #   '';
-  # }];
-
-  # # Create a custom initrd that includes your ACPI tables
-  # boot.initrd = {
-  #   extraUtilsCommands = ''
-  #     cp -rv ${facp_package}/* $out/
-  #   '';
-  # };
-
   boot.kernelParams = [
     "pcie_aspm=force"
     "pcie_aspm.policy=powersave"
-    # "vfio-pci.ids=8086:150e"
   ];
 
   environment.systemPackages = with pkgs; [
     python3
     acpica-tools
+    intel-undervolt
   ];
+
+  systemd.services.intel-undervolt-config = {
+    description = "Write and apply intel-undervolt config";
+    before = [ "intel-undervolt.service" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = ''
+        ${pkgs.writeShellScript "write-intel-undervolt-conf" ''
+          echo "${undervoltConfig}" > /etc/intel-undervolt.conf
+          chmod 644 /etc/intel-undervolt.conf
+          ${pkgs.intel-undervolt}/bin/intel-undervolt apply
+        ''}
+      '';
+    };
+  };
 
   time.timeZone = "Europe/Berlin";
 
@@ -93,23 +93,10 @@ in
   # -------------------------------- SECRETS --------------------------------
 
   age.secrets = {
-  #   castform-main-user-password.file = "${secretsAbsolutePath}/castform-main-user-password.age";
-  #   ashley-samba-user-pw.file = "${secretsAbsolutePath}/samba-ashley-password.age";
-  #   media-samba-user-pw.file = "${secretsAbsolutePath}/samba-media-password.age";
-    sops-key.file = "${secretsAbsolutePath}/keys/sops-key.txt.age";
+    sops-key.file = "${secretsAbsolutePath}/keys/sops-key.agekey.age";
   };
 
   # -------------------------------- DISK CONFIGURATION --------------------------------
-
-  # zfs = {
-  #   pools = {
-  #     rust = {
-  #       name = "castform-rust";
-  #       autotrim = false;
-  #     };
-  #   };
-  #   network.hostId = "c8f36183"; 
-  # };
 
   diskCare = {
     enableTrim = true;

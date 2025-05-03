@@ -262,26 +262,6 @@
         "type": "github"
       }
     },
-    "nixvirt": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1741549407,
-        "narHash": "sha256-f9SXK+/rvlryDNlc++Eva/hYjbkf7OCalWwmwifRhtI=",
-        "owner": "AshleyYakeley",
-        "repo": "NixVirt",
-        "rev": "9950b932dce4ae6b9bda7c83d41705c1a14e10f0",
-        "type": "github"
-      },
-      "original": {
-        "owner": "AshleyYakeley",
-        "repo": "NixVirt",
-        "type": "github"
-      }
-    },
     "openwrt-imagebuilder": {
       "inputs": {
         "flake-parts": "flake-parts_3",
@@ -291,11 +271,11 @@
         "systems": "systems_2"
       },
       "locked": {
-        "lastModified": 1746176851,
-        "narHash": "sha256-GcBxhyj0RXUwC99/fKauhmasZfhN0Bl24oNZXQ+j/Uw=",
+        "lastModified": 1746260473,
+        "narHash": "sha256-ygvlZpHrByCFlfdb8XJH1QPlj58XQUHBveUYvXj3E1o=",
         "owner": "astro",
         "repo": "nix-openwrt-imagebuilder",
-        "rev": "48b030d497a252305115c68ffe04b26ef4424e6c",
+        "rev": "4f85a1e1eda2da6b50c569f558a15e8e562b48cc",
         "type": "github"
       },
       "original": {
@@ -313,7 +293,6 @@
         "home-manager": "home-manager_2",
         "nixpkgs": "nixpkgs",
         "nixpkgs-unstable": "nixpkgs-unstable",
-        "nixvirt": "nixvirt",
         "openwrt-imagebuilder": "openwrt-imagebuilder",
         "vpn-confinement": "vpn-confinement",
         "vscode-server": "vscode-server"
