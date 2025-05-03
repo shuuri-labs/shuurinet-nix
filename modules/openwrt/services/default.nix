@@ -1,0 +1,5 @@
+{
+  imports = [
+    ./auto-deploy.nix
+  ];
+} 

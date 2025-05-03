@@ -143,6 +143,8 @@ in
       };
     };
 
+    # To 'factory reset VM, delete overlay in "/var/lib/vm/images" and stop/start service!
+    # VM service names are the names of the service attribute sets below, e.g. "openwrt" or "home-assistant"
     services = {
       "openwrt" = {
         enable    = true;
@@ -172,6 +174,18 @@ in
         rootScsi   = true;
         vncPort    = 2;
       };
+    };
+  };
+
+  openwrt.config-auto-deploy = {
+    enable = true;
+    sopsAgeKeyFile = config.age.secrets.sops-key.path;
+
+    configs = {
+      vm-test-router-config = {
+        drv = inputs.self.packages.${pkgs.system}.vm-test-router-config;
+        serviceName = "openwrt";
+      };  
     };
   };
 }

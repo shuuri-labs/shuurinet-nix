@@ -136,13 +136,7 @@ in {
         dhcp = {
           lan = {
             interface = "lan";
-            start     = 100;
-            limit     = 150;
-            leasetime = "12h";
-            dhcpv4    = "server";
-            ra        = "server";
-            dhcpv6    = "server";
-            ra_flags  = [ "managed-config" "other-config" ];
+            ignore    = true;
           };
 
           wan = {
@@ -152,32 +146,22 @@ in {
 
           guest = {
             interface = "guest";
-            start     = 100;
-            limit     = 150;
-            leasetime = "12h";
+            ignore    = true;
           };
 
           iot = {
             interface = "iot";
-            start     = 100;
-            limit     = 150;
-            leasetime = "12h";
+            ignore    = true;
           };
 
           apps = {
             interface = "apps";
-            start     = 100;
-            limit     = 150;
-            leasetime = "12h";
-            ra        = "server";
-            dhcpv6    = "server";
+            ignore    = true;
           };
 
           management = {
             interface = "management";
-            start     = 100;
-            limit     = 150;
-            leasetime = "12h";
+            ignore    = true;
           };
         };
 
@@ -235,19 +219,19 @@ in {
     
     etc."avahi/avahi-daemon.conf".text = ''
       [server]
-      use-ipv4=yes
-      use-ipv6=yes
+      use-ipv4=no
+      use-ipv6=no
       check-response-ttl=no
       use-iff-running=no
 
       [publish]
-      publish-addresses=yes
-      publish-hinfo=yes
+      publish-addresses=no
+      publish-hinfo=no
       publish-workstation=no
-      publish-domain=yes
+      publish-domain=no
 
       [reflector]
-      enable-reflector=yes
+      enable-reflector=no
       reflect-ipv=no
 
       [rlimits]

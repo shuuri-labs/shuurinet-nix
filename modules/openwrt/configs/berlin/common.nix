@@ -100,6 +100,7 @@ let
       netmask = "255.255.255.0";
       dns     = mkDns dnsAddress;
       gateway = mkGateway setGateway lanSubnet;
+      metric  = 10;
     };
 
     guest = {
@@ -109,6 +110,7 @@ let
       netmask = "255.255.255.0";
       dns     = mkDns dnsAddress;
       gateway = mkGateway setGateway guestSubnet;
+      metric  = 100;
     };
 
     iot = {
@@ -118,6 +120,7 @@ let
       netmask = "255.255.255.0";
       dns     = mkDns dnsAddress;
       gateway = mkGateway setGateway iotSubnet;
+      metric  = 100;
     };
 
     apps = {
@@ -127,6 +130,7 @@ let
       netmask = "255.255.255.0";
       dns     = mkDns dnsAddress;
       gateway = mkGateway setGateway appsSubnet;
+      metric  = 100;
     };
 
     management = {
@@ -136,6 +140,7 @@ let
       netmask = "255.255.255.0";
       dns     = mkDns dnsAddress;
       gateway = mkGateway setGateway managementSubnet;
+      metric  = 100;
     };
   };
 in 
