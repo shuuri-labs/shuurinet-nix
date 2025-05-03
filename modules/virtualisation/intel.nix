@@ -1,11 +1,11 @@
 { config, lib, pkgs, ... }:
 
 let
-  cfg = config.virtualization.intel; 
+  cfg = config.virtualisation.intel; 
 in
 {
-  options.virtualization.intel = {
-    enable = lib.mkEnableOption "intel virtualization";
+  options.virtualisation.intel = {
+    enable = lib.mkEnableOption "intel virtualisation";
   };
 
   config = lib.mkIf cfg.enable {

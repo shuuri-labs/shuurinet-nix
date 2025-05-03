@@ -1,7 +1,7 @@
 { config, lib, pkgs, ... }:
 
 let
-  cfg = config.virtualization;
+  cfg = config.virtualisation;
 in
 {
   imports = [
@@ -13,8 +13,8 @@ in
   ];
 
   config = {
-    virtualization.enable = cfg.bareMetal.enable || cfg.intel.enable;
-    virtualization.bareMetal.enable = cfg.intel.enable;
+    virtualisation.base.enable = cfg.bareMetal.enable || cfg.intel.enable;
+    virtualisation.bareMetal.enable = cfg.intel.enable;
   };
 }
 

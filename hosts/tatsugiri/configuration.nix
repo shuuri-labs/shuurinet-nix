@@ -125,7 +125,7 @@ in
     imageName = openwrtImageName;
   };
 
-  virtualization = {
+  virtualisation = {
     intel.enable = true;
   };
 

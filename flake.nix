@@ -41,10 +41,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # secrets = {
-    #   url = "path:/home/ashley/shuurinet-nix/secrets";
-    #   flake = false;
-    # };
+    # do not follow nixpkgs for virtualisation! use pinned nixpkgs from its own flake
+    virtualisation = {
+      url = "path:./modules/virtualisation";
+    };
   };
 
   outputs = inputs@{ flake-parts, ... }: let
@@ -62,7 +62,6 @@
             ./modules/hdd-spindown
             ./modules/intel-graphics
             ./modules/power-saving
-            ./modules/virtualization
             ./modules/media-server
             ./modules/smb-provisioner
             ./modules/disk-care
@@ -71,6 +70,7 @@
             ./modules/monitoring
             ./modules/paperless-ngx
             inputs.vpn-confinement.nixosModules.default
+            inputs.virtualisation.nixosModules.default
           ] "x86_64-linux";
 
           castform = mkNixosHost "castform" [
@@ -79,7 +79,6 @@
             ./modules/hdd-spindown
             ./modules/intel-graphics
             ./modules/power-saving
-            ./modules/virtualization
             ./modules/media-server
             ./modules/smb-provisioner
             ./modules/disk-care
@@ -87,6 +86,7 @@
             ./modules/uefi-boot
             ./modules/monitoring
             inputs.vpn-confinement.nixosModules.default
+            inputs.virtualisation.nixosModules.default
           ] "x86_64-linux";
 
           missingno = mkNixosHost "missingno" [
@@ -94,13 +94,13 @@
             ./modules/hdd-spindown
             ./modules/intel-graphics
             ./modules/power-saving
-            ./modules/virtualization
             ./modules/disk-care
             ./modules/iperf
             ./modules/uefi-boot
             ./modules/openwrt/configs/auto-deploy.nix
             # ./modules/monitoring
             inputs.vpn-confinement.nixosModules.default
+            inputs.virtualisation.nixosModules.default
           ] "x86_64-linux";
 
           ludicolo = mkNixosHost "ludicolo" [
@@ -109,7 +109,6 @@
             ./modules/hdd-spindown
             ./modules/intel-graphics
             ./modules/power-saving
-            ./modules/virtualization
             ./modules/media-server
             ./modules/smb-provisioner
             ./modules/disk-care
@@ -119,12 +118,13 @@
             ./modules/netbird/router
             ./modules/frigate
             inputs.vpn-confinement.nixosModules.default
+            inputs.virtualisation.nixosModules.default
           ] "x86_64-linux";
         };
 
         tatsugiri = mkNixosHost "tatsugiri" [
           ./modules/uefi-boot
-          ./modules/virtualization
+          ./modules/virtualisation
           ./modules/power-saving
           ./modules/intel-graphics
           ./modules/disk-care

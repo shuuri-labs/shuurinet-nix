@@ -25,7 +25,6 @@ in
         uefi      = lib.mkOption { type = lib.types.bool; default = false; };
         memory    = lib.mkOption { type = lib.types.ints.positive; default = 512; };
         smp       = lib.mkOption { type = lib.types.ints.positive; default = 2; };
-        format    = lib.mkOption { type = lib.types.str; default = "qcow2"; };
         bridges   = lib.mkOption { type = lib.types.listOf lib.types.str; default = []; };
         taps      = lib.mkOption { type = lib.types.listOf lib.types.str; default = []; };
         pciHosts  = lib.mkOption { type = lib.types.listOf pciHost; default = []; };

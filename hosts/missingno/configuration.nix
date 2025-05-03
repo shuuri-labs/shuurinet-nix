@@ -126,75 +126,84 @@ in
 
   # -------------------------------- Virtualisation & VMs --------------------------------
 
-  users.users.ashley.extraGroups = [ "libvirtd" ];
 
-  virtualization = {
+  virtualisation = {
     intel.enable = true;
-  };
-
-  virtualisation.qemu.manager = {
-    images = {
-      "openwrt" = {
-        enable = true;
-        source = inputs.self.packages.${pkgs.system}.berlin-router-img;
-        sourceFormat = "raw";
-        compressedFormat = "gz";
+    
+    qemu.manager = {
+      images = {
+        "openwrt" = {
+          enable = true;
+          source = inputs.self.packages.${pkgs.system}.berlin-router-img;
+          sourceFormat = "raw";
+          compressedFormat = "gz";
+        };
+        
+        "haos" = {
+          enable = true;
+          source = "https://github.com/home-assistant/operating-system/releases/download/15.2/haos_ova-15.2.qcow2.xz";
+          sourceFormat = "qcow2";
+          sourceSha256 = "0jbjajfnv3m37khk9446hh71g338xpnbnzxjij8v86plymxi063d";
+          compressedFormat = "xz";
+        };
       };
-      
-      "haos" = {
-        enable = true;
-        source = "https://github.com/home-assistant/operating-system/releases/download/15.2/haos_ova-15.2.qcow2.xz";
-        sourceFormat = "qcow2";
-        sourceSha256 = "0jbjajfnv3m37khk9446hh71g338xpnbnzxjij8v86plymxi063d";
-        compressedFormat = "xz";
+
+      # To 'factory reset VM, delete overlay in "/var/lib/vm/images" and stop/start service
+      # VM service names are the names of the service attribute sets below, e.g. "openwrt" or "home-assistant"
+      services = {
+        "openwrt" = {
+          enable    = true;
+          baseImage = "openwrt";
+          uefi      = true;
+          memory    = 1024;
+          smp       = 8;
+          taps      = [ "openwrt-tap" ];
+          bridges   = [ "br0" ];
+          pciHosts  = [ 
+            { address = "01:00.0"; vendorDeviceId = "8086:150e"; } 
+            { address = "01:00.1"; }
+            { address = "01:00.2"; }
+            { address = "01:00.3"; }
+          ];
+          vncPort   = 1;
+        };
+
+        "home-assistant" = {
+          enable     = true;
+          baseImage  = "haos";
+          uefi       = true;
+          memory     = 3072;
+          smp        = 2;
+          taps       = [ "haos-tap" ];
+          bridges    = [ "br0" ];
+          rootScsi   = true;
+          vncPort    = 2;
+        };
       };
     };
-
-    # To 'factory reset VM, delete overlay in "/var/lib/vm/images" and stop/start service!
-    # VM service names are the names of the service attribute sets below, e.g. "openwrt" or "home-assistant"
-    services = {
-      "openwrt" = {
-        enable    = true;
-        baseImage = "openwrt";
-        uefi      = true;
-        memory    = 1024;
-        smp       = 8;
-        taps      = [ "openwrt-tap" ];
-        bridges   = [ "br0" ];
-        pciHosts  = [ 
-          { address = "01:00.0"; vendorDeviceId = "8086:150e"; } 
-          { address = "01:00.1"; }
-          { address = "01:00.2"; }
-          { address = "01:00.3"; }
-        ];
-        vncPort   = 1;
-      };
-
-      "home-assistant" = {
-        enable     = true;
-        baseImage  = "haos";
-        uefi       = true;
-        memory     = 3072;
-        smp        = 2;
-        taps       = [ "haos-tap" ];
-        bridges    = [ "br0" ];
-        rootScsi   = true;
-        vncPort    = 2;
-      };
-    };
   };
 
-  openwrt.config-auto-deploy = {
-    enable = true;
-    sopsAgeKeyFile = config.age.secrets.sops-key.path;
+  ## Containers
 
-    configs = {
-      vm-test-router-config = {
-        drv = inputs.self.packages.${pkgs.system}.vm-test-router-config;
-        serviceName = "openwrt";
-      };  
-    };
-  };
+  # netbird.router = {
+  #   enable = true;
+  #   hostInterface = "br0";
+  #   hostSubnet = config.homelab.networks.subnets.bln;
+  #   managementUrlPath = config.age.secrets.netbird-management-url.path;
+    
+  #   peers = {
+  #     master = {
+  #       enable = lib.mkForce true;
+  #       setupKey = config.age.secrets.missingno-netbird-master-setup-key.path;
+  #     };
+
+  #     apps = {
+  #       enable = lib.mkForce true;
+  #       setupKey = config.age.secrets.missingno-netbird-apps-setup-key.path;
+  #       hostSubnet = "10.10.44"; 
+  #     };
+  #   };
+  # };
 
   # -------------------------------- Services --------------------------------
 
@@ -207,5 +216,18 @@ in
 
   networking.firewall = {
     allowedTCPPorts = [ 5984 ];
+  };
+
+  ### OpenWrt Config Auto-Deploy
+  openwrt.config-auto-deploy = {
+    enable = true;
+    sopsAgeKeyFile = config.age.secrets.sops-key.path;
+
+    configs = {
+      vm-test-router-config = {
+        drv = inputs.self.packages.${pkgs.system}.vm-test-router-config;
+        serviceName = "openwrt";
+      };  
+    };
   };
 }

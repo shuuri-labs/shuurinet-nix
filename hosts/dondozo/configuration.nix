@@ -162,7 +162,7 @@ in
 
   # -------------------------------- VIRTUALISATION --------------------------------
   
-  virtualization = {
+  virtualisation = {
     intel.enable = true;
   };
 }

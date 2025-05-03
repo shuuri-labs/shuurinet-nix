@@ -179,7 +179,7 @@ in
 
   # -------------------------------- Virtualisation & VMs --------------------------------
 
-  virtualization = {
+  virtualisation = {
     intel.enable = true;
   };
 

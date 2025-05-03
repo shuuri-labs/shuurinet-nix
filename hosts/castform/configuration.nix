@@ -100,55 +100,50 @@ in
 
   # -------------------------------- Virtualisation & VMs --------------------------------
 
-  users.users.ashley.extraGroups = [ "libvirtd" ];
-
-  virtualization = {
+  virtualisation = {
     intel.enable = true;
-  };
 
-  virtualisation.qemu.manager = {
-    images = {
-      "openwrt" = {
-        enable = true;
-        # source = "file:///var/lib/libvirt/images/openwrt-24.10.0-x86-64-generic-ext4-combined-efi-newest.raw";
-        source = inputs.self.packages.${pkgs.system}.berlin-router-img;
-        sourceFormat = "raw";
-        compressedFormat = "gz";
-        # sourceSha256 = "198gr1j3lcjwvf1vqk8ldk1ddwd9n2sv44yza63ziz1dw2643a0g";
-      };
-      
-      "haos" = {
-        enable = true;
-        source = "https://github.com/home-assistant/operating-system/releases/download/15.2/haos_ova-15.2.qcow2.xz";
-        sourceFormat = "qcow2";
-        sourceSha256 = "0jbjajfnv3m37khk9446hh71g338xpnbnzxjij8v86plymxi063d";
-        compressedFormat = "xz";
-      };
-    };
-
-    services = {
-      "openwrt" = {
-        enable    = true;
-        baseImage = "openwrt";
-        uefi      = true;
-        memory    = 256;
-        smp       = 4;
-        format    = "raw";
-        bridges   = [ "br0" ];
-        pciHosts  = [ { address = "01:00.0"; vendorDeviceId = "15b3:1015"; } { address = "01:00.1"; } ];
-        vncPort   = 1;
+    qemu.manager = {
+      images = {
+        "openwrt" = {
+          enable = true;
+          source = inputs.self.packages.${pkgs.system}.berlin-router-img;
+          sourceFormat = "raw";
+          compressedFormat = "gz";
+        };
+        
+        "haos" = {
+          enable = true;
+          source = "https://github.com/home-assistant/operating-system/releases/download/15.2/haos_ova-15.2.qcow2.xz";
+          sourceFormat = "qcow2";
+          sourceSha256 = "0jbjajfnv3m37khk9446hh71g338xpnbnzxjij8v86plymxi063d";
+          compressedFormat = "xz";
+        };
       };
 
-      "home-assistant" = {
-        enable     = true;
-        baseImage  = "haos";
-        uefi       = true;
-        memory     = 3072;
-        smp        = 2;
-        format     = "qcow2";
-        bridges    = [ "br0" ];
-        rootScsi   = true;
-        vncPort    = 2;
+      services = {
+        "openwrt" = {
+          enable    = true;
+          baseImage = "openwrt";
+          uefi      = true;
+          memory    = 256;
+          smp       = 4;
+          bridges   = [ "br0" ];
+          pciHosts  = [ { address = "01:00.0"; vendorDeviceId = "15b3:1015"; } { address = "01:00.1"; } ];
+          vncPort   = 1;
+        };
+
+        "home-assistant" = {
+          enable     = true;
+          baseImage  = "haos";
+          uefi       = true;
+          memory     = 3072;
+          smp        = 2;
+          format     = "qcow2";
+          bridges    = [ "br0" ];
+          rootScsi   = true;
+          vncPort    = 2;
+        };
       };
     };
   };

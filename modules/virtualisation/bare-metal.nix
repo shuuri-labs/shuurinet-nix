@@ -1,11 +1,11 @@
 { config, lib, pkgs, ... }:
 
 let
-  cfg = config.virtualization.bareMetal; 
+  cfg = config.virtualisation.bareMetal; 
 in
 {
-  options.virtualization.bareMetal = {
-    enable = lib.mkEnableOption "bare metal virtualization";
+  options.virtualisation.bareMetal = {
+    enable = lib.mkEnableOption "bare metal virtualisation";
   };
 
   config = lib.mkIf cfg.enable {
