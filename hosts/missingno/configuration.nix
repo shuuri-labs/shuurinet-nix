@@ -148,18 +148,19 @@ in
         };
       };
 
-      # To 'factory reset VM, delete overlay in "/var/lib/vm/images" and stop/start service
+      # To 'factory reset VM, delete overlay in "/var/lib/vm/images" and restart service
       # VM service names are the names of the service attribute sets below, e.g. "openwrt" or "home-assistant"
       services = {
         "openwrt" = {
-          enable    = true;
-          baseImage = "openwrt";
-          uefi      = true;
-          memory    = 1024;
-          smp       = 8;
-          taps      = [ "openwrt-tap" ];
-          bridges   = [ "br0" ];
-          pciHosts  = [ 
+          enable     = true;
+          baseImage  = "openwrt";
+          uefi       = true;
+          memory     = 1024;
+          smp        = 8;
+          macAddress = "fe:b5:aa:0f:29:57";
+          taps       = [ "openwrt-tap" ];
+          bridges    = [ "br0" ];
+          pciHosts   = [ 
             { address = "01:00.0"; vendorDeviceId = "8086:150e"; } 
             { address = "01:00.1"; }
             { address = "01:00.2"; }
@@ -174,6 +175,7 @@ in
           uefi       = true;
           memory     = 3072;
           smp        = 2;
+          macAddress = "ce:b0:37:6c:1a:ff";
           taps       = [ "haos-tap" ];
           bridges    = [ "br0" ];
           rootScsi   = true;

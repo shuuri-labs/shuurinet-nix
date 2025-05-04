@@ -1,10 +1,10 @@
 { lib, pkgs }:
 
 rec {
-  mkTapArgs = taps: smp:
+  mkTapArgs = taps: mac: smp:
     lib.flatten (lib.imap0 (idx: tap: [
       "-netdev" "tap,id=net${toString idx},ifname=${tap},script=no,downscript=no,vhost=on"
-      "-device" "virtio-net-pci,netdev=net${toString idx},mq=on,vectors=${toString (smp*2)},tx=bh"
+      "-device" "virtio-net-pci,netdev=net${toString idx},mac=${mac},mq=on,vectors=${toString (smp*2)},tx=bh"
     ]) taps);
 
   mkPciPassthroughArgs = hosts:
