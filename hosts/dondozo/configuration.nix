@@ -27,7 +27,7 @@ in
         {
           name = "br0";
           memberInterfaces = [ "enp2s0f1np1" "eno1" "eno2" ];  
-          subnet = config.homelab.networks.subnets.bln;
+          subnet = config.homelab.networks.subnets.bln-lan;
           identifier = "10";
           isPrimary = true;
         }

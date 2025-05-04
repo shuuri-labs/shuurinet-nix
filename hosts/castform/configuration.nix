@@ -28,7 +28,7 @@ in
         {
           name = "br0";
           memberInterfaces = [ "enp0s31f6" ];
-          subnet = config.homelab.networks.subnets.bln;
+          subnet = config.homelab.networks.subnets.bln-lan;
           identifier = "121";
           isPrimary = true;
         }
@@ -95,8 +95,8 @@ in
 
   # Intel-specific & Power Saving
   intelGraphics.enable = true;
-  boot.kernelParams = [ "intremap=no_x2apic_optout" ]; # ignore fujitsu bios error 
   powersave.enable = true; 
+  boot.kernelParams = [ "intremap=no_x2apic_optout" ]; # ignore fujitsu bios error 
 
   # -------------------------------- Virtualisation & VMs --------------------------------
 
@@ -139,7 +139,6 @@ in
           uefi       = true;
           memory     = 3072;
           smp        = 2;
-          format     = "qcow2";
           bridges    = [ "br0" ];
           rootScsi   = true;
           vncPort    = 2;

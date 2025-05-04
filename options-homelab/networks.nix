@@ -15,11 +15,19 @@ in
 
   config = {
     homelab.networks.subnets = {
-      "bln" = {
+      "bln-lan" = {
         ipv4 = "192.168.11";
         ipv6 = "fd8f:2e0e:4eed";
         gateway6 = "fe80::be24:11ff:fee6:113b";
         vlan = 11;
+      };
+      "bln-apps" = {
+        ipv4 = "10.10.44";
+        vlan = 44;
+      };
+      "bln-mngmt" = {
+        ipv4 = "10.10.55";
+        vlan = 55;
       };
       "ldn" = {
         ipv4 = "10.11.20";

@@ -14,6 +14,13 @@ let
         vendorDeviceId  = lib.mkOption { type = lib.types.str; default = ""; };
     };
   };
+
+  tap = lib.types.submodule {
+    options = {
+      name = lib.mkOption { type = lib.types.str; };
+      macAddress = lib.mkOption { type = lib.types.str; };
+    };
+  };
 in
 {
   virtualisation.qemu.manager.services = lib.mkOption {
@@ -26,8 +33,7 @@ in
         memory     = lib.mkOption { type = lib.types.ints.positive; default = 512; };
         smp        = lib.mkOption { type = lib.types.ints.positive; default = 2; };
         bridges    = lib.mkOption { type = lib.types.listOf lib.types.str; default = []; };
-        taps       = lib.mkOption { type = lib.types.listOf lib.types.str; default = []; };
-        macAddress = lib.mkOption { type = lib.types.str; default = ""; };
+        taps       = lib.mkOption { type = lib.types.listOf tap; default = []; };
         pciHosts   = lib.mkOption { type = lib.types.listOf pciHost; default = []; };
         usbHosts   = lib.mkOption { type = lib.types.listOf usbHost; default = []; };
         vncPort    = lib.mkOption { type = lib.types.ints.between 0 99; };

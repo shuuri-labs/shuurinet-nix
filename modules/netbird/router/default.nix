@@ -2,6 +2,7 @@
 
 let
   cfg = config.netbird.router;
+
   containerTemplate = import ../../../lib/container-templates/host-network-container.nix {
     inherit config lib pkgs;
     stateVersion = config.system.stateVersion;
@@ -101,33 +102,34 @@ in
       type = lib.types.attrsOf (lib.types.submodule {
         options = {
           enable = lib.mkEnableOption "netbird peer";
-          
-          address = lib.mkOption {
-            type = lib.types.str;
-            description = "Last octet of the IP address";
-          };
 
           setupKey = lib.mkOption {
             type = lib.types.str;
             description = "Path to the Netbird setup key for this peer";
           };
 
+          address = lib.mkOption {
+            type = lib.types.str;
+            description = "Last octet of the IP address";
+            default = "81";
+          };
+
           hostSubnet = lib.mkOption {
             type = lib.types.str;
             default = cfg.hostSubnet;
-            description = "Subnet for this peer (defaults to global hostSubnet)";
+            description = "Subnet for this peer's container (defaults to global hostSubnet)";
           };
 
           hostInterface = lib.mkOption {
             type = lib.types.str;
             default = cfg.hostInterface;
-            description = "Interface for this peer (defaults to global hostInterface)";
+            description = "Interface for this peer's container (defaults to global hostInterface)";
           };
 
           hostGateway = lib.mkOption {
             type = lib.types.str;
             default = cfg.hostGateway;
-            description = "Gateway for this peer (defaults to global hostGateway)";
+            description = "Gateway for this peer's container (defaults to global hostGateway)";
           };
         };
       });
@@ -139,30 +141,15 @@ in
       type = lib.types.path;
       description = "Path to file containing the Netbird management server URL";
     };
-
-    hostSubnet = lib.mkOption {
-      type = lib.types.str;
-    };
-
-    hostInterface = lib.mkOption {
-      type = lib.types.str;
-    };
-
-    hostGateway = lib.mkOption {
-      type = lib.types.str;
-      default = "${cfg.hostSubnet}.1";
-    };
   };
 
   config = lib.mkIf cfg.enable {
     netbird.router.peers = {
       master = {
         enable = false;
-        address = "11";
       };
       apps = {
         enable = false;
-        address = "12";
       };
     };
 

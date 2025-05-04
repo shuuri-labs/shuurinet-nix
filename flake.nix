@@ -90,6 +90,7 @@
           ] "x86_64-linux";
 
           missingno = mkNixosHost "missingno" [
+            # ./modules/monitoring
             ./modules/homepage-dashboard
             ./modules/hdd-spindown
             ./modules/intel-graphics
@@ -98,7 +99,7 @@
             ./modules/iperf
             ./modules/uefi-boot
             ./modules/openwrt/configs/auto-deploy.nix
-            # ./modules/monitoring
+            ./modules/netbird/router
             inputs.vpn-confinement.nixosModules.default
             inputs.virtualisation.nixosModules.default
           ] "x86_64-linux";

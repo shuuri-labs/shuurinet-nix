@@ -51,25 +51,29 @@ in
           };
           
           subnet = mkOption {
-            type = networkTypes.subnet;
-            description = "Reference to a subnet configuration";
+            type = types.nullOr networkTypes.subnet;
+            default = null;
+            description = "Reference to a subnet configuration or null for an empty bridge";
           };
           
           identifier = mkOption {
-            type = types.str;
+            type = types.nullOr types.str;
+            default = null;
             description = "Last octet of the interface IP";
           };
 
           address = mkOption {
-            type = types.str;
+            type = types.nullOr types.str;
             description = "Interface IP address";
-            default = "${config.subnet.ipv4}.${config.identifier}";
+            default = if config.subnet != null && config.identifier != null
+                     then "${config.subnet.ipv4}.${config.identifier}"
+                     else null;
           };
 
           address6 = mkOption {
-            type = types.str;
+            type = types.nullOr types.str;
             description = "Interface IPv6 address";
-            default = if config.subnet.ipv6 != null then
+            default = if config.subnet != null && config.subnet.ipv6 != null && config.identifier != null then
               if hasSuffix "::" config.subnet.ipv6
                 then "${config.subnet.ipv6}:${config.identifier}"
                 else "${config.subnet.ipv6}::${config.identifier}"
@@ -162,7 +166,7 @@ in
             }) bridge.memberInterfaces
           ) cfg.bridges)))
 
-          # Bridge interface settings
+          # Bridge interface settings - only for bridges with a subnet
           (listToAttrs (map (bridge: {
             name = "50-${bridge.name}";
             value = {
@@ -173,16 +177,26 @@ in
                 IPv6LinkLocalAddressGenerationMode = "eui64";
                 ConfigureWithoutCarrier = true;
               };
-              address = [
-                "${bridge.address}/24"
-              ] ++ optional (bridge.address6 != null) "${bridge.address6}/64";
-              routes = [{
+              address = optional (bridge.address != null) "${bridge.address}/24"
+                ++ optional (bridge.address6 != null) "${bridge.address6}/64";
+              routes = optional (bridge.subnet != null) {
                 Gateway = bridge.subnet.gateway;
                 Metric = if bridge.isPrimary then 10 else 100;
-              }];
-              dns = [ bridge.subnet.gateway ];
+              };
+              dns = optional (bridge.subnet != null) bridge.subnet.gateway;
             };
-          }) cfg.bridges))
+          }) (builtins.filter (bridge: bridge.subnet != null) cfg.bridges)))
+          
+          # Empty bridge interface settings - for bridges without a subnet
+          (listToAttrs (map (bridge: {
+            name = "50-${bridge.name}";
+            value = {
+              matchConfig.Name = bridge.name;
+              networkConfig = {
+                ConfigureWithoutCarrier = true;
+              };
+            };
+          }) (builtins.filter (bridge: bridge.subnet == null) cfg.bridges)))
           
           # TAP interfaces
           (listToAttrs (map (tap: {

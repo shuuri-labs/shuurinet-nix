@@ -187,14 +187,14 @@ in
 
   netbird.router = {
     enable = true;
-    hostInterface = hostCfgVars.network.config.bridge;
-    hostSubnet = hostCfgVars.network.config.subnet.ipv4;
     managementUrlPath = config.age.secrets.netbird-management-url.path;
     
     peers = {
       master = {
         enable = lib.mkForce true;
         setupKey = config.age.secrets.ludicolo-netbird-master-setup-key.path;
+        hostInterface = hostCfgVars.network.config.bridge;
+        hostSubnet = hostCfgVars.network.config.subnet.ipv4;
       };
     };
   };

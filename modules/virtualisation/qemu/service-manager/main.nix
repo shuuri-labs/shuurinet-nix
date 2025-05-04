@@ -116,7 +116,7 @@ in {
                  ]
 
               # bridges, PCI & USB passthrough, extra args
-              ++ helpers.mkTapArgs            v.taps v.macAddress v.smp
+              ++ helpers.mkTapArgs            v.taps v.smp
               ++ helpers.mkPciPassthroughArgs v.pciHosts
               ++ helpers.mkUsbPassthroughArgs v.usbHosts
               ++ helpers.mkExtraArgs          v.extraArgs

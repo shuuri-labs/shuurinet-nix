@@ -16,8 +16,10 @@ let
     undervolt 4 'Analog I/O' 0.00
   '';
 
-  hostAddress = "151"; 
-  hostIp = "${config.homelab.networks.subnets.bln.ipv4}.${hostAddress}";
+  hostAddress = "151";
+  hostPrimaryIp = "${config.homelab.networks.subnets.bln-lan.ipv4}.${hostAddress}";
+
+  deploymentMode = false;
 in
 {
   imports = [
@@ -33,13 +35,29 @@ in
       hostName = "missingno";
       staticIpConfig.enable = true;
       bridges = [
+        # Management
+        {
+          name = "br2";
+          # memberInterfaces = [ "enp2s0" ];  
+          subnet = config.homelab.networks.subnets.bln-mngmt;
+          identifier = hostAddress;
+          isPrimary = deploymentMode; 
+        }
+
+        # LAN
         {
           name = "br0";
           memberInterfaces = [ "enp2s0" "enp1s0f0" ];  
-          subnet = config.homelab.networks.subnets.bln;
+          subnet = config.homelab.networks.subnets.bln-lan;
           identifier = hostAddress;
-          isPrimary = true;
-          tapDevices = [ "openwrt-tap" "haos-tap" ];
+          isPrimary = !deploymentMode;
+          tapDevices = [ "opnwrt-tap" "haos-tap" ];
+        }
+
+        # Apps
+        {
+          name = "br1";
+          tapDevices = [ "opnwrt-apps-tap" ];
         }
       ];
     };
@@ -60,7 +78,6 @@ in
 
   environment.systemPackages = with pkgs; [
     python3
-    acpica-tools
     intel-undervolt
   ];
 
@@ -97,6 +114,7 @@ in
 
   age.secrets = {
     sops-key.file = "${secretsAbsolutePath}/keys/sops-key.agekey.age";
+    netbird-management-url.file = "${secretsAbsolutePath}/netbird-management-url.age";
 
     obsd-couchdb-config = {  
       file = "${secretsAbsolutePath}/obsd-couchdb-config.ini.age";
@@ -157,9 +175,11 @@ in
           uefi       = true;
           memory     = 1024;
           smp        = 8;
-          macAddress = "fe:b5:aa:0f:29:57";
-          taps       = [ "openwrt-tap" ];
-          bridges    = [ "br0" ];
+          taps       = [ 
+            { name = "opnwrt-tap";      macAddress = "fe:b5:aa:0f:29:57"; }
+            { name = "opnwrt-apps-tap"; macAddress = "fe:b5:aa:0f:29:58"; }
+          ];
+          bridges    = [ "br0" "br1" ];
           pciHosts   = [ 
             { address = "01:00.0"; vendorDeviceId = "8086:150e"; } 
             { address = "01:00.1"; }
@@ -175,8 +195,9 @@ in
           uefi       = true;
           memory     = 3072;
           smp        = 2;
-          macAddress = "ce:b0:37:6c:1a:ff";
-          taps       = [ "haos-tap" ];
+          taps       = [ 
+            { name = "haos-tap"; macAddress = "ce:b0:37:6c:1a:ff"; }
+          ];
           bridges    = [ "br0" ];
           rootScsi   = true;
           vncPort    = 2;
@@ -185,42 +206,7 @@ in
     };
   };
 
-  ## Containers
-
-  # netbird.router = {
-  #   enable = true;
-  #   hostInterface = "br0";
-  #   hostSubnet = config.homelab.networks.subnets.bln;
-  #   managementUrlPath = config.age.secrets.netbird-management-url.path;
-    
-  #   peers = {
-  #     master = {
-  #       enable = lib.mkForce true;
-  #       setupKey = config.age.secrets.missingno-netbird-master-setup-key.path;
-  #     };
-
-  #     apps = {
-  #       enable = lib.mkForce true;
-  #       setupKey = config.age.secrets.missingno-netbird-apps-setup-key.path;
-  #       hostSubnet = "10.10.44"; 
-  #     };
-  #   };
-  # };
-
-  # -------------------------------- Services --------------------------------
-
-  ### Obsidian Livesync
-  services.couchdb = {
-    enable = true;
-    configFile = config.age.secrets.obsd-couchdb-config.path;
-    bindAddress = hostIp;
-  };
-
-  networking.firewall = {
-    allowedTCPPorts = [ 5984 ];
-  };
-
-  ### OpenWrt Config Auto-Deploy
+  ### ------- OpenWrt Config Auto-Deploy
   openwrt.config-auto-deploy = {
     enable = true;
     sopsAgeKeyFile = config.age.secrets.sops-key.path;
@@ -231,5 +217,41 @@ in
         serviceName = "openwrt";
       };  
     };
+  };
+
+  ## ------- Containers
+
+  netbird.router = {
+    enable = true;
+    
+    managementUrlPath = config.age.secrets.netbird-management-url.path;
+    
+    # peers = {
+    #   master = {
+    #     enable = lib.mkForce true;
+    #     setupKey = config.age.secrets.missingno-netbird-master-setup-key.path;
+    #     hostInterface = "br0";
+    #     hostSubnet = config.homelab.networks.subnets.bln-lan.ipv4;
+    #   };
+
+    #   apps = {
+    #     enable = lib.mkForce true;
+    #     setupKey = config.age.secrets.missingno-netbird-apps-setup-key.path;
+    #     hostSubnet = config.homelab.networks.subnets.bln-apps.ipv4; 
+    #   };
+    # };
+  };
+
+  # -------------------------------- Services --------------------------------
+
+  ### ------- Obsidian Livesync
+  services.couchdb = {
+    enable = true;
+    configFile = config.age.secrets.obsd-couchdb-config.path;
+    bindAddress = hostPrimaryIp;
+  };
+
+  networking.firewall = {
+    allowedTCPPorts = [ 5984 ];
   };
 }
