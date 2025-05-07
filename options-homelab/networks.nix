@@ -31,8 +31,8 @@ in
       };
       "ldn" = {
         ipv4 = "10.11.20";
-        ipv6 = "fe80::d6da:21ff:fe75:37d"; # TODO: change from link local
-        gateway6 = "fe80::d6da:21ff:fe75:37d";
+        # ipv6 = "fe80::d6da:21ff:fe75:37d"; # TODO: change from link local
+        # gateway6 = "fe80::d6da:21ff:fe75:37d";
         vlan = 10;
       };
       "tats" = {

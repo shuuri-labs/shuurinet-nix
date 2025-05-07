@@ -15,9 +15,9 @@ install -d -m755 "$temp/etc/ssh"
 # Generate deployment keys directly into temp dir which will be purged on script end
 
 ssh-keygen -t ed25519 \
--C "${TARGET_HOST}@shuurinet" \ # Comment/label for the key
--f "$temp/etc/ssh/ssh_host_ed25519_key" \ # Output filename (will create .pub as well)
--N "" # no passphrase
+    -C "${TARGET_HOST}@shuurinet" \
+    -f "$temp/etc/ssh/ssh_host_ed25519_key" \
+    -N ""
 
 cp "~/shuurinet-nix/" "$temp/home/ashley/shuurinet-nix/"
 
@@ -37,9 +37,11 @@ read -r
 
 # Deploy to remote Linux machine
 
-nix run github:nix-community/nixos-anywhere -- \
+nix run github:nix-community/nixos-anywhere/9afe1f9fa36da6075fdbb48d4d87e63456535858 -- \
 --build-on-remote \
 --flake ".#${TARGET_HOST}" \
 --target-host "root@${TARGET_IP}" \
+--build-on-remote \
 --generate-hardware-config nixos-generate-config "../hosts/${TARGET_HOST}/hardware-configuration.nix" \
---extra-files "$temp"
+--extra-files "$temp" \
+--option pure-eval false
