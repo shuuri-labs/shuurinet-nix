@@ -49,9 +49,8 @@
       inputs.nixpkgs.follows = "nixpkgs-openwrt";
     };
 
-    # do not follow nixpkgs for virtualisation! use pinned nixpkgs from its own flake
     virtualisation = {
-      url = "path:./modules/virtualisation";
+      url = "github:shuuri-labs/nix-virtualisation";
       inputs.nixpkgs.follows = "nixpkgs-virtualisation";
     };
   };
