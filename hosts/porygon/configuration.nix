@@ -171,19 +171,19 @@ in
   };
 
   ## OpenWrt Config Auto-Deploy
-  openwrt.config-auto-deploy = {
-    enable = true;
-    sopsAgeKeyFile = config.age.secrets.sops-key.path;
+  # openwrt.config-auto-deploy = {
+  #   enable = true;
+  #   sopsAgeKeyFile = config.age.secrets.sops-key.path;
 
-    configs = {
-      vm-test-router-config = {
-        drv = inputs.self.packages.${pkgs.system}.vm-test-router-config;
-        imageDrv = inputs.self.packages.${pkgs.system}.berlin-router-img;
-        serviceName = "openwrt";
-        host = "10.11.20.51";
-      };  
-    };
-  };
+  #   configs = {
+  #     vm-test-router-config = {
+  #       drv = inputs.self.packages.${pkgs.system}.vm-test-router-config;
+  #       imageDrv = inputs.self.packages.${pkgs.system}.berlin-router-img;
+  #       serviceName = "openwrt";
+  #       host = "10.11.20.51";
+  #     };  
+  #   };
+  # };
 
   ### Containers
   netbird.router = {
