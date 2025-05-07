@@ -27,15 +27,6 @@ in
       hostName = "porygon";
       staticIpConfig.enable = true;
       bridges = [
-        # Management
-        {
-          name = "br2";
-          # memberInterfaces = [ "enp2s0" ];  
-          subnet = config.homelab.networks.subnets.ldn;
-          identifier = hostAddress;
-          isPrimary = deploymentMode; 
-        }
-
         # LAN
         {
           name = "br0";
@@ -112,7 +103,7 @@ in
   diskCare = {
     enableTrim = true;
     disksToSmartMonitor = [
-      { device = "/dev/disk/by-id/ata-SanDisk_SDSSDH3_250G_214676446013"; } # boot drive
+      { device = "/dev/disk/by-id/ata-WDC_WDS120G2G0A-00JH30_192275800224"; } # boot drive
     ];
   };
 

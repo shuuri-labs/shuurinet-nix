@@ -10,4 +10,4 @@
   };
 }
 
-# build iso with nix-build '<nixpkgs/nixos>' -A config.system.build.isoImage -I nixos-config=./custom-iso.nix
+# build iso with: nix-build '<nixpkgs/nixos>' -A config.system.build.isoImage -I nixos-config=./custom-iso.nix
