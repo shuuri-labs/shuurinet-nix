@@ -4,7 +4,10 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable"; # "github:nixos/nixpkgs/nixos-24.11";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
-
+    # give hypervisor flake its own pinned nixpkgs so vms aren't interrupted by host nixpkgs updates
+    nixpkgs-virtualisation.url = "github:nixos/nixpkgs/nixos-24.11";
+    nixpkgs-openwrt.url = "github:NixOS/nixpkgs/nixos-24.11";
+    
     flake-parts = {
       url = "github:hercules-ci/flake-parts";
     };
@@ -37,8 +40,12 @@
     };
 
     openwrt-imagebuilder = {
-      url = "github:astro/nix-openwrt-imagebuilder";
-      inputs.nixpkgs.follows = "nixpkgs";
+      # Pinned to specific commit - only update this when you want new OpenWRT images
+      # get the latest commit hash from: nix flake metadata github:astro/nix-openwrt-imagebuilder | grep -A 1 "Resolved URL" | tail -n 1
+      # commit hash is will be between 'github:astro/nix-openwrt-imagebuilder/' and '?narHash=...'
+      # can also clone repo and use local path instead of url if their hashes are not up to date (happens rarely)
+      url = "github:astro/nix-openwrt-imagebuilder/3cc263756de6a1409c46944fcc401b0c4b9a9a12";
+      inputs.nixpkgs.follows = "nixpkgs-openwrt";
     };
 
     # do not follow nixpkgs for virtualisation! use pinned nixpkgs from its own flake
@@ -47,9 +54,10 @@
     };
   };
 
-  outputs = inputs@{ flake-parts, ... }: let
-    helper = import ./flakeHelper.nix { inherit inputs; };
+  outputs = inputs@{ flake-parts, nixpkgs-virtualisation, ... }: let
     inherit (helper) mkNixosHost mkDarwinHost mkOpenWrtConfig;
+    
+    helper = import ./flakeHelper.nix { inherit inputs; };
   in
     flake-parts.lib.mkFlake { inherit inputs; } {
       systems = [ "x86_64-linux" "aarch64-darwin" ]; # for flake-parts perSystem below 
@@ -60,7 +68,7 @@
             ./modules/homepage-dashboard
             ./modules/zfs
             ./modules/hdd-spindown
-            ./modules/intel-graphics
+            ./modules/intel
             ./modules/power-saving
             ./modules/media-server
             ./modules/smb-provisioner
@@ -77,7 +85,7 @@
             ./modules/homepage-dashboard
             ./modules/zfs
             ./modules/hdd-spindown
-            ./modules/intel-graphics
+            ./modules/intel
             ./modules/power-saving
             ./modules/media-server
             ./modules/smb-provisioner
@@ -93,7 +101,7 @@
             # ./modules/monitoring
             ./modules/homepage-dashboard
             ./modules/hdd-spindown
-            ./modules/intel-graphics
+            ./modules/intel
             ./modules/power-saving
             ./modules/disk-care
             ./modules/iperf
@@ -108,7 +116,7 @@
             ./modules/homepage-dashboard
             ./modules/zfs
             ./modules/hdd-spindown
-            ./modules/intel-graphics
+            ./modules/intel
             ./modules/power-saving
             ./modules/media-server
             ./modules/smb-provisioner
@@ -121,22 +129,20 @@
             inputs.vpn-confinement.nixosModules.default
             inputs.virtualisation.nixosModules.default
           ] "x86_64-linux";
+
+          tatsugiri = mkNixosHost "tatsugiri" [
+            ./modules/uefi-boot
+            ./modules/virtualisation
+            ./modules/power-saving
+            ./modules/intel
+            ./modules/disk-care
+            ./modules/openwrt
+            ./modules/netbird/router
+            ./modules/homepage-dashboard
+            ./modules/iperf
+            ./modules/monitoring
+          ] "x86_64-linux";
         };
-
-        tatsugiri = mkNixosHost "tatsugiri" [
-          ./modules/uefi-boot
-          ./modules/virtualisation
-          ./modules/power-saving
-          ./modules/intel-graphics
-          ./modules/disk-care
-
-          ./modules/openwrt
-          ./modules/netbird/router
-          
-          ./modules/homepage-dashboard
-          ./modules/iperf
-          ./modules/monitoring
-        ] "x86_64-linux";
       };
 
       perSystem = { system, pkgs, ... }: {
@@ -148,7 +154,10 @@
           # london-router-imgs = import ./modules/openwrt/image-definitions/london/router.nix { inherit inputs; };
 
           # single image file derivation for berlin router
-          berlin-router-img = (import ./modules/openwrt/image-definitions/base/extract-image.nix { inherit inputs; }).mkImageExtractor {
+          # The openwrt-imagebuilder input is pinned to a specific commit in the inputs section
+          # This prevents it from updating when running `nix flake update`
+          # When you want to update the OpenWRT image, update the commit hash in the inputs section
+          berlin-router-img = (import ./modules/openwrt/image-definitions/builder-extractor { inherit inputs; }).mkImageExtractor {
             name = "berlin-router";
             imageDerivation = (import ./modules/openwrt/image-definitions/berlin/router.nix { inherit inputs; });
             format = "squashfs-combined-efi";

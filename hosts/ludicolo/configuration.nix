@@ -119,7 +119,7 @@ in
 
   # -------------------------------- HARDWARE FEATURES --------------------------------
 
-  intelGraphics.enable = true;
+  intel.graphics.enable = true;
   powersave.enable = true; 
 
   # -------------------------------- FILE SERVER --------------------------------

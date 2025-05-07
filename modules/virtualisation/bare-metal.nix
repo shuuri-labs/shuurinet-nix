@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, ... }:
 
 let
   cfg = config.virtualisation.bareMetal; 
@@ -13,7 +13,5 @@ in
       kernelParams = [ "iommu=on" "iommu=pt" ];
       initrd.kernelModules = [ "vfio_iommu_type1" "vfio_pci" ];
     };
-
-    virtualisation.libvirtd.qemu.package = pkgs.qemu_kvm;
   };
 }

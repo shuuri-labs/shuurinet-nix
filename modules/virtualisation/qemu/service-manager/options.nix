@@ -1,4 +1,4 @@
-{ lib }:
+{ config, lib, ... }:
 
 let
   usbHost = lib.types.submodule {
@@ -23,7 +23,7 @@ let
   };
 in
 {
-  virtualisation.qemu.manager.services = lib.mkOption {
+  options.virtualisation.qemu.manager.services = lib.mkOption {
     type = lib.types.attrsOf (lib.types.submodule ({ ... }: {
       options = {
         enable     = lib.mkEnableOption "QEMU virtual machine";

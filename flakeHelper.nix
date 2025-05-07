@@ -17,6 +17,8 @@ let
     inputs.disko.nixosModules.disko
   ];
 
+   vPkgsFor = system: import inputs.nixpkgs-virtualisation { inherit system; };
+
   commonConfig = { config, pkgs, inputs, stateVersion, ... }: {
     nixpkgs.config.allowUnfree = true;
 
@@ -42,7 +44,12 @@ let
   mkNixosHost = hostName: extraModules: system:
     nixosSystem {
       inherit system;
-      specialArgs = { inherit inputs stateVersion; };
+
+      specialArgs = { 
+        inherit inputs stateVersion; 
+        vPkgs = vPkgsFor system;
+      };
+      
       modules = [
         (mkHostPath hostName)
         commonConfig
@@ -52,7 +59,11 @@ let
   mkDarwinHost = hostName: extraModules: system:
     inputs.nix-darwin.lib.darwinSystem {
       inherit system;
-      specialArgs = { inherit inputs stateVersion; };
+
+      specialArgs = { 
+        inherit inputs stateVersion; 
+      };
+
       modules = [
         ./darwin/${hostName}/configuration.nix
       ] ++ extraModules;

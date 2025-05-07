@@ -4,7 +4,8 @@ let
   pkgs = inputs.nixpkgs.legacyPackages.${system};
   profiles = inputs.openwrt-imagebuilder.lib.profiles { inherit pkgs; };
 
-  hostKey = builtins.readFile /home/ashley/.ssh/id_ed25519.pub;
+  hostKey = builtins.readFile /etc/ssh/ssh_host_ed25519_key.pub;
+  userKey = builtins.readFile /home/ashley/.ssh/id_ed25519.pub;
   laptopKey = builtins.readFile /home/ashley/shuurinet-nix/secrets/keys/laptop-key.pub;
 
   # Common function to create router configurations
@@ -20,7 +21,7 @@ let
     extraPackages ? [],
     extraServices ? [],
     disabledServices ? [],
-    authorizedKeys ? [ hostKey laptopKey ],
+    authorizedKeys ? [ hostKey userKey laptopKey ],
     rootFsPartSize ? null,
     extraUciCommands ? "",
     extraFiles ? "",

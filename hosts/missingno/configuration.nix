@@ -8,14 +8,6 @@ let
   hostCfgVars         = config.host.vars;
   secretsAbsolutePath = "/home/ashley/shuurinet-nix/secrets"; 
 
-  undervoltConfig = ''
-    undervolt 0 'CPU' -125.00
-    undervolt 1 'GPU' 0.00
-    undervolt 2 'CPU Cache' -125.00
-    undervolt 3 'System Agent' -30.00
-    undervolt 4 'Analog I/O' 0.00
-  '';
-
   hostAddress = "151";
   hostPrimaryIp = "${config.homelab.networks.subnets.bln-lan.ipv4}.${hostAddress}";
 
@@ -47,7 +39,7 @@ in
         # LAN
         {
           name = "br0";
-          memberInterfaces = [ "enp2s0" "enp1s0f0" ];  
+          memberInterfaces = [ "enp2s0" ];  
           subnet = config.homelab.networks.subnets.bln-lan;
           identifier = hostAddress;
           isPrimary = !deploymentMode;
@@ -76,26 +68,12 @@ in
     "pcie_aspm.policy=powersave"
   ];
 
+  # Use the Linux kernel from nixpkgs-unstable for latest i226 driver
+  boot.kernelPackages = inputs.nixpkgs-unstable.legacyPackages.${pkgs.system}.linuxPackages_latest;
+
   environment.systemPackages = with pkgs; [
     python3
-    intel-undervolt
   ];
-
-  systemd.services.intel-undervolt-config = {
-    description = "Write and apply intel-undervolt config";
-    before = [ "intel-undervolt.service" ];
-    wantedBy = [ "multi-user.target" ];
-    serviceConfig = {
-      Type = "oneshot";
-      ExecStart = ''
-        ${pkgs.writeShellScript "write-intel-undervolt-conf" ''
-          echo "${undervoltConfig}" > /etc/intel-undervolt.conf
-          chmod 644 /etc/intel-undervolt.conf
-          ${pkgs.intel-undervolt}/bin/intel-undervolt apply
-        ''}
-      '';
-    };
-  };
 
   time.timeZone = "Europe/Berlin";
 
@@ -109,6 +87,13 @@ in
     device = "/swapfile";
     size = 16 * 1024; # 16GB
   }];
+
+  # -------------------------------- HARDWARE CONFIGURATION --------------------------------
+
+  # Intel-specific & Power Saving
+  intel.graphics.enable = true;
+  intel.undervolt.enable = true;
+  powersave.enable = true; 
 
   # -------------------------------- SECRETS --------------------------------
 
@@ -136,14 +121,7 @@ in
 
   homepage-dashboard.enable = true; # configured in ./homepage-config.nix
 
-  # -------------------------------- HARDWARE FEATURES --------------------------------
-
-  # Intel-specific & Power Saving
-  intelGraphics.enable = true;
-  powersave.enable = true; 
-
   # -------------------------------- Virtualisation & VMs --------------------------------
-
 
   virtualisation = {
     intel.enable = true;
@@ -152,6 +130,8 @@ in
       images = {
         "openwrt" = {
           enable = true;
+          # openwrt imagebuilder input is pinned to a specific revision to prevent updates upon flake update/rebuild -
+          # to update the image, see flake.nix openwrt-imagebuilder input
           source = inputs.self.packages.${pkgs.system}.berlin-router-img;
           sourceFormat = "raw";
           compressedFormat = "gz";
@@ -206,7 +186,7 @@ in
     };
   };
 
-  ### ------- OpenWrt Config Auto-Deploy
+  ### OpenWrt Config Auto-Deploy
   openwrt.config-auto-deploy = {
     enable = true;
     sopsAgeKeyFile = config.age.secrets.sops-key.path;
@@ -214,13 +194,13 @@ in
     configs = {
       vm-test-router-config = {
         drv = inputs.self.packages.${pkgs.system}.vm-test-router-config;
+        imageDrv = inputs.self.packages.${pkgs.system}.berlin-router-img;
         serviceName = "openwrt";
       };  
     };
   };
 
-  ## ------- Containers
-
+  ### Containers
   netbird.router = {
     enable = true;
     
@@ -244,7 +224,7 @@ in
 
   # -------------------------------- Services --------------------------------
 
-  ### ------- Obsidian Livesync
+  ### Obsidian Livesync
   services.couchdb = {
     enable = true;
     configFile = config.age.secrets.obsd-couchdb-config.path;

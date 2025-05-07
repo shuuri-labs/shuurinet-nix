@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, vPkgs, ... }:
 
 let
   cfg = config.virtualisation; 
@@ -17,16 +17,18 @@ in
   config = lib.mkIf cfg.base.enable {
     users.users.${cfg.mainUser}.extraGroups = [ "libvirtd" ];
     
-    environment.systemPackages = with pkgs; [
+    environment.systemPackages = with vPkgs; [
       qemu
       libvirt
       spice-gtk
+      socat
     ];
 
     boot.kernelModules = [ "vhost_net" ];
 
     virtualisation.libvirtd = {
       enable = true;
+      allowedBridges = [ "virbr0" ];
     };
   };
 }

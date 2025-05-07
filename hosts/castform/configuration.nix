@@ -94,7 +94,7 @@ in
   # -------------------------------- HARDWARE FEATURES --------------------------------
 
   # Intel-specific & Power Saving
-  intelGraphics.enable = true;
+  intel.graphics.enable = true;
   powersave.enable = true; 
   boot.kernelParams = [ "intremap=no_x2apic_optout" ]; # ignore fujitsu bios error 
 

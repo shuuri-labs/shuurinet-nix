@@ -1,7 +1,8 @@
-{ config, lib, pkgs, helpers, ... }:
+{ config, lib, vPkgs, ... }:
 
 let
   cfg            = config.virtualisation.qemu.manager.services;
+  helpers        = import ./helpers.nix { inherit lib vPkgs; };
   bridgeNames    = lib.unique (lib.flatten (lib.mapAttrsToList (_: v: v.bridges) cfg));
   vncPorts       = map (n: 5900 + n) (lib.collect lib.isInt (lib.mapAttrsToList (_: v: v.vncPort) cfg));
   pciIds         = lib.concatStringsSep "," (
@@ -9,11 +10,8 @@ let
                        lib.map (h: h.vendorDeviceId) v.pciHosts) cfg));
   imageDirectory = "/var/lib/vm/images";
 in {
-  options = {};  # all your options live in options.nix
-
   config = lib.mkIf (cfg != {}) {
-    # libvirt / firewall / vfio bits unchanged
-    virtualisation.libvirtd.allowedBridges = [ "virbr0" ] ++ bridgeNames;
+    virtualisation.libvirtd.allowedBridges =  bridgeNames;
 
     networking.firewall.extraCommands = lib.mkAfter ''
       ${lib.concatStringsSep "\n"
@@ -21,7 +19,8 @@ in {
           iptables -A FORWARD -i ${br} -j ACCEPT
           iptables -A FORWARD -o ${br} -j ACCEPT
         '') bridgeNames)}
-    '';
+    ''; # add firewall rule to block traffic from VMs to non-router mac addresses (TODO)
+
     networking.firewall.allowedTCPPorts = vncPorts;
 
     boot.extraModprobeConfig = lib.mkAfter ''
@@ -35,8 +34,7 @@ in {
     # ensure overlay dir exists
     systemd.tmpfiles.rules = [ "d ${imageDirectory} 0755 root root - -" ];
 
-    # so we can parse /etc/qemu-images.json and do console aliases
-    environment.systemPackages = [ pkgs.socat pkgs.jq ];
+    environment.systemPackages = [ vPkgs.socat ];
 
     systemd.services = lib.mapAttrs (name: v: lib.mkIf v.enable (
     let
@@ -65,7 +63,7 @@ in {
         # 5) Create that overlay only if it doesn't already exist
         if [ ! -f "$realOverlay" ]; then
           mkdir -p '${imageDirectory}'
-          ${pkgs.qemu}/bin/qemu-img create \
+          ${vPkgs.qemu}/bin/qemu-img create \
             -f qcow2 \
             -F "$format" \
             -b "$base" \
@@ -79,7 +77,7 @@ in {
     in {
       description     = "QEMU VM: ${name}";
       wantedBy        = [ "multi-user.target" ];
-      path            = [ pkgs.qemu pkgs.jq pkgs.socat ];
+      path            = [ vPkgs.qemu vPkgs.socat ];
 
       restartTriggers   = [
         config.virtualisation.qemu.manager.builtImages.${v.baseImage}.drvPath
@@ -90,9 +88,9 @@ in {
         Type           = "simple";
         Restart        = v.restart;
         ReadWritePaths = [ imageDirectory ];
-        ExecStartPre   = pkgs.writeShellScript "qemu-${name}-pre.sh" preScript;
+        ExecStartPre   = vPkgs.writeShellScript "qemu-${name}-pre.sh" preScript;
         ExecStart      = ''
-          ${pkgs.qemu}/bin/qemu-system-x86_64 \
+          ${vPkgs.qemu}/bin/qemu-system-x86_64 \
             ${helpers.prettyArgs (
               # pflash drives if UEFI
               helpers.mkUefiArgs name v.uefi
@@ -122,20 +120,45 @@ in {
               ++ helpers.mkExtraArgs          v.extraArgs
             )}
         '';
-        # ExecStop = ''
-        #   # Connect to the serial console and send shutdown command
-        #   echo -e "\n\nshutdown -h now\n" | ${pkgs.socat}/bin/socat UNIX-CONNECT:/tmp/${name}-console.sock STDIO
+        ExecStop = ''
+          # Connect to the serial console and send poweroff command
+          echo -e "\n\npoweroff\n" | ${vPkgs.socat}/bin/socat -t 10 UNIX-CONNECT:/tmp/${name}-console.sock STDIO || true
           
-        #   # Wait for VM to shut down gracefully
-        #   sleep 15
+          # Wait for VM to shut down gracefully
+          for i in {1..30}; do
+            pid=$(pgrep -f "${vPkgs.qemu}/bin/qemu-system-x86_64.*${name}.qcow2" || true)
+            if [ -z "$pid" ]; then
+              echo "VM shut down gracefully"
+              exit 0
+            fi
+            echo "Waiting for VM to shut down ($i/30)..."
+            sleep 1
+          done
           
-        #   # Check if VM is still running and force kill if necessary
-        #   pid=$(cat /run/${name}.pid)
-        #   if kill -0 $pid 2>/dev/null; then
-        #     echo "VM did not shut down gracefully within timeout, forcing termination"
-        #     kill -9 $pid
-        #   fi
-        # '';
+          # If we got here, the VM didn't shut down gracefully
+          pid=$(pgrep -f "${vPkgs.qemu}/bin/qemu-system-x86_64.*${name}.qcow2" || true)
+          if [ -n "$pid" ]; then
+            echo "VM did not shut down gracefully within timeout, sending SIGTERM"
+            kill -TERM $pid || true
+            sleep 10
+            
+            # Final attempt with SIGKILL if still running
+            pid=$(pgrep -f "${vPkgs.qemu}/bin/qemu-system-x86_64.*${name}.qcow2" || true)
+            if [ -n "$pid" ]; then
+              echo "VM still not responding, forcing termination with SIGKILL"
+              kill -9 $pid || true
+            fi
+          fi
+        '';
+        
+        # Critical systemd settings for graceful shutdown
+        TimeoutStopSec = 90;
+        KillMode = "mixed";
+        KillSignal = "SIGTERM";
+        SendSIGHUP = true;
+        
+        # For process tracking
+        PIDFile = "/run/${name}.pid";
       };
     }
     )) cfg;

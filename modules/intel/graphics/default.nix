@@ -1,15 +1,11 @@
 { config, lib, pkgs, ... }:
 
 let 
-  cfg = config.intelGraphics;
+  cfg = config.intel.graphics;
 in
 {
-  options.intelGraphics = {
-    enable = lib.mkOption {
-      type = lib.types.bool;
-      default = false;
-      description = "Enable intel graphics";
-    };
+  options.intel.graphics = {
+    enable = lib.mkEnableOption "intel-graphics";
 
     i915.guc_value = lib.mkOption {
       type = lib.types.str;

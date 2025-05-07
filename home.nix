@@ -23,6 +23,7 @@
       nxrb = "sudo nixos-rebuild switch --flake ~/shuurinet-nix"; # must create symlink if not using default config dir
       nfuu = "nix flake update --update-input nixpkgs-unstable";
       nfuv = "nix flake update --update-input virtualisation";
+      nfuo = "nix flake update --update-input nixpkgs-openwrt";
       nfus = "nix flake update";
       cdnx = "cd ~/shuurinet-nix";
       lservices = "systemctl list-units --type=service --state=running";

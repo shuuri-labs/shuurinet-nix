@@ -127,7 +127,7 @@ in
   # -------------------------------- HARDWARE FEATURES --------------------------------
 
   # Intel-specific & Power Saving
-  intelGraphics.enable = true;
+  intel.graphics.enable = true;
   powersave.enable = true; 
 
   # -------------------------------- FILE SERVER --------------------------------

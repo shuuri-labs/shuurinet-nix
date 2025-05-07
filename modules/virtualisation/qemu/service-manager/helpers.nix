@@ -1,4 +1,4 @@
-{ lib, pkgs }:
+{ lib, vPkgs }:
 
 rec {
   mkTapArgs = taps: smp:
@@ -17,7 +17,7 @@ rec {
   mkExtraArgs = extra: lib.concatMap (a: [ "-${a}" ]) extra;
 
   mkUefiArgs = name: enable: let
-    code     = "${pkgs.OVMFFull.fd}/FV/OVMF_CODE.fd";
+    code     = "${vPkgs.OVMFFull.fd}/FV/OVMF_CODE.fd";
     varsFile = "/var/lib/libvirt/images/${name}-ovmf-vars.fd";
   in
     lib.optional enable "-drive if=pflash,format=raw,readonly=on,file=${code}"
@@ -25,8 +25,8 @@ rec {
 
   mkUefiPreStart = name: enable: 
     if enable then ''
-      ${pkgs.coreutils}/bin/install -m0644 -o root -D \
-        ${pkgs.OVMFFull.fd}/FV/OVMF_VARS.fd /var/lib/libvirt/images/${name}-ovmf-vars.fd
+      ${vPkgs.coreutils}/bin/install -m0644 -o root -D \
+        ${vPkgs.OVMFFull.fd}/FV/OVMF_VARS.fd /var/lib/libvirt/images/${name}-ovmf-vars.fd
     '' else "";
 
   prettyArgs = args: lib.concatStringsSep " \\\n  " args;
