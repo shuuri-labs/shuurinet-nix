@@ -1,4 +1,4 @@
-{ config, lib, vPkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 let
   cfg = config.virtualisation; 
@@ -17,7 +17,7 @@ in
   config = lib.mkIf cfg.base.enable {
     users.users.${cfg.mainUser}.extraGroups = [ "libvirtd" ];
     
-    environment.systemPackages = with vPkgs; [
+    environment.systemPackages = with pkgs; [
       qemu
       libvirt
       spice-gtk

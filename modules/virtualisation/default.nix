@@ -1,4 +1,4 @@
-{ config, lib, vPkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 let
   cfg = config.virtualisation;

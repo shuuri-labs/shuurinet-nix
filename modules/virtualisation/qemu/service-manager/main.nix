@@ -1,8 +1,8 @@
-{ config, lib, vPkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 let
   cfg            = config.virtualisation.qemu.manager.services;
-  helpers        = import ./helpers.nix { inherit lib vPkgs; };
+  helpers        = import ./helpers.nix { inherit lib pkgs; };
   bridgeNames    = lib.unique (lib.flatten (lib.mapAttrsToList (_: v: v.bridges) cfg));
   vncPorts       = map (n: 5900 + n) (lib.collect lib.isInt (lib.mapAttrsToList (_: v: v.vncPort) cfg));
   pciIds         = lib.concatStringsSep "," (
@@ -34,7 +34,7 @@ in {
     # ensure overlay dir exists
     systemd.tmpfiles.rules = [ "d ${imageDirectory} 0755 root root - -" ];
 
-    environment.systemPackages = [ vPkgs.socat ];
+    environment.systemPackages = [ pkgs.socat ];
 
     systemd.services = lib.mapAttrs (name: v: lib.mkIf v.enable (
     let
@@ -63,7 +63,7 @@ in {
         # 5) Create that overlay only if it doesn't already exist
         if [ ! -f "$realOverlay" ]; then
           mkdir -p '${imageDirectory}'
-          ${vPkgs.qemu}/bin/qemu-img create \
+          ${pkgs.qemu}/bin/qemu-img create \
             -f qcow2 \
             -F "$format" \
             -b "$base" \
@@ -77,7 +77,7 @@ in {
     in {
       description     = "QEMU VM: ${name}";
       wantedBy        = [ "multi-user.target" ];
-      path            = [ vPkgs.qemu vPkgs.socat ];
+      path            = [ pkgs.qemu pkgs.socat ];
 
       restartTriggers   = [
         config.virtualisation.qemu.manager.builtImages.${v.baseImage}.drvPath
@@ -88,9 +88,9 @@ in {
         Type           = "simple";
         Restart        = v.restart;
         ReadWritePaths = [ imageDirectory ];
-        ExecStartPre   = vPkgs.writeShellScript "qemu-${name}-pre.sh" preScript;
+        ExecStartPre   = pkgs.writeShellScript "qemu-${name}-pre.sh" preScript;
         ExecStart      = ''
-          ${vPkgs.qemu}/bin/qemu-system-x86_64 \
+          ${pkgs.qemu}/bin/qemu-system-x86_64 \
             ${helpers.prettyArgs (
               # pflash drives if UEFI
               helpers.mkUefiArgs name v.uefi
@@ -121,7 +121,7 @@ in {
             )}
         '';
         # Critical systemd settings for graceful shutdown
-        ExecStop   = "${vPkgs.coreutils}/bin/kill -s SIGRTMIN+3 $MAINPID";
+        ExecStop   = "${pkgs.coreutils}/bin/kill -s SIGRTMIN+3 $MAINPID";
         KillSignal = "SIGRTMIN+3";
         TimeoutStopSec = "10min";
         KillMode   = "mixed";

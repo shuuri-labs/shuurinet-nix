@@ -17,8 +17,6 @@ let
     inputs.disko.nixosModules.disko
   ];
 
-   vPkgsFor = system: import inputs.nixpkgs-virtualisation { inherit system; };
-
   commonConfig = { config, pkgs, inputs, stateVersion, ... }: {
     nixpkgs.config.allowUnfree = true;
 
@@ -47,7 +45,6 @@ let
 
       specialArgs = { 
         inherit inputs stateVersion; 
-        vPkgs = vPkgsFor system;
       };
       
       modules = [

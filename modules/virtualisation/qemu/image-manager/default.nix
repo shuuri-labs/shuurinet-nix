@@ -1,4 +1,4 @@
-{ config, vPkgs, lib, ... }:
+{ config, pkgs, lib, ... }:
 let
   images = config.virtualisation.qemu.manager.images;
 
@@ -6,11 +6,11 @@ let
   makeImage = name: img:
     let
       srcDrv = if lib.isString img.source then 
-                  vPkgs.fetchurl { url = img.source; sha256 = img.sourceSha256; } 
+                  pkgs.fetchurl { url = img.source; sha256 = img.sourceSha256; } 
                 else 
                   img.source;
     in
-      vPkgs.stdenv.mkDerivation {
+      pkgs.stdenv.mkDerivation {
         name = "qemu-image-${name}";
 
         # 1) fetch (with sha256) or use local
@@ -46,7 +46,7 @@ let
         '';
 
         # 3) convert → qcow2, then maybe resize
-        buildInputs = [ vPkgs.qemu vPkgs.xz ];
+        buildInputs = [ pkgs.qemu pkgs.xz ];
 
         buildPhase = ''
           outFile=${name}.qcow2

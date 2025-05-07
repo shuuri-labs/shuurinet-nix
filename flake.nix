@@ -4,7 +4,6 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable"; # "github:nixos/nixpkgs/nixos-24.11";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
-    # give hypervisor flake its own pinned nixpkgs so vms aren't interrupted by host nixpkgs updates
     nixpkgs-virtualisation.url = "github:nixos/nixpkgs/nixos-24.11";
     nixpkgs-openwrt.url = "github:NixOS/nixpkgs/nixos-24.11";
     
@@ -44,6 +43,7 @@
       # get the latest commit hash from: nix flake metadata github:astro/nix-openwrt-imagebuilder | grep -A 1 "Resolved URL" | tail -n 1
       # commit hash is will be between 'github:astro/nix-openwrt-imagebuilder/' and '?narHash=...'
       # can also clone repo and use local path instead of url if their hashes are not up to date (happens rarely)
+      # don't forget to update nixpkgs-openwrt, too
       url = "github:astro/nix-openwrt-imagebuilder/3cc263756de6a1409c46944fcc401b0c4b9a9a12";
       inputs.nixpkgs.follows = "nixpkgs-openwrt";
     };
@@ -51,6 +51,7 @@
     # do not follow nixpkgs for virtualisation! use pinned nixpkgs from its own flake
     virtualisation = {
       url = "path:./modules/virtualisation";
+      inputs.nixpkgs.follows = "nixpkgs-virtualisation";
     };
   };
 
