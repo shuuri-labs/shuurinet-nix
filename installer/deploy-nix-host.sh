@@ -41,16 +41,15 @@ rsync -av --exclude '.DS_Store' ~/shuurinet-nix/. "$temp/home/ashley/shuurinet-n
 # Set file permissions for copied host keys
 chmod 600 "$temp/etc/ssh/ssh_host_ed25519_key"
 chmod 644 "$temp/etc/ssh/ssh_host_ed25519_key.pub"
-chown 0:0 -R "$temp/etc/ssh"
 
 # Set file permissions for copied user keys. user and group id for ashley are defined in common module
 chmod 600 "$temp/home/ashley/.ssh/id_ed25519"
 chmod 644 "$temp/home/ashley/.ssh/id_ed25519.pub"
-chown 1000:985 -R "$temp/home/ashley/.ssh"
 
 # Set file permissions for copied nix config dir
 chmod -R 755 "$temp/home/ashley/shuurinet-nix"
-chown -R 1000:985 "$temp/home/ashley/shuurinet-nix"
+
+# Note the chown does not work, but we can use the --chown flag in the nixos-anywhere command to set the owner and group of the files (see below)
 
 # Deploy to remote Linux machine, pinned to older commit atm because --build-on-remote is currently broken
 nix run github:nix-community/nixos-anywhere/9afe1f9fa36da6075fdbb48d4d87e63456535858 -- \
@@ -60,4 +59,6 @@ nix run github:nix-community/nixos-anywhere/9afe1f9fa36da6075fdbb48d4d87e6345653
 --build-on-remote \
 --generate-hardware-config nixos-generate-config "../hosts/${TARGET_HOST}/hardware-configuration.nix" \
 --extra-files "$temp" \
---option pure-eval false
+--option pure-eval false \
+--chown /home/ashley/.ssh 1000:985 \
+--chown /home/ashley/shuurinet-nix 1000:985
