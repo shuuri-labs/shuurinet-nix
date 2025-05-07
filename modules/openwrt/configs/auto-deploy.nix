@@ -81,8 +81,6 @@ let
           fi
         fi
 
-        
-
         ## wait_for_ssh (max 30 s, 1 probe per second)
         wait_for_ssh() {
           local deadline=$(( $(date +%s) + 30 ))
