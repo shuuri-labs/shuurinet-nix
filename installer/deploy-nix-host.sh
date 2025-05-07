@@ -35,7 +35,7 @@ cat "$temp/home/ashley/.ssh/id_ed25519.pub"
 echo -e "\nAdd to key github and press Enter to continue with deployment..."
 read -r
 
-# Copy the configuration
+# Copy the configuration, exclude .DS_Store if running on MacOS
 rsync -av --exclude '.DS_Store' ~/shuurinet-nix/. "$temp/home/ashley/shuurinet-nix"
 
 # Set file permissions for copied host keys
@@ -49,7 +49,8 @@ chmod 644 "$temp/home/ashley/.ssh/id_ed25519.pub"
 # Set file permissions for copied nix config dir
 chmod -R 755 "$temp/home/ashley/shuurinet-nix"
 
-# Note the chown does not work, but we can use the --chown flag in the nixos-anywhere command to set the owner and group of the files (see below)
+# Note the chown user/group will not propagate to the remote host, but we can use the --chown flag in the nixos-anywhere command (see below)
+# 1000:985 are the UID/GID set for ashley:ashley in shuurinet-nix/common/default.nix
 
 # Deploy to remote Linux machine, pinned to older commit atm because --build-on-remote is currently broken
 nix run github:nix-community/nixos-anywhere/9afe1f9fa36da6075fdbb48d4d87e63456535858 -- \

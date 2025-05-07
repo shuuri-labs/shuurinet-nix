@@ -113,62 +113,62 @@ in
 
   # -------------------------------- Virtualisation & VMs --------------------------------
 
-  virtualisation = {
-    intel.enable = true;
+  # virtualisation = {
+  #   intel.enable = true;
     
-    qemu.manager = {
-      images = {
-        "openwrt" = {
-          enable = true;
-          # openwrt imagebuilder input is pinned to a specific revision to prevent updates upon flake update/rebuild -
-          # to update the image, see flake.nix openwrt-imagebuilder input
-          source = inputs.self.packages.${pkgs.system}.london-test-router-img;
-          sourceFormat = "raw";
-          compressedFormat = "gz";
-        };
+  #   qemu.manager = {
+  #     images = {
+  #       "openwrt" = {
+  #         enable = true;
+  #         # openwrt imagebuilder input is pinned to a specific revision to prevent updates upon flake update/rebuild -
+  #         # to update the image, see flake.nix openwrt-imagebuilder input
+  #         source = inputs.self.packages.${pkgs.system}.london-test-router-img;
+  #         sourceFormat = "raw";
+  #         compressedFormat = "gz";
+  #       };
         
-        "haos" = {
-          enable = true;
-          source = "https://github.com/home-assistant/operating-system/releases/download/15.2/haos_ova-15.2.qcow2.xz";
-          sourceFormat = "qcow2";
-          sourceSha256 = "0jbjajfnv3m37khk9446hh71g338xpnbnzxjij8v86plymxi063d";
-          compressedFormat = "xz";
-        };
-      };
+  #       "haos" = {
+  #         enable = true;
+  #         source = "https://github.com/home-assistant/operating-system/releases/download/15.2/haos_ova-15.2.qcow2.xz";
+  #         sourceFormat = "qcow2";
+  #         sourceSha256 = "0jbjajfnv3m37khk9446hh71g338xpnbnzxjij8v86plymxi063d";
+  #         compressedFormat = "xz";
+  #       };
+  #     };
 
-      # To 'factory reset VM, delete overlay in "/var/lib/vm/images" and restart service
-      # VM service names are the names of the service attribute sets below, e.g. "openwrt" or "home-assistant"
-      services = {
-        "openwrt" = {
-          enable     = true;
-          baseImage  = "openwrt";
-          uefi       = true;
-          memory     = 512;
-          smp        = 8;
-          taps       = [ 
-            { name = "opnwrt-tap";      macAddress = "fe:b5:aa:0f:29:43"; }
-            { name = "opnwrt-apps-tap"; macAddress = "fe:b5:aa:0f:29:44"; }
-          ];
-          bridges    = [ "br0" "br1" ];
-          vncPort   = 1;
-        };
+  #     # To 'factory reset VM, delete overlay in "/var/lib/vm/images" and restart service
+  #     # VM service names are the names of the service attribute sets below, e.g. "openwrt" or "home-assistant"
+  #     services = {
+  #       "openwrt" = {
+  #         enable     = true;
+  #         baseImage  = "openwrt";
+  #         uefi       = true;
+  #         memory     = 512;
+  #         smp        = 8;
+  #         taps       = [ 
+  #           { name = "opnwrt-tap";      macAddress = "fe:b5:aa:0f:29:43"; }
+  #           { name = "opnwrt-apps-tap"; macAddress = "fe:b5:aa:0f:29:44"; }
+  #         ];
+  #         bridges    = [ "br0" "br1" ];
+  #         vncPort   = 1;
+  #       };
 
-        "home-assistant" = {
-          enable     = true;
-          baseImage  = "haos";
-          uefi       = true;
-          memory     = 3072;
-          smp        = 2;
-          taps       = [ 
-            { name = "haos-tap"; macAddress = "ce:b0:37:6c:1a:fd"; }
-          ];
-          bridges    = [ "br0" ];
-          rootScsi   = true;
-          vncPort    = 2;
-        };
-      };
-    };
-  };
+  #       "home-assistant" = {
+  #         enable     = true;
+  #         baseImage  = "haos";
+  #         uefi       = true;
+  #         memory     = 3072;
+  #         smp        = 2;
+  #         taps       = [ 
+  #           { name = "haos-tap"; macAddress = "ce:b0:37:6c:1a:fd"; }
+  #         ];
+  #         bridges    = [ "br0" ];
+  #         rootScsi   = true;
+  #         vncPort    = 2;
+  #       };
+  #     };
+  #   };
+  # };
 
   ## OpenWrt Config Auto-Deploy
   # openwrt.config-auto-deploy = {
