@@ -196,6 +196,7 @@ in
         drv = inputs.self.packages.${pkgs.system}.vm-test-router-config;
         imageDrv = inputs.self.packages.${pkgs.system}.berlin-router-img;
         serviceName = "openwrt";
+        host = "192.168.11.51";
       };  
     };
   };

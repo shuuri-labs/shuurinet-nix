@@ -5,7 +5,7 @@ with lib;
 let
   cfg = config.openwrt.config-auto-deploy;
 
-  ## --- 1 ▪ no‑check ssh/scp wrappers ------------------------------
+  ## --- 1 ▪ don't check ssh/scp host keys ------------------------------
   sshNoCheck = pkgs.writeShellScriptBin "ssh" ''
     exec ${pkgs.openssh}/bin/ssh \
          -o StrictHostKeyChecking=no \
@@ -23,6 +23,7 @@ let
     drv,
     imageDrv ? null,
     serviceName ? null,
+    host
   }: {
     description = "Auto‑deploy ${name} when derivation changes";
 
@@ -43,7 +44,7 @@ let
         pkgs.gnugrep
         pkgs.systemd
         pkgs.util-linux
-        pkgs.openssh        # still available, but after our wrappers
+        pkgs.openssh
         pkgs.gawk
         pkgs.gnused
         pkgs.jq
@@ -58,6 +59,7 @@ let
       ]));
 
       SOPS_AGE_KEY_FILE = mkIf (cfg.sopsAgeKeyFile != null) cfg.sopsAgeKeyFile;
+      HOST = host;
     };
 
     restartTriggers = [ drv imageDrv ];
@@ -71,8 +73,6 @@ let
         set -euo pipefail
         set -x
 
-        # wrappers already handle host‑key options → nothing to export
-
         if [ -n "$SOPS_AGE_KEY_FILE" ]; then
           if [ -f "$SOPS_AGE_KEY_FILE" ]; then
             echo "SOPS age key file found at $SOPS_AGE_KEY_FILE"
@@ -80,6 +80,23 @@ let
             echo "WARNING: SOPS age key file not found at $SOPS_AGE_KEY_FILE"
           fi
         fi
+
+        
+
+        ## wait_for_ssh (max 30 s, 1 probe per second)
+        wait_for_ssh() {
+          local deadline=$(( $(date +%s) + 30 ))
+          while ! ssh -o BatchMode=yes -o ConnectTimeout=1 "$HOST" true 2>/dev/null; do
+            (( $(date +%s) >= deadline )) && {
+              echo "ERROR: $HOST did not become reachable via SSH within 30 s" >&2
+              return 1
+            }
+            sleep 1
+          done
+        }
+
+        echo "Waiting for $HOST to accept SSH…"
+        wait_for_ssh
 
         DEPLOY_SCRIPT="${drv}/bin/deploy-${name}"
         echo "Executing $DEPLOY_SCRIPT"
@@ -112,6 +129,10 @@ in
             default     = cfg.defaultServiceName;
             description = "Service this config is associated with (optional)";
           };
+          host = mkOption {
+            type        = types.str;
+            description = "Host to deploy to. Used for SSH connection probing/waiting before deployment";
+          };
         };
       });
       default     = {};
@@ -133,6 +154,7 @@ in
       drv         = opts.drv;
       imageDrv    = opts.imageDrv;
       serviceName = opts.serviceName;
+      host        = opts.host;
     }) cfg.configs;
   };
 }
