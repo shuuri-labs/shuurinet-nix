@@ -44,7 +44,6 @@ The service handles several scenarios:
 
 - **First-time deployment**: When you first enable the service, it runs during system activation
 - **Configuration changes**: When you modify the OpenWRT configuration and rebuild, the service detects the change and redeploys
-- **System reboot**: The service runs again after system reboot to ensure the configuration is applied
 - **Per-config dependencies**: Each config can optionally specify which service it depends on
 
 ## Configuration Options

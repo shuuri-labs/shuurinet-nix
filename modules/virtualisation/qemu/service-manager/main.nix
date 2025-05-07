@@ -120,45 +120,11 @@ in {
               ++ helpers.mkExtraArgs          v.extraArgs
             )}
         '';
-        ExecStop = ''
-          # Connect to the serial console and send poweroff command
-          echo -e "\n\npoweroff\n" | ${vPkgs.socat}/bin/socat -t 10 UNIX-CONNECT:/tmp/${name}-console.sock STDIO || true
-          
-          # Wait for VM to shut down gracefully
-          for i in {1..30}; do
-            pid=$(pgrep -f "${vPkgs.qemu}/bin/qemu-system-x86_64.*${name}.qcow2" || true)
-            if [ -z "$pid" ]; then
-              echo "VM shut down gracefully"
-              exit 0
-            fi
-            echo "Waiting for VM to shut down ($i/30)..."
-            sleep 1
-          done
-          
-          # If we got here, the VM didn't shut down gracefully
-          pid=$(pgrep -f "${vPkgs.qemu}/bin/qemu-system-x86_64.*${name}.qcow2" || true)
-          if [ -n "$pid" ]; then
-            echo "VM did not shut down gracefully within timeout, sending SIGTERM"
-            kill -TERM $pid || true
-            sleep 10
-            
-            # Final attempt with SIGKILL if still running
-            pid=$(pgrep -f "${vPkgs.qemu}/bin/qemu-system-x86_64.*${name}.qcow2" || true)
-            if [ -n "$pid" ]; then
-              echo "VM still not responding, forcing termination with SIGKILL"
-              kill -9 $pid || true
-            fi
-          fi
-        '';
-        
         # Critical systemd settings for graceful shutdown
-        TimeoutStopSec = 90;
-        KillMode = "mixed";
-        KillSignal = "SIGTERM";
-        SendSIGHUP = true;
-        
-        # For process tracking
-        PIDFile = "/run/${name}.pid";
+        ExecStop   = "${vPkgs.coreutils}/bin/kill -s SIGRTMIN+3 $MAINPID";
+        KillSignal = "SIGRTMIN+3";
+        TimeoutStopSec = "10min";
+        KillMode   = "mixed";
       };
     }
     )) cfg;
