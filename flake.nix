@@ -113,6 +113,21 @@
             inputs.virtualisation.nixosModules.default
           ] "x86_64-linux";
 
+          porygon = mkNixosHost "porygon" [
+            # ./modules/monitoring
+            ./modules/homepage-dashboard
+            ./modules/hdd-spindown
+            ./modules/intel
+            ./modules/power-saving
+            ./modules/disk-care
+            ./modules/iperf
+            ./modules/uefi-boot
+            ./modules/openwrt/configs/auto-deploy.nix
+            ./modules/netbird/router
+            inputs.vpn-confinement.nixosModules.default
+            inputs.virtualisation.nixosModules.default
+          ] "x86_64-linux";
+
           ludicolo = mkNixosHost "ludicolo" [
             ./modules/homepage-dashboard
             ./modules/zfs

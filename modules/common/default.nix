@@ -42,7 +42,7 @@ in
       };
 
       groups.ashley = {
-        # gid = 985;
+        gid = 985;
       };
     };
 
