@@ -42,7 +42,7 @@
       # Pinned to specific commit - only update this when you want new OpenWRT images
       # get the latest commit hash from: nix flake metadata github:astro/nix-openwrt-imagebuilder | grep -A 1 "Resolved URL" | tail -n 1
       # commit hash is will be between 'github:astro/nix-openwrt-imagebuilder/' and '?narHash=...'
-      # can also clone repo and use local path instead of url if their hashes are not up to date (happens rarely)
+      # can also clone repo and use local path instead of url if their hashes are not up to date (happens rarely), see my openwrt module for details
       # don't forget to update nixpkgs-openwrt, too
       url = "github:astro/nix-openwrt-imagebuilder/3cc263756de6a1409c46944fcc401b0c4b9a9a12";
       inputs.nixpkgs.follows = "nixpkgs-openwrt";
