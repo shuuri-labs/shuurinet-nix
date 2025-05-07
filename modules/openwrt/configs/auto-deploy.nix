@@ -29,7 +29,6 @@ let
 
     after    = [ "network-online.target" ] ++ (if serviceName != null then [ "${serviceName}.service" ] else []);
     wants    = [ "network-online.target" ] ++ (if serviceName != null then [ "${serviceName}.service" ] else []);
-    wantedBy = [ "multi-user.target" ];
 
     ##  wrappers go FIRST in PATH  ↓
     environment = {
