@@ -163,6 +163,12 @@
             format = "squashfs-combined-efi";
           };
 
+          london-test-router-img = (import ./modules/openwrt/image-definitions/builder-extractor { inherit inputs; }).mkImageExtractor {
+            name = "london-test-router";
+            imageDerivation = (import ./modules/openwrt/image-definitions/london/test-router.nix { inherit inputs; });
+            format = "squashfs-combined-efi";
+          };
+
           # OpenWRT Configs
           berlin-router-config = helper.mkOpenWrtConfig "/modules/openwrt/configs/berlin/router.nix" system;
           vm-test-router-config = helper.mkOpenWrtConfig "/modules/openwrt/configs/berlin/vm-test-router.nix" system;
