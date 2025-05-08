@@ -85,7 +85,7 @@ git push
 ```
 #### Run installer script
 
-Run the installer in `shuurinet-nix/installer/deploy-nix-host.sh`. Enter hostname (as defined in flake), IP address (of the current installation/installer) and Github access token (saved in your Bitwarden!) Follow the script's instructions. Host user key will automatically be added to github via API call. When adding keys to `~/shuurinet-nix/secrets/secrets.nix`, just add the keys and the new hosts to `systems = [ ... ]`. The script will take care or re-keying, committing and pushing.
+Run the installer in `~/shuurinet-nix/installer/deploy-nix-host.sh`. Enter hostname (as defined in flake), IP address (of the current installation/installer) and Github access token (saved in your Bitwarden!) Follow the script's instructions. Host user key will automatically be added to github via API call. When adding keys to `~/shuurinet-nix/secrets/secrets.nix`, just add the keys and the new hosts to `systems = [ ... ]`. The script will take care or re-keying, committing and pushing.
 #### Post-Install Bootstrap Service
 
 Service/module called `git-clone-config` will take care of git cloning config into `~/`. It will pull the deployment branch, which is why it's important to create one with the name format described above. If no deployment branch can be found, however, it will simply pull `develop`.
