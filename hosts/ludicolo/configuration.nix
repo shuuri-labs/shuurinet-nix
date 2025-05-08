@@ -40,6 +40,8 @@ in
       };
     };
   };
+  
+  deployment.bootstrap.gitClone.host = hostCfgVars.network.hostName;
 
   # -------------------------------- SYSTEM CONFIGURATION --------------------------------
 

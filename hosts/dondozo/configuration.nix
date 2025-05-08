@@ -43,6 +43,8 @@ in
     };
   };
 
+  deployment.bootstrap.gitClone.host = hostCfgVars.network.hostName;
+
   # -------------------------------- SYSTEM CONFIGURATION --------------------------------
 
   time.timeZone = "Europe/Berlin";
