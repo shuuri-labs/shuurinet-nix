@@ -45,17 +45,18 @@ if [ -n "$EXISTING_KEY" ]; then
 fi
 
 # Add new user key to github
-curl -H "Authorization: token $GITHUB_TOKEN" \
-     -H "Content-Type: application/json" \
-     -d '{"title":"ashley@$TARGET_HOST","key":"$USER_KEY"}' \
-     https://api.github.com/user/keys
+jq -n --arg title "ashley@$TARGET_HOST" --arg key "$USER_KEY" \
+  '{title: $title, key: $key}' | \
+  curl -H "Authorization: token $GITHUB_TOKEN" \
+       -H "Content-Type: application/json" \
+       -d @- https://api.github.com/user/keys
 
 # Show host public key for agenix
 echo -e "\nCopy into secrets/secrets.nix:"
-echo "\n$TARGET_HOST = \"$HOST_KEY\";"
-echo "\n$TARGET_HOST-user = \"$USER_KEY\";"
+echo "$TARGET_HOST = \"$HOST_KEY\";"
+echo "$TARGET_HOST-user = \"$USER_KEY\";"
 echo -e "\nAdd new hosts to secrets = [ ... ]:"
-echo "\n $TARGET_HOST $TARGET_HOST-user "
+echo " $TARGET_HOST $TARGET_HOST-user "
 echo -e "\nRun secrets/rekey-new-host.sh, and then press Enter to continue with deployment..."
 read -r
 
