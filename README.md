@@ -24,53 +24,54 @@ Create a `configuration.nix` and a `disk-config.nix` in `~/shuurinet-nix/hosts`.
 
 ```nix
 { lib, ... }:
-
 {
-    disko.devices = {
-		disk.disk1 = {
-			device = "/dev/disk/by-id/<DISK_ID_HERE>";
-			type = "disk";
-			content = {
-				type = "gpt";
-					partitions = {
-						esp = {
-							name = "ESP";
-							size = "1G"; # Increased from 500M for better future-proofing
-							type = "EF00"; # EFI System Partition type
-						content = {
-							type = "filesystem";
-							format = "vfat";
-							mountpoint = "/boot";
-						};
-					};
-					root = {
-						name = "root";
-						size = "100%";
-						content = {
-							type = "lvm_pv";
-							vg = "pool";
-						};
-					};
-				};
-			};
-		};
-		lvm_vg = {
-			pool = {
-				type = "lvm_vg";
-				lvs = {
-					root = {
-						size = "100%FREE";
-						content = {
-							type = "filesystem";
-							format = "ext4";
-							mountpoint = "/";
-							mountOptions = [ "defaults" ];
-						};
-					};
-				};
-			}
-		};
-	};
+  disko.devices = {
+    disk.disk1 = {
+      device = "/dev/disk/by-id/<BOOT_DISK_ID_HERE>
+      type = "disk";
+      content = {
+        type = "gpt";
+        partitions = {
+          esp = {
+            name = "ESP";
+            size = "1G";  # Increased from 500M for better future-proofing
+            type = "EF00"; # EFI System Partition type
+            content = {
+              type = "filesystem";
+              format = "vfat";
+              mountpoint = "/boot";
+            };
+          };
+          root = {
+            name = "root";
+            size = "100%";
+            content = {
+              type = "lvm_pv";
+              vg = "pool";
+            };
+          };
+        };
+      };
+    };
+    lvm_vg = {
+      pool = {
+        type = "lvm_vg";
+        lvs = {
+          root = {
+            size = "100%FREE";
+            content = {
+              type = "filesystem";
+              format = "ext4";
+              mountpoint = "/";
+              mountOptions = [
+                "defaults"
+              ];
+            };
+          };
+        };
+      };
+    };
+  };
 }
 ```
 
@@ -102,8 +103,6 @@ Virtualisation module currently doesn't play nice with nixos-anywhere. Comment o
 Error in question for future debugging:
 
 ```bash
----
-
 … while evaluating definitions from `/nix/store/lzml2qh553njgdalw5cbbc208vwachr6-source/nixos/modules/system/etc/etc.nix':
 
 … while evaluating the option `environment.etc."qemu-images.json".source':
