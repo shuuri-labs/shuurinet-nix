@@ -52,6 +52,8 @@ in
     };
   };
 
+  config.deployment.bootstrap.gitClone.host = hostCfgVars.network.hostName;
+
   # -------------------------------- SYSTEM CONFIGURATION --------------------------------
 
   boot.kernelParams = [

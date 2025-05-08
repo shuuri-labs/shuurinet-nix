@@ -1,9 +1,9 @@
 { config, lib, pkgs, ... }:
 let
-  cfg = config.deployment.bootstrap.cloneConfig;
+  cfg = config.deployment.bootstrap.gitClone;
 in
 {
-  options.deployment.bootstrap.cloneConfig = {
+  options.deployment.bootstrap.gitClone = {
     enabled = lib.mkOption {
       type = lib.types.bool;
       default = true;
