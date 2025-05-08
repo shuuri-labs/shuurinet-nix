@@ -54,13 +54,30 @@ jq -n --arg title "$KEY_TITLE" --arg key "$USER_KEY" \
        -d @- https://api.github.com/user/keys
 
 # Show host public key for agenix
-echo -e "\nCopy into secrets/secrets.nix:"
+echo -e "\nCopy into ~/shuurinet-nix/secrets/secrets.nix:"
 echo "$TARGET_HOST = \"$HOST_KEY\";"
 echo "$TARGET_HOST-user = \"$USER_KEY\";"
 echo -e "\nAdd new hosts to secrets = [ ... ]:"
 echo " $TARGET_HOST $TARGET_HOST-user "
-echo -e "\nRun secrets/rekey-new-host.sh, and then press Enter to continue with deployment..."
+echo -e "\nOnce done, press Enter to continue with deployment..."
 read -r
+
+# Rekey secrets
+cd ~/shuurinet-nix/secrets
+agenix -r 
+echo -e "\nRekeyed secrets for $TARGET_HOST"
+
+# Commit and push changes in secrets repo
+git add * 
+git commit -m "Rekeyed secrets for $TARGET_HOST"
+git push
+
+# Commit and push changes in nix config repo
+cd ~/shuurinet-nix
+git add *
+git commit -m "Rekeyed secrets for $TARGET_HOST"
+git push
+echo -e "\nCommited and pushed changes in both secrets repo and nix config repo"
 
 # Copy secrets only (full config is copied in post-deployment-bootstrap module), exclude .DS_Store if running on MacOS
 rsync -av --exclude '.DS_Store' ~/shuurinet-nix/secrets/. "$temp/home/ashley/shuurinet-nix/secrets"

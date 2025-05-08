@@ -38,7 +38,7 @@ in
         description = "The directory for paperless media";
         default = "${cfg.paths.paperlessDir}/media";
       };
-      paperlessConsumeDir = lib. mkOption {
+      paperlessConsumeDir = lib.mkOption {
         type = lib.types.str;
         description = "The directory for paperless consume";
         default = "${cfg.paths.paperlessDir}/consume";

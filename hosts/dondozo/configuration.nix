@@ -7,6 +7,9 @@
 let
   hostCfgVars = config.host.vars;
   secretsAbsolutePath = "/home/ashley/shuurinet-nix/secrets"; 
+
+  hostIdentifier = "10";
+  hostMainIp = "${config.homelab.networks.subnets.bln-lan.ipv4}.${hostIdentifier}";
 in
 {
   imports = [
@@ -28,7 +31,7 @@ in
           name = "br0";
           memberInterfaces = [ "enp2s0f1np1" "eno1" "eno2" ];  
           subnet = config.homelab.networks.subnets.bln-lan;
-          identifier = "10";
+          identifier = hostIdentifier;
           isPrimary = true;
         }
       ];

@@ -8,8 +8,8 @@ let
   hostCfgVars = config.host.vars;
   secretsAbsolutePath = "/home/ashley/shuurinet-nix/secrets"; 
 
-  hostAddress = "10";
-  hostMainIp = "${config.homelab.networks.subnets.ldn.ipv4}.${hostAddress}";
+  hostIdentifier = "10";
+  hostMainIp = "${config.homelab.networks.subnets.ldn.ipv4}.${hostIdentifier}";
 in
 {
   imports = [
@@ -31,7 +31,7 @@ in
           name = "br0";
           memberInterfaces = [ "enp1s0" ];  
           subnet = config.homelab.networks.subnets.ldn;
-          identifier = hostAddress;
+          identifier = hostIdentifier;
           isPrimary = true;
         }
       ];
@@ -65,23 +65,26 @@ in
   # -------------------------------- SECRETS --------------------------------
 
   age.secrets = {
+    # System
     castform-main-user-password.file = "${secretsAbsolutePath}/castform-main-user-password.age";
-    mullvad-wireguard-config.file = "${secretsAbsolutePath}/wg-mullvad-ludicolo.conf.age";
+    sops-key.file = "${secretsAbsolutePath}/keys/sops-key.agekey.age";
+
+    # Samba Users
     ashley-samba-user-pw.file = "${secretsAbsolutePath}/samba-ashley-password.age";
     media-samba-user-pw.file = "${secretsAbsolutePath}/samba-media-password.age";
+    home-assistant-backup-samba-user-pw.file = "${secretsAbsolutePath}/samba-home-assistant-backup-password.age";
+
+    # Apps
+    mullvad-wireguard-config.file = "${secretsAbsolutePath}/wg-mullvad-ludicolo.conf.age";
     ludicolo-homepage-vars.file = "${secretsAbsolutePath}/ludicolo-homepage-vars.age";
     netbird-management-url.file = "${secretsAbsolutePath}/netbird-management-url.age";
     ludicolo-netbird-master-setup-key.file = "${secretsAbsolutePath}/ludicolo-netbird-master-setup-key.age";
-    sops-key.file = "${secretsAbsolutePath}/keys/sops-key.agekey.age";
-    
     grafana-admin-password = {
       file = "${secretsAbsolutePath}/grafana-admin-password.age";
       owner = "grafana";
       group = "grafana";
     };
-
     paperless-password.file = "${secretsAbsolutePath}/paperless-password.age";
-    home-assistant-backup-samba-user-pw.file = "${secretsAbsolutePath}/samba-home-assistant-backup-password.age";
   };
 
   common.secrets.sopsKeyPath = "${secretsAbsolutePath}/keys/sops-key.agekey.age";

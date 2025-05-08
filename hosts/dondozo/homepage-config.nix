@@ -1,4 +1,4 @@
-{config, hostMainIp ...}:
+{config, hostMainIp, ...}:
 
 let
   hostCfgVars = config.host.vars;
