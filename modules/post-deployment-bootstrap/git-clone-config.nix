@@ -17,11 +17,14 @@ let
     fi
 
     echo "Cloning repository..."
-    if ${pkgs.git}/bin/git ls-remote --heads https://github.com/${cfg.githubAccount}/${cfg.repo}.git ${cfg.branch} | grep -q ${cfg.branch}; then
-      ${pkgs.git}/bin/git clone -b ${cfg.branch} https://github.com/${cfg.githubAccount}/${cfg.repo}.git ~/${cfg.repo}
+    REPO_URL="git@github.com:${cfg.githubAccount}/${cfg.repo}.git"
+    CLONE_CMD="GIT_SSH_COMMAND='ssh -o StrictHostKeyChecking=no' ${pkgs.git}/bin/git clone --recurse-submodules"
+
+    if ${pkgs.git}/bin/git ls-remote --heads $REPO_URL ${cfg.branch} | grep -q ${cfg.branch}; then
+      $CLONE_CMD -b ${cfg.branch} $REPO_URL ~/${cfg.repo}
     else
       echo "Branch ${cfg.branch} not found, falling back to develop"
-      ${pkgs.git}/bin/git clone -b develop https://github.com/${cfg.githubAccount}/${cfg.repo}.git ~/${cfg.repo}
+      $CLONE_CMD -b develop $REPO_URL ~/${cfg.repo}
     fi
 
     cd ~/${cfg.repo}/secrets
@@ -73,6 +76,8 @@ in
     systemd.services.git-clone-config = {
       description = "Git clone nix config";
       wantedBy = [ "multi-user.target" ];
+      after = [ "network-online.target" ];
+      wants = [ "network-online.target" ];
       serviceConfig = {
         Type = "oneshot";
         User = cfg.user;
