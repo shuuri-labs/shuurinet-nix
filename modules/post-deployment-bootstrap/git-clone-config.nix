@@ -76,8 +76,8 @@ in
     systemd.services.git-clone-config = {
       description = "Git clone nix config";
       wantedBy = [ "multi-user.target" ];
-      after = [ "network-online.target" ];
-      wants = [ "network-online.target" ];
+      after = [ "network-online.target" "systemd-resolved.service" "ssh-agent.service" ];
+      wants = [ "network-online.target" "systemd-resolved.service" "ssh-agent.service" ];
       serviceConfig = {
         Type = "oneshot";
         User = cfg.user;
