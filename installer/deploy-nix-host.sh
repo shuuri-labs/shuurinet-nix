@@ -35,9 +35,11 @@ ssh-keygen -t ed25519 \
 HOST_KEY=$(cat "$temp/etc/ssh/ssh_host_ed25519_key.pub")
 USER_KEY=$(cat "$temp/home/ashley/.ssh/id_ed25519.pub")
 
+KEY_TITLE="ashley@$TARGET_HOST"
 # Check if host key already exists on github and delete it if so
 EXISTING_KEY=$(curl -s -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/user/keys \
-  | jq '.[] | select(.title == "My Key") | .id')
+  | jq --arg title "$KEY_TITLE" '.[] | select(.title == $title) | .id')
+
 
 if [ -n "$EXISTING_KEY" ]; then
   curl -X DELETE -H "Authorization: token $GITHUB_TOKEN" \
@@ -45,7 +47,7 @@ if [ -n "$EXISTING_KEY" ]; then
 fi
 
 # Add new user key to github
-jq -n --arg title "ashley@$TARGET_HOST" --arg key "$USER_KEY" \
+jq -n --arg title "$KEY_TITLE" --arg key "$USER_KEY" \
   '{title: $title, key: $key}' | \
   curl -H "Authorization: token $GITHUB_TOKEN" \
        -H "Content-Type: application/json" \

@@ -1,4 +1,7 @@
 { config, lib, pkgs, ... }:
+let
+  cfg = config.deploymentBoostrap.gitCloneConfig;
+in
 {
   options.deploymentBoostrap.gitCloneConfig = {
     enabled = lib.mkOption {
@@ -7,6 +10,24 @@
       description = "Enable git clone of nix config";
     };
 
+    user = lib.mkOption {
+      type = lib.types.str;
+      default = "ashley";
+      description = "User name";
+    };
+
+    githubAccount = lib.mkOption {
+      type = lib.types.str;
+      default = "shuuri-labs";
+      description = "Github account name";
+    };
+
+    repo = lib.mkOption {
+      type = lib.types.str;
+      default = "shuurinet-nix";
+      description = "Repository name";
+    };
+    
     host = lib.mkOption {
       type = lib.types.str;
       description = "Host name";
@@ -19,25 +40,27 @@
     };
   };
 
-  config = lib.mkIf config.deploymentBoostrap.gitCloneConfig.enabled {
+  config = lib.mkIf cfg.enabled {
     systemd.services.git-clone-config = {
       description = "Git clone nix config";
       serviceConfig = {
         Type = "oneshot";
+        User = cfg.user;
+        Group = cfg.user;
         ExecStart = ''
           clone_repo() {
-            if ${pkgs.git}/bin/git ls-remote --heads https://github.com/shuurinet/shuurinet-nix.git ${config.branch} | grep -q ${config.branch}; then
-              ${pkgs.git}/bin/git clone -b ${config.branch} https://github.com/shuurinet/shuurinet-nix.git ~/shuurinet-nix
+            if ${pkgs.git}/bin/git ls-remote --heads https://github.com/${cfg.githubAccount}/${cfg.repo}.git ${cfg.branch} | grep -q ${cfg.branch}; then
+              ${pkgs.git}/bin/git clone -b ${cfg.branch} https://github.com/${cfg.githubAccount}/${cfg.repo}.git ~/${cfg.repo}
             else
-              echo "Branch ${config.branch} not found, falling back to develop"
-              ${pkgs.git}/bin/git clone -b develop https://github.com/shuurinet/shuurinet-nix.git ~/shuurinet-nix
+              echo "Branch ${cfg.branch} not found, falling back to develop"
+              ${pkgs.git}/bin/git clone -b develop https://github.com/${cfg.githubAccount}/${cfg.repo}.git ~/${cfg.repo}
             fi
           }
 
-          if [ -d ~/shuurinet-nix ]; then
+          if [ -d ~/${cfg.repo} ]; then
             # Check if directory only contains secrets folder
-            if [ "$(ls -A ~/shuurinet-nix | grep -v '^secrets$' | wc -l)" -eq 0 ]; then
-              rm -rf ~/shuurinet-nix
+            if [ "$(ls -A ~/${cfg.repo} | grep -v '^secrets$' | wc -l)" -eq 0 ]; then
+              rm -rf ~/${cfg.repo}
               clone_repo
             else
               echo "Config directory contains files other than secrets folder, skipping clone"
