@@ -45,13 +45,8 @@ in
 
   # -------------------------------- SYSTEM CONFIGURATION --------------------------------
 
-  # Realtek 8168/8111/8169 NICs - blacklist r8169 driver and enable r8168 driver
-  
-  # boot.kernelPackages =lib.mkForce pkgs.linuxPackages_6_1;
-  # boot.extraModulePackages = [ config.boot.kernelPackages.r8168 ];
-  # boot.kernelModules = [ "r8168" ];
-  # boot.blacklistedKernelModules = [ "r8169" ];
-  # nixpkgs.config.allowBroken = true;
+  # Use the Linux kernel from nixpkgs-unstable for latest realtek 8169 driver
+  boot.kernelPackages = inputs.nixpkgs-unstable.legacyPackages.${pkgs.system}.linuxPackages_latest;
 
   time.timeZone = "Europe/London";
 
@@ -138,8 +133,8 @@ in
 
   mediaServer.enable = true;
   mediaServer.vpnConfinement.wireguardConfigFile = config.age.secrets.mullvad-wireguard-config.path; 
-  mediaServer.vpnConfinement.lanSubnet = hostCfgVars.network.config.subnet.ipv4;
-  mediaServer.vpnConfinement.lanSubnet6 = hostCfgVars.network.config.subnet.ipv6;
+  mediaServer.vpnConfinement.lanSubnet = config.homelab.networks.subnets.ldn.ipv4;
+  mediaServer.vpnConfinement.lanSubnet6 = config.homelab.networks.subnets.ldn.ipv6;
 
   mediaServer.storage.path = hostCfgVars.storage.directories.media;
   mediaServer.storage.group = hostCfgVars.storage.accessGroups.media.name;

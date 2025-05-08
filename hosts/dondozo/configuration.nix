@@ -145,8 +145,8 @@ in
   # Media Server
   mediaServer.enable = true;
   mediaServer.vpnConfinement.wireguardConfigFile = config.age.secrets.mullvad-wireguard-config.path; 
-  mediaServer.vpnConfinement.lanSubnet = hostCfgVars.network.config.subnet.ipv4;
-  mediaServer.vpnConfinement.lanSubnet6 = hostCfgVars.network.config.subnet.ipv6;
+  mediaServer.vpnConfinement.lanSubnet = config.homelab.networks.subnets.bln-lan.ipv4;
+  mediaServer.vpnConfinement.lanSubnet6 = config.homelab.networks.subnets.bln-lan.ipv6;
 
   mediaServer.storage.path = hostCfgVars.storage.directories.media;
   mediaServer.storage.group = hostCfgVars.storage.accessGroups.media.name;

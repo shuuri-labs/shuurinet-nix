@@ -61,7 +61,7 @@ in
     "pcie_aspm.policy=powersave"
   ];
 
-  # Use the Linux kernel from nixpkgs-unstable for latest i226 driver
+  # Use the Linux kernel from nixpkgs-unstable for latest realtek driver
   boot.kernelPackages = inputs.nixpkgs-unstable.legacyPackages.${pkgs.system}.linuxPackages_latest;
 
   environment.systemPackages = with pkgs; [
