@@ -34,8 +34,8 @@ Create a `configuration.nix` and a `disk-config.nix` in `~/shuurinet-nix/hosts`.
         partitions = {
           esp = {
             name = "ESP";
-            size = "1G";  # Increased from 500M for better future-proofing
-            type = "EF00"; # EFI System Partition type
+            size = "1G";
+            type = "EF00";
             content = {
               type = "filesystem";
               format = "vfat";
@@ -93,7 +93,7 @@ Service/module called `git-clone-config` will take care of git cloning config in
 The service will only run once - it checks if `~/shuurinet-nix` contains _only_ the `secrets` directory. If so, it knows that this is a fresh deployment, and will overwrite the config repo with the cloned git repo. 
 #### Router-Specific 
 
-If deploying your router, update `openwrt-imagebuilder`'s input in `flake.nix`. Instructions on how to do so in the aforementioned file. If after pinning to the latest commit you're still getting a `hash mismatch` error, then refer to the instructions in `~/shuurinet-nix/openwrt/image-definitions/builder-extractor/README.md`.
+If deploying your router, update `openwrt-imagebuilder`'s input commit hash in `flake.nix`. Instructions on how to do so in the aforementioned file. If after pinning to the latest commit you're still getting a `hash mismatch` error, then refer to the instructions in `~/shuurinet-nix/openwrt/image-definitions/builder-extractor/README.md`.
 
 Don't forget to set `deploymentMode` to `true` in the `let` block of the router host's configuration.nix. Once fully deployed, disable and switch to the router VM for internet access. 
 #### Notes & Quirks
