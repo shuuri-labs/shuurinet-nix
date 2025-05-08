@@ -23,6 +23,15 @@ let
     # Give network a moment to fully initialize
     ${pkgs.coreutils}/bin/sleep 10
 
+    # Ensure SSH agent is running and has the correct socket
+    if [ -z "$SSH_AUTH_SOCK" ]; then
+      export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
+    fi
+
+    # Add GitHub to known hosts
+    mkdir -p ~/.ssh
+    ${pkgs.openssh}/bin/ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null
+
     if ${pkgs.git}/bin/git ls-remote --heads $REPO_URL ${cfg.branch} | ${pkgs.gnugrep}/bin/grep -q ${cfg.branch}; then
       GIT_SSH_COMMAND="${pkgs.openssh}/bin/ssh -o StrictHostKeyChecking=no" $CLONE_CMD -b ${cfg.branch} $REPO_URL ~/${cfg.repo}
     else
@@ -102,6 +111,7 @@ in
         ExecStart = "${cloneCmd}";
         Environment = [
           "PATH=${lib.makeBinPath [ pkgs.git pkgs.openssh pkgs.coreutils pkgs.gnugrep ]}:$PATH"
+          "XDG_RUNTIME_DIR=/run/user/$(id -u ${cfg.user})"
         ];
       };
     };
