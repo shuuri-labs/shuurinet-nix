@@ -1,9 +1,9 @@
 { config, lib, pkgs, ... }:
 let
-  cfg = config.deploymentBoostrap.gitCloneConfig;
+  cfg = config.deployment.bootstrap.cloneConfig;
 in
 {
-  options.deploymentBoostrap.gitCloneConfig = {
+  options.deployment.bootstrap.cloneConfig = {
     enabled = lib.mkOption {
       type = lib.types.bool;
       default = true;
@@ -35,7 +35,7 @@ in
 
     branch = lib.mkOption {
       type = lib.types.str;
-      default = "deploy-${config.host}";
+      default = "deploy-${cfg.host}";
       description = "Branch name to clone";
     };
   };
