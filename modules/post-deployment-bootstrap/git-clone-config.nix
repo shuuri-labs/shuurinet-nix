@@ -18,13 +18,13 @@ let
 
     echo "Cloning repository..."
     REPO_URL="git@github.com:${cfg.githubAccount}/${cfg.repo}.git"
-    CLONE_CMD="GIT_SSH_COMMAND='ssh -o StrictHostKeyChecking=no' ${pkgs.git}/bin/git clone --recurse-submodules"
+    CLONE_CMD="${pkgs.git}/bin/git clone --recurse-submodules"
 
     if ${pkgs.git}/bin/git ls-remote --heads $REPO_URL ${cfg.branch} | grep -q ${cfg.branch}; then
-      $CLONE_CMD -b ${cfg.branch} $REPO_URL ~/${cfg.repo}
+      GIT_SSH_COMMAND="${pkgs.openssh}/bin/ssh -o StrictHostKeyChecking=no" $CLONE_CMD -b ${cfg.branch} $REPO_URL ~/${cfg.repo}
     else
       echo "Branch ${cfg.branch} not found, falling back to develop"
-      $CLONE_CMD -b develop $REPO_URL ~/${cfg.repo}
+      GIT_SSH_COMMAND="${pkgs.openssh}/bin/ssh -o StrictHostKeyChecking=no" $CLONE_CMD -b develop $REPO_URL ~/${cfg.repo}
     fi
 
     cd ~/${cfg.repo}/secrets
@@ -83,6 +83,9 @@ in
         User = cfg.user;
         Group = cfg.user;
         ExecStart = "${cloneCmd}";
+        Environment = [
+          "PATH=${lib.makeBinPath [ pkgs.git pkgs.openssh ]}:$PATH"
+        ];
       };
     };
   };
