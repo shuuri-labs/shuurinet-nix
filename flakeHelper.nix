@@ -8,6 +8,7 @@ let
   mkHostPath = hostName: ./hosts/${hostName}/configuration.nix;
 
   commonModules = [
+    ./modules/post-deployment-bootstrap
     ./modules/common
     ./options-host
     ./options-homelab

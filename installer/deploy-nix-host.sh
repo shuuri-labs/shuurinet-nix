@@ -1,14 +1,23 @@
 #!/usr/bin/env bash
 
+# FIRST, CHECKOUT A NEW BRANCH FOR THIS HOST NAMED deploy-<hostname>
+# Add a /host/<hostname> dir with configuration.nix & disk-configuration.nix
+# Update flake.nix to include the new host
+# Commit and push
+# Then run this script
+
+# NOTE: If using virtualisation module, comment it out in config before running this script
+
 read -p "Enter target hostname: " TARGET_HOST
 read -p "Enter taget IP address: " TARGET_IP
+read -p "Enter github token (saved in bitwarden): " GITHUB_TOKEN
 
 # Create local temp dir to be copied to host and purge on script end
 temp=$(mktemp -d)
 trap 'rm -rf "$temp"' EXIT
 
 install -d -m755 "$temp/etc/ssh"
-install -d -m755 "$temp/home/ashley/shuurinet-nix"
+install -d -m755 "$temp/home/ashley/shuurinet-nix/secrets"
 install -d -m700 "$temp/home/ashley/.ssh"
 
 # Generate deployment keys directly into temp dir which will copied to host
@@ -23,20 +32,33 @@ ssh-keygen -t ed25519 \
     -f "$temp/home/ashley/.ssh/id_ed25519" \
     -N ""
 
+HOST_KEY=$(cat "$temp/etc/ssh/ssh_host_ed25519_key.pub")
+USER_KEY=$(cat "$temp/home/ashley/.ssh/id_ed25519.pub")
+
+# Check if host key already exists on github and delete it if so
+EXISTING_KEY=$(curl -s -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/user/keys \
+  | jq '.[] | select(.title == "My Key") | .id')
+
+if [ -n "$EXISTING_KEY" ]; then
+  curl -X DELETE -H "Authorization: token $GITHUB_TOKEN" \
+       https://api.github.com/user/keys/$EXISTING_KEY
+fi
+
+# Add new user key to github
+curl -H "Authorization: token $GITHUB_TOKEN" \
+     -H "Content-Type: application/json" \
+     -d '{"title":"ashley@$TARGET_HOST","key":"$USER_KEY"}' \
+     https://api.github.com/user/keys
+
 # Show host public key for agenix
-echo -e "\nPublic key for agenix:"
-cat "$temp/etc/ssh/ssh_host_ed25519_key.pub"
-echo -e "\nRekey your secrets with this public key, commit, add, and then press Enter to continue with deployment..."
+echo -e "\nCopy into secrets/secrets.nix:"
+echo "\n$TARGET_HOST = \"$HOST_KEY\";"
+echo "\n$TARGET_HOST-user = \"$USER_KEY\";"
+echo -e "\nAdd new hosts to secrets = [ ... ], run secrets/rekey-new-host.sh, and then press Enter to continue with deployment..."
 read -r
 
-# Show user public key for github
-echo -e "\nPublic key user"
-cat "$temp/home/ashley/.ssh/id_ed25519.pub"
-echo -e "\nAdd to key github and press Enter to continue with deployment..."
-read -r
-
-# Copy the configuration, exclude .DS_Store if running on MacOS
-rsync -av --exclude '.DS_Store' ~/shuurinet-nix/. "$temp/home/ashley/shuurinet-nix"
+# Copy secrets only (full config is copied in post-deployment-bootstrap module), exclude .DS_Store if running on MacOS
+rsync -av --exclude '.DS_Store' ~/shuurinet-nix/secrets/. "$temp/home/ashley/shuurinet-nix/secrets"
 
 # Set file permissions for copied host keys
 chmod 600 "$temp/etc/ssh/ssh_host_ed25519_key"

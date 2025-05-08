@@ -321,17 +321,17 @@
         "systems": "systems_2"
       },
       "locked": {
-        "lastModified": 1746519848,
-        "narHash": "sha256-l/LojbGr18OxsRh8onzn19alKqHpg5+eJm/BaEQkfkU=",
+        "lastModified": 1746606273,
+        "narHash": "sha256-QwBcUp1iFv2j14mvL9TrhKn2s4kOzxZOpURSNzrcsaY=",
         "owner": "astro",
         "repo": "nix-openwrt-imagebuilder",
-        "rev": "3cc263756de6a1409c46944fcc401b0c4b9a9a12",
+        "rev": "c5d49328cf45c6d79e8a9def48aa9a763c8e9e58",
         "type": "github"
       },
       "original": {
         "owner": "astro",
         "repo": "nix-openwrt-imagebuilder",
-        "rev": "3cc263756de6a1409c46944fcc401b0c4b9a9a12",
+        "rev": "c5d49328cf45c6d79e8a9def48aa9a763c8e9e58",
         "type": "github"
       }
     },

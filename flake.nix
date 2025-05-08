@@ -171,7 +171,8 @@
 
           # single image file derivation for berlin router
           # The openwrt-imagebuilder input is pinned to a specific commit in the inputs section
-          # This prevents it from updating when running `nix flake update`          # When you want to update the OpenWRT image, update the commit hash in the inputs section
+          # This prevents it from updating when running `nix flake update`          
+          # When you want to update the OpenWRT image, update the commit hash in the inputs section
           berlin-router-img = (import ./modules/openwrt/image-definitions/builder-extractor { inherit inputs; }).mkImageExtractor {
             name = "berlin-router";
             imageDerivation = (import ./modules/openwrt/image-definitions/berlin/router.nix { inherit inputs; });
