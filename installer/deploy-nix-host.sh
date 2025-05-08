@@ -54,7 +54,9 @@ curl -H "Authorization: token $GITHUB_TOKEN" \
 echo -e "\nCopy into secrets/secrets.nix:"
 echo "\n$TARGET_HOST = \"$HOST_KEY\";"
 echo "\n$TARGET_HOST-user = \"$USER_KEY\";"
-echo -e "\nAdd new hosts to secrets = [ ... ], run secrets/rekey-new-host.sh, and then press Enter to continue with deployment..."
+echo -e "\nAdd new hosts to secrets = [ ... ]:"
+echo "\n $TARGET_HOST $TARGET_HOST-user "
+echo -e "\nRun secrets/rekey-new-host.sh, and then press Enter to continue with deployment..."
 read -r
 
 # Copy secrets only (full config is copied in post-deployment-bootstrap module), exclude .DS_Store if running on MacOS
