@@ -2,18 +2,21 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running 'nixos-help').
 
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, inputs, ... }:
 
 let
   hostCfgVars = config.host.vars;
   secretsAbsolutePath = "/home/ashley/shuurinet-nix/secrets"; 
+
+  hostAddress = "10";
+  hostMainIp = "${config.homelab.networks.subnets.ldn.ipv4}.${hostAddress}";
 in
 {
   imports = [
     ./hardware-configuration.nix
     ./disk-config.nix
-    ./homepage-config.nix
-    ./samba-config.nix
+    (import ./homepage-config.nix { inherit config hostMainIp; })
+    (import ./samba-config.nix { inherit config hostMainIp; })
   ];
 
   # -------------------------------- HOST VARIABLES --------------------------------
@@ -28,7 +31,7 @@ in
           name = "br0";
           memberInterfaces = [ "enp1s0" ];  
           subnet = config.homelab.networks.subnets.ldn;
-          identifier = "10";
+          identifier = hostAddress;
           isPrimary = true;
         }
       ];
@@ -46,15 +49,14 @@ in
   # -------------------------------- SYSTEM CONFIGURATION --------------------------------
 
   # Use the Linux kernel from nixpkgs-unstable for latest realtek 8169 driver
-  boot.kernelPackages = inputs.nixpkgs-unstable.legacyPackages.${pkgs.system}.linuxPackages_latest;
+  # boot.kernelPackages = inputs.nixpkgs-unstable.legacyPackages.${pkgs.system}.linuxPackages_latest;
 
   time.timeZone = "Europe/London";
 
   # Bootloader
   host.uefi-boot.enable = true;
 
-  # users.users.ashley.password = "changeme"; /* uncomment for new install */
-  users.users.ashley.hashedPasswordFile = config.age.secrets.castform-main-user-password.path; # TODO: use plain hashed password file
+  users.users.ashley.hashedPasswordFile = config.age.secrets.castform-main-user-password.path;
 
   environment.systemPackages = with pkgs; [
     dig
@@ -75,8 +77,7 @@ in
     grafana-admin-password = {
       file = "${secretsAbsolutePath}/grafana-admin-password.age";
       owner = "grafana";
-      group = "root";
-      mode = "440";
+      group = "grafana";
     };
 
     paperless-password.file = "${secretsAbsolutePath}/paperless-password.age";
@@ -193,8 +194,9 @@ in
       master = {
         enable = lib.mkForce true;
         setupKey = config.age.secrets.ludicolo-netbird-master-setup-key.path;
-        hostInterface = hostCfgVars.network.config.bridge;
-        hostSubnet = hostCfgVars.network.config.subnet.ipv4;
+        hostInterface = "br0";
+        hostSubnet = config.homelab.networks.subnets.ldn.ipv4;
+        hostGateway = config.homelab.networks.subnets.ldn.gateway;
       };
     };
   };

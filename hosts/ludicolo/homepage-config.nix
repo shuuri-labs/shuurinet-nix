@@ -1,4 +1,4 @@
-{config, lib, ...}:
+{config, hostMainIp, ... }:
 
 let
   hostCfgVars = config.host.vars;
@@ -7,7 +7,7 @@ in
   services.homepage-dashboard = {
     environmentFile = config.age.secrets.ludicolo-homepage-vars.path;
     settings = {
-      title = "${hostCfgVars.network.config.hostName} dashboard";
+      title = "${hostCfgVars.network.hostName} dashboard";
       layout = [ 
         {
           Monitoring = { style = "row"; columns = 2; };
@@ -47,10 +47,10 @@ in
           {
             "Home Assistant" = {
               icon = "home-assistant.png";
-              href = "http://${hostCfgVars.network.config.hostAddress}:8123";
+              href = "http://${hostMainIp}:8123";
               widget = {
                 type = "homeassistant";
-                url = "http://${hostCfgVars.network.config.hostAddress}:8123";
+                url = "http://${hostMainIp}:8123";
                 key = "{{HOMEPAGE_VAR_HOME_ASSISTANT_API_KEY}}";
               };
             };
@@ -58,7 +58,7 @@ in
           {
             "Frigate" = {
               icon = "frigate.png";
-              href = "https://${hostCfgVars.network.config.hostAddress}:8971";
+              href = "https://${hostMainIp}:8971";
               siteMonitor = "http://127.0.0.1:5001";
               description = "Home Security";
               widget = {
@@ -75,12 +75,12 @@ in
           {
             Jellyfin = {
               icon = "jellyfin.png";
-              href = "http://${hostCfgVars.network.config.hostAddress}:8096";
-              siteMonitor = "http://${hostCfgVars.network.config.hostAddress}:8096";
+              href = "http://${hostMainIp}:8096";
+              siteMonitor = "http://${hostMainIp}:8096";
               description = "Media Server";
               widget = {
                 type = "jellyfin";
-                url = "http://${hostCfgVars.network.config.hostAddress}:8096";
+                url = "http://${hostMainIp}:8096";
                 key = "{{HOMEPAGE_VAR_JELLYFIN_API_KEY}}";
               };
             };
@@ -88,12 +88,12 @@ in
           {
             Jellyseerr = {
               icon = "jellyseerr.png";
-              href = "http://${hostCfgVars.network.config.hostAddress}:5055";
-              siteMonitor = "http://${hostCfgVars.network.config.hostAddress}:5055";
+              href = "http://${hostMainIp}:5055";
+              siteMonitor = "http://${hostMainIp}:5055";
               description = "Media Requests";
               widget = {
                 type = "jellyseerr";
-                url = "http://${hostCfgVars.network.config.hostAddress}:5055";
+                url = "http://${hostMainIp}:5055";
                 key = "{{HOMEPAGE_VAR_JELLYSEERR_API_KEY}}";
               };
             };
@@ -101,12 +101,12 @@ in
           {
             sonarr = {
               icon = "sonarr.png";
-              href = "http://${hostCfgVars.network.config.hostAddress}:8989";
+              href = "http://${hostMainIp}:8989";
               description = "Media Management";
-              siteMonitor = "http://${hostCfgVars.network.config.hostAddress}:8989";
+              siteMonitor = "http://${hostMainIp}:8989";
               widget = {
                 type = "sonarr";
-                url = "http://${hostCfgVars.network.config.hostAddress}:8989";
+                url = "http://${hostMainIp}:8989";
                 key = "{{HOMEPAGE_VAR_SONARR_API_KEY}}";
               };
             };
@@ -114,12 +114,12 @@ in
           {
             radarr = {
               icon = "radarr.png";
-              href = "http://${hostCfgVars.network.config.hostAddress}:7878";
+              href = "http://${hostMainIp}:7878";
               description = "Media Management";
-              siteMonitor = "http://${hostCfgVars.network.config.hostAddress}:7878";
+              siteMonitor = "http://${hostMainIp}:7878";
               widget = {
                 type = "radarr";
-                url = "http://${hostCfgVars.network.config.hostAddress}:7878";
+                url = "http://${hostMainIp}:7878";
                 key = "{{HOMEPAGE_VAR_RADARR_API_KEY}}";
               };
             };
@@ -131,7 +131,7 @@ in
           {
             Transmission = {
               icon = "transmission.png";
-              href = "http://10.11.20.10:9091";
+              href = "http://${hostMainIp}:9091";
               siteMonitor = "http://192.168.15.1:9091";
               widget = {
                 type = "transmission";
@@ -146,11 +146,11 @@ in
           {
             Grafana = {
               icon = "grafana.png";
-              href = "http://${hostCfgVars.network.config.hostAddress}:${toString config.monitoring.grafana.port}";
-              siteMonitor = "http://${hostCfgVars.network.config.hostAddress}:${toString config.monitoring.grafana.port}";
+              href = "http://${hostMainIp}:${toString config.monitoring.grafana.port}";
+              siteMonitor = "http://${hostMainIp}:${toString config.monitoring.grafana.port}";
               widget = {
                 type = "grafana";
-                url = "http://${hostCfgVars.network.config.hostAddress}:${toString config.monitoring.grafana.port}";
+                url = "http://${hostMainIp}:${toString config.monitoring.grafana.port}";
                 username = "admin";
                 # password = "{{HOMEPAGE_VAR_GRAFANA_PASSWORD}}"; # TODO: fix; don't forget to change environment variable
               };

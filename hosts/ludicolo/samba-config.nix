@@ -1,11 +1,11 @@
-{config, lib, ...}:
+{ config, hostMainIp, ... }:
 
 let
   hostCfgVars = config.host.vars;
 in
 {
-  sambaProvisioner.hostName = hostCfgVars.network.config.hostName;
-  sambaProvisioner.hostIp = "${hostCfgVars.network.config.hostAddress}/32";
+  sambaProvisioner.hostName = hostCfgVars.network.hostName;
+  sambaProvisioner.hostIp = "${hostMainIp}/32";
   sambaProvisioner.users = [
     { name = "ashley"; 
       passwordFile = config.age.secrets.ashley-samba-user-pw.path; 
@@ -21,7 +21,7 @@ in
   services.samba.settings = {
     ludicolo-rust = {
       browseable = "yes";
-      comment = "${hostCfgVars.network.config.hostName} Rust Pool";
+      comment = "${hostCfgVars.network.hostName} Rust Pool";
       "guest ok" = "no";
       path = hostCfgVars.storage.paths.bulkStorage;
       writable = "yes";

@@ -12,8 +12,8 @@ in
   imports = [
     ./hardware-configuration.nix
     ./disk-config.nix
-    ./homepage-config.nix 
-    ./samba-config.nix
+    (import ./homepage-config.nix { inherit config hostMainIp; })
+    (import ./samba-config.nix { inherit config hostMainIp; })
   ];
 
   # -------------------------------- HOST VARIABLES --------------------------------
@@ -63,22 +63,25 @@ in
   # -------------------------------- SECRETS --------------------------------
 
   age.secrets = {
+    # System
     castform-main-user-password.file = "${secretsAbsolutePath}/castform-main-user-password.age";
-    mullvad-wireguard-config.file = "${secretsAbsolutePath}/wg-mullvad-dondozo.conf.age";
+    sops-key.file = "${secretsAbsolutePath}/keys/sops-key.agekey.age";
+
+    # Samba Users
     ashley-samba-user-pw.file = "${secretsAbsolutePath}/samba-ashley-password.age";
     media-samba-user-pw.file = "${secretsAbsolutePath}/samba-media-password.age";
+    home-assistant-backup-samba-user-pw.file = "${secretsAbsolutePath}/samba-home-assistant-backup-password.age";
+
+    # Apps
+    mullvad-wireguard-config.file = "${secretsAbsolutePath}/wg-mullvad-dondozo.conf.age";
     dondozo-homepage-vars.file = "${secretsAbsolutePath}/dondozo-homepage-vars.age";
-    sops-key.file = "${secretsAbsolutePath}/keys/sops-key.agekey.age";
-    
     grafana-admin-password = {
       file = "${secretsAbsolutePath}/grafana-admin-password.age";
       owner = "grafana";
       group = "root";
       mode = "440";
     };
-
     paperless-password.file = "${secretsAbsolutePath}/paperless-password.age";
-    home-assistant-backup-samba-user-pw.file = "${secretsAbsolutePath}/samba-home-assistant-backup-password.age";
   };
 
   common.secrets.sopsKeyPath = "${secretsAbsolutePath}/keys/sops-key.agekey.age";

@@ -1,12 +1,12 @@
-{config, lib, ...}:
+{config, hostMainIp, ...}:
 
 let
   hostCfgVars = config.host.vars;
 in
 {
   sambaProvisioner = {
-    hostName = hostCfgVars.network.config.hostName;
-    hostIp = "${hostCfgVars.network.config.hostAddress}/32";
+    hostName = hostCfgVars.network.hostName;
+    hostIp = "${hostMainIp}/32";
     users = [
       { name = "ashley"; 
         passwordFile = config.age.secrets.ashley-samba-user-pw.path; 
@@ -29,7 +29,7 @@ in
   services.samba.settings = {
     shuurinet-rust = {
       browseable = "yes";
-      comment = "${hostCfgVars.network.config.hostName} Rust Pool";
+      comment = "${hostCfgVars.network.hostName} Rust Pool";
       "guest ok" = "no";
       path = hostCfgVars.storage.paths.bulkStorage;
       writable = "yes";
@@ -39,7 +39,7 @@ in
     };
     shuurinet-data = {
       browseable = "yes";
-      comment = "${hostCfgVars.network.config.hostName} Rust Pool";
+      comment = "${hostCfgVars.network.hostName} Rust Pool";
       "guest ok" = "no";
       path = hostCfgVars.storage.paths.fastStorage;
       writable = "yes";
@@ -49,7 +49,7 @@ in
     };
     shuurinet-editing = {
       browseable = "yes";
-      comment = "${hostCfgVars.network.config.hostName} Rust Pool";
+      comment = "${hostCfgVars.network.hostName} Rust Pool";
       "guest ok" = "no";
       path = hostCfgVars.storage.paths.editingStorage;
       writable = "yes";
@@ -59,7 +59,7 @@ in
     };
     media = {
       browseable = "yes";
-      comment = "${hostCfgVars.network.config.hostName} Rust Pool";
+      comment = "${hostCfgVars.network.hostName} Rust Pool";
       "guest ok" = "no";
       path = "${hostCfgVars.storage.directories.media}";
       writable = "yes";
@@ -69,7 +69,7 @@ in
     };
     home-assistant-backups = {
       browseable = "yes";
-      comment = "${hostCfgVars.network.config.hostName} Home Assistant Backups";
+      comment = "${hostCfgVars.network.hostName} Home Assistant Backups";
       "guest ok" = "no";
       path = "${hostCfgVars.storage.directories.backups}/home-assistant";
       writable = "yes";
