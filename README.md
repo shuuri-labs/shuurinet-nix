@@ -2,7 +2,7 @@
 
 #### Checkout a new deployment branch 
 
-```
+```bash
 # name format is important! must be as below
 git checkout -b deploy-<host_name>
 ```
@@ -92,9 +92,9 @@ Service/module called `git-clone-config` will take care of git cloning config in
 The service will only run once - it checks if `~/shuurinet-nix` contains _only_ the `secrets` directory. If so, it knows that this is a fresh deployment, and will overwrite the config repo with the cloned git repo. 
 #### Router-Specific 
 
-If deploying your router, update `openwrt-imagebuilder`'s input in `flake.nix`. Instructions on how to do so in the aforementioned file. If after pinning to the latest commit, you're still getting a `hash mismatch` error, then refer to the instructions in `~/shuurinet-nix/openwrt/image-definitions/builder-extractor/README.md`.
+If deploying your router, update `openwrt-imagebuilder`'s input in `flake.nix`. Instructions on how to do so in the aforementioned file. If after pinning to the latest commit you're still getting a `hash mismatch` error, then refer to the instructions in `~/shuurinet-nix/openwrt/image-definitions/builder-extractor/README.md`.
 
-Don't forget to set `deploymentMode` to true in the `let` block of the router host's configuration.nix. Once fully deployed, disable and switch to the router VM for internet access. 
+Don't forget to set `deploymentMode` to `true` in the `let` block of the router host's configuration.nix. Once fully deployed, disable and switch to the router VM for internet access. 
 #### Notes & Quirks
 
 Virtualisation module currently doesn't play nice with nixos-anywhere. Comment out any config related to it for the deployment. Once deployed, re-enable. 
