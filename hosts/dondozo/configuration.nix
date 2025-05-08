@@ -68,6 +68,7 @@ in
     ashley-samba-user-pw.file = "${secretsAbsolutePath}/samba-ashley-password.age";
     media-samba-user-pw.file = "${secretsAbsolutePath}/samba-media-password.age";
     dondozo-homepage-vars.file = "${secretsAbsolutePath}/dondozo-homepage-vars.age";
+    sops-key.file = "${secretsAbsolutePath}/keys/sops-key.agekey.age";
     
     grafana-admin-password = {
       file = "${secretsAbsolutePath}/grafana-admin-password.age";
@@ -79,6 +80,8 @@ in
     paperless-password.file = "${secretsAbsolutePath}/paperless-password.age";
     home-assistant-backup-samba-user-pw.file = "${secretsAbsolutePath}/samba-home-assistant-backup-password.age";
   };
+
+  common.secrets.sopsKeyPath = "${secretsAbsolutePath}/keys/sops-key.agekey.age";
 
   # -------------------------------- DISK CONFIGURATION --------------------------------
 

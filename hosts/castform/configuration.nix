@@ -67,6 +67,8 @@ in
     sops-key.file = "${secretsAbsolutePath}/keys/sops-key.txt.age";
   };
 
+  common.secrets.sopsKeyPath = "${secretsAbsolutePath}/keys/sops-key.agekey.age";
+
   # -------------------------------- DISK CONFIGURATION --------------------------------
 
   zfs = {

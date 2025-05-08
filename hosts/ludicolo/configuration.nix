@@ -75,6 +75,7 @@ in
     ludicolo-homepage-vars.file = "${secretsAbsolutePath}/ludicolo-homepage-vars.age";
     netbird-management-url.file = "${secretsAbsolutePath}/netbird-management-url.age";
     ludicolo-netbird-master-setup-key.file = "${secretsAbsolutePath}/ludicolo-netbird-master-setup-key.age";
+    sops-key.file = "${secretsAbsolutePath}/keys/sops-key.agekey.age";
     
     grafana-admin-password = {
       file = "${secretsAbsolutePath}/grafana-admin-password.age";
@@ -86,6 +87,8 @@ in
     paperless-password.file = "${secretsAbsolutePath}/paperless-password.age";
     home-assistant-backup-samba-user-pw.file = "${secretsAbsolutePath}/samba-home-assistant-backup-password.age";
   };
+
+  common.secrets.sopsKeyPath = "${secretsAbsolutePath}/keys/sops-key.agekey.age";
 
   # -------------------------------- DISK CONFIGURATION --------------------------------
 
