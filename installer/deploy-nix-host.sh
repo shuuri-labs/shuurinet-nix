@@ -3,7 +3,7 @@
 # FIRST, CHECKOUT A NEW BRANCH FOR THIS HOST NAMED deploy-<hostname>
 # Add a /host/<hostname> dir with configuration.nix & disk-configuration.nix
 # Update flake.nix to include the new host
-# Commit and push
+# git commit + git push --set-upstream origin deploy-<hostname>
 # Then run this script
 
 # NOTE: If using virtualisation module, comment it out in config before running this script
