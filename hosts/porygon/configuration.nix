@@ -52,6 +52,8 @@ in
     };
   };
 
+  deployment.bootstrap.gitClone.host = hostCfgVars.network.hostName;
+
   # -------------------------------- SYSTEM CONFIGURATION --------------------------------
 
   boot.kernelParams = [
@@ -66,18 +68,18 @@ in
     python3
   ];
 
-  time.timeZone = "Europe/Berlin";
+  time.timeZone = "Europe/London";
 
   # Bootloader
   host.uefi-boot.enable = true;
 
-  # users.users.ashley.hashedPasswordFile = config.age.secrets.castform-main-user-password.path;
-  users.users.ashley.password = "temporary123";
+  users.users.ashley.hashedPasswordFile = config.age.secrets.castform-main-user-password.path;
+  # users.users.ashley.password = "temporary123";
 
-  swapDevices = [{
-    device = "/swapfile";
-    size = 16 * 1024; # 16GB
-  }];
+  # swapDevices = [{
+  #   device = "/swapfile";
+  #   size = 16 * 1024; # 16GB
+  # }];
 
   # -------------------------------- HARDWARE CONFIGURATION --------------------------------
 
@@ -90,6 +92,7 @@ in
   age.secrets = {
     sops-key.file = "${secretsAbsolutePath}/keys/sops-key.agekey.age";
     netbird-management-url.file = "${secretsAbsolutePath}/netbird-management-url.age";
+    castform-main-user-password.file = "${secretsAbsolutePath}/castform-main-user-password.age";
 
     obsd-couchdb-config = {  
       file = "${secretsAbsolutePath}/obsd-couchdb-config.ini.age";

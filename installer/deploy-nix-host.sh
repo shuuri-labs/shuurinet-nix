@@ -3,7 +3,7 @@
 # FIRST, CHECKOUT A NEW BRANCH FOR THIS HOST NAMED deploy-<hostname>
 # Add a /host/<hostname> dir with configuration.nix & disk-configuration.nix
 # Update flake.nix to include the new host
-# Commit and push
+# git commit + git push --set-upstream origin deploy-<hostname>
 # Then run this script
 
 # NOTE: If using virtualisation module, comment it out in config before running this script
@@ -35,9 +35,11 @@ ssh-keygen -t ed25519 \
 HOST_KEY=$(cat "$temp/etc/ssh/ssh_host_ed25519_key.pub")
 USER_KEY=$(cat "$temp/home/ashley/.ssh/id_ed25519.pub")
 
+KEY_TITLE="ashley@$TARGET_HOST"
 # Check if host key already exists on github and delete it if so
 EXISTING_KEY=$(curl -s -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/user/keys \
-  | jq '.[] | select(.title == "My Key") | .id')
+  | jq --arg title "$KEY_TITLE" '.[] | select(.title == $title) | .id')
+
 
 if [ -n "$EXISTING_KEY" ]; then
   curl -X DELETE -H "Authorization: token $GITHUB_TOKEN" \
@@ -45,16 +47,19 @@ if [ -n "$EXISTING_KEY" ]; then
 fi
 
 # Add new user key to github
-curl -H "Authorization: token $GITHUB_TOKEN" \
-     -H "Content-Type: application/json" \
-     -d '{"title":"ashley@$TARGET_HOST","key":"$USER_KEY"}' \
-     https://api.github.com/user/keys
+jq -n --arg title "$KEY_TITLE" --arg key "$USER_KEY" \
+  '{title: $title, key: $key}' | \
+  curl -H "Authorization: token $GITHUB_TOKEN" \
+       -H "Content-Type: application/json" \
+       -d @- https://api.github.com/user/keys
 
 # Show host public key for agenix
 echo -e "\nCopy into secrets/secrets.nix:"
-echo "\n$TARGET_HOST = \"$HOST_KEY\";"
-echo "\n$TARGET_HOST-user = \"$USER_KEY\";"
-echo -e "\nAdd new hosts to secrets = [ ... ], run secrets/rekey-new-host.sh, and then press Enter to continue with deployment..."
+echo "$TARGET_HOST = \"$HOST_KEY\";"
+echo "$TARGET_HOST-user = \"$USER_KEY\";"
+echo -e "\nAdd new hosts to secrets = [ ... ]:"
+echo " $TARGET_HOST $TARGET_HOST-user "
+echo -e "\nRun secrets/rekey-new-host.sh, and then press Enter to continue with deployment..."
 read -r
 
 # Copy secrets only (full config is copied in post-deployment-bootstrap module), exclude .DS_Store if running on MacOS
