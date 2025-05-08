@@ -72,7 +72,7 @@ in
   config = lib.mkIf cfg.enabled {
     systemd.services.git-clone-config = {
       description = "Git clone nix config";
-      # wantedBy = [ "multi-user.target" ];
+      wantedBy = [ "multi-user.target" ];
       serviceConfig = {
         Type = "oneshot";
         User = cfg.user;
