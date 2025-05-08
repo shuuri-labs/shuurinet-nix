@@ -92,6 +92,7 @@ in
   age.secrets = {
     sops-key.file = "${secretsAbsolutePath}/keys/sops-key.agekey.age";
     netbird-management-url.file = "${secretsAbsolutePath}/netbird-management-url.age";
+    castform-main-user-password.file = "${secretsAbsolutePath}/castform-main-user-password.age";
 
     obsd-couchdb-config = {  
       file = "${secretsAbsolutePath}/obsd-couchdb-config.ini.age";
