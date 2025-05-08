@@ -20,6 +20,9 @@ let
     REPO_URL="git@github.com:${cfg.githubAccount}/${cfg.repo}.git"
     CLONE_CMD="${pkgs.git}/bin/git clone --recurse-submodules"
 
+    # Give network a moment to fully initialize
+    ${pkgs.coreutils}/bin/sleep 10
+
     if ${pkgs.git}/bin/git ls-remote --heads $REPO_URL ${cfg.branch} | ${pkgs.gnugrep}/bin/grep -q ${cfg.branch}; then
       GIT_SSH_COMMAND="${pkgs.openssh}/bin/ssh -o StrictHostKeyChecking=no" $CLONE_CMD -b ${cfg.branch} $REPO_URL ~/${cfg.repo}
     else
@@ -76,8 +79,22 @@ in
     systemd.services.git-clone-config = {
       description = "Git clone nix config";
       wantedBy = [ "multi-user.target" ];
-      after = [ "network-online.target" "systemd-resolved.service" "ssh-agent.service" ];
-      wants = [ "network-online.target" "systemd-resolved.service" "ssh-agent.service" ];
+      after = [
+        "network-online.target"
+        "systemd-resolved.service"
+        "ssh-agent.service"
+        "systemd-networkd.service"
+        "network.target"
+        "nss-lookup.target"
+      ];
+      wants = [
+        "network-online.target"
+        "systemd-resolved.service"
+        "ssh-agent.service"
+        "systemd-networkd.service"
+        "network.target"
+        "nss-lookup.target"
+      ];
       serviceConfig = {
         Type = "oneshot";
         User = cfg.user;
