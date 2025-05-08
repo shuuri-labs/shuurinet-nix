@@ -7,7 +7,7 @@ let
 
     if [ -d ~/${cfg.repo} ]; then
       # Check if directory only contains secrets folder
-      if [ "$(ls -A ~/${cfg.repo} | grep -v '^secrets$' | wc -l)" -eq 0 ]; then
+      if [ "$(${pkgs.coreutils}/bin/ls -A ~/${cfg.repo} | ${pkgs.gnugrep}/bin/grep -v '^\.$' | ${pkgs.gnugrep}/bin/grep -v '^\.\.$' | ${pkgs.gnugrep}/bin/grep -v '^secrets$' | ${pkgs.coreutils}/bin/wc -l)" -eq 0 ]; then
         echo "Directory exists but only contains secrets folder, proceeding with clone"
         rm -rf ~/${cfg.repo}
       else
@@ -20,7 +20,7 @@ let
     REPO_URL="git@github.com:${cfg.githubAccount}/${cfg.repo}.git"
     CLONE_CMD="${pkgs.git}/bin/git clone --recurse-submodules"
 
-    if ${pkgs.git}/bin/git ls-remote --heads $REPO_URL ${cfg.branch} | grep -q ${cfg.branch}; then
+    if ${pkgs.git}/bin/git ls-remote --heads $REPO_URL ${cfg.branch} | ${pkgs.gnugrep}/bin/grep -q ${cfg.branch}; then
       GIT_SSH_COMMAND="${pkgs.openssh}/bin/ssh -o StrictHostKeyChecking=no" $CLONE_CMD -b ${cfg.branch} $REPO_URL ~/${cfg.repo}
     else
       echo "Branch ${cfg.branch} not found, falling back to develop"
@@ -84,7 +84,7 @@ in
         Group = cfg.user;
         ExecStart = "${cloneCmd}";
         Environment = [
-          "PATH=${lib.makeBinPath [ pkgs.git pkgs.openssh ]}:$PATH"
+          "PATH=${lib.makeBinPath [ pkgs.git pkgs.openssh pkgs.coreutils pkgs.gnugrep ]}:$PATH"
         ];
       };
     };
