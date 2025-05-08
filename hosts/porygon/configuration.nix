@@ -68,7 +68,7 @@ in
     python3
   ];
 
-  time.timeZone = "Europe/Berlin";
+  time.timeZone = "Europe/London";
 
   # Bootloader
   host.uefi-boot.enable = true;
