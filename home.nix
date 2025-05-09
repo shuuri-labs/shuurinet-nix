@@ -43,7 +43,7 @@
         # List all disk devices
         for disk in $(lsblk -d -n -o NAME,TYPE | awk '$2 == "disk" {print $1}'); do
           echo "SMART status for /dev/$disk:"
-          sudo smartctl -H /dev/$disk
+          sudo smartctl --all /dev/$disk
           echo
         done
       '';
