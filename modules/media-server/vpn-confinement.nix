@@ -62,6 +62,7 @@ in
       enable = true;
       wireguardConfigFile = cfg.wireguardConfigFile;
       accessibleFrom = [
+        "127.0.0.1/32"
         "${cfg.lanSubnet}.0/24"
       ];
       portMappings = [

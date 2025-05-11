@@ -218,6 +218,11 @@ in
         destinationPort = 8082;
       };
 
+      "grafana" = {
+        name = "grafana";
+        destinationPort = 3000;
+      };
+
       "frigate" = {
         name = "frigate";
         destinationPort = 5001;
@@ -226,6 +231,27 @@ in
       "jellyfin" = {
         name = "jellyfin";
         destinationPort = 8096;
+      };
+
+      "jellyseerr" = {
+        name = "requests";
+        destinationPort = 5055;
+      };
+
+      "sonarr" = {
+        name = "sonarr";
+        destinationPort = 8989;
+      };
+
+      "radarr" = {
+        name = "radarr";
+        destinationPort = 7878;
+      };
+
+      "transmission" = {
+        name = "transmission";
+        destinationPort = 9091;
+        destinationAddress = "192.168.15.1";
       };
     };
   };

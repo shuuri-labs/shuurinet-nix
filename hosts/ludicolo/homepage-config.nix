@@ -76,11 +76,11 @@ in
             Jellyfin = {
               icon = "jellyfin.png";
               href = "https://jellyfin.ldn.shuuri.net";
-              siteMonitor = "http://${hostMainIp}:8096";
+              siteMonitor = "http://127.0.0.1:8096";
               description = "Media Server";
               widget = {
                 type = "jellyfin";
-                url = "http://${hostMainIp}:8096";
+                url = "http://127.0.0.1:8096";
                 key = "{{HOMEPAGE_VAR_JELLYFIN_API_KEY}}";
               };
             };
@@ -88,12 +88,12 @@ in
           {
             Jellyseerr = {
               icon = "jellyseerr.png";
-              href = "http://${hostMainIp}:5055";
-              siteMonitor = "http://${hostMainIp}:5055";
+              href = "https://requests.ldn.shuuri.net";
+              siteMonitor = "http://127.0.0.1:5055";
               description = "Media Requests";
               widget = {
                 type = "jellyseerr";
-                url = "http://${hostMainIp}:5055";
+                url = "http://127.0.0.1:5055";
                 key = "{{HOMEPAGE_VAR_JELLYSEERR_API_KEY}}";
               };
             };
@@ -101,12 +101,12 @@ in
           {
             sonarr = {
               icon = "sonarr.png";
-              href = "http://${hostMainIp}:8989";
+              href = "https://sonarr.ldn.shuuri.net";
               description = "Media Management";
-              siteMonitor = "http://${hostMainIp}:8989";
+              siteMonitor = "http://127.0.0.1:8989";
               widget = {
                 type = "sonarr";
-                url = "http://${hostMainIp}:8989";
+                url = "http://127.0.0.1:8989";
                 key = "{{HOMEPAGE_VAR_SONARR_API_KEY}}";
               };
             };
@@ -114,12 +114,12 @@ in
           {
             radarr = {
               icon = "radarr.png";
-              href = "http://${hostMainIp}:7878";
+              href = "https://radarr.ldn.shuuri.net";
               description = "Media Management";
-              siteMonitor = "http://${hostMainIp}:7878";
+              siteMonitor = "http://127.0.0.1:7878";
               widget = {
                 type = "radarr";
-                url = "http://${hostMainIp}:7878";
+                url = "http://127.0.0.1:7878";
                 key = "{{HOMEPAGE_VAR_RADARR_API_KEY}}";
               };
             };
@@ -131,7 +131,7 @@ in
           {
             Transmission = {
               icon = "transmission.png";
-              href = "http://${hostMainIp}:9091";
+              href = "https://transmission.ldn.shuuri.net";
               siteMonitor = "http://192.168.15.1:9091";
               widget = {
                 type = "transmission";
@@ -146,11 +146,11 @@ in
           {
             Grafana = {
               icon = "grafana.png";
-              href = "http://${hostMainIp}:${toString config.monitoring.grafana.port}";
-              siteMonitor = "http://${hostMainIp}:${toString config.monitoring.grafana.port}";
+              href = "https://grafana.ldn.shuuri.net";
+              siteMonitor = "http://127.0.0.1:${toString config.monitoring.grafana.port}";
               widget = {
                 type = "grafana";
-                url = "http://${hostMainIp}:${toString config.monitoring.grafana.port}";
+                url = "http://127.0.0.1:${toString config.monitoring.grafana.port}";
                 username = "admin";
                 # password = "{{HOMEPAGE_VAR_GRAFANA_PASSWORD}}"; # TODO: fix; don't forget to change environment variable
               };
