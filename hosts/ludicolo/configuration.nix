@@ -68,7 +68,7 @@ in
     # System
     castform-main-user-password.file = "${secretsAbsolutePath}/castform-main-user-password.age";
     sops-key.file = "${secretsAbsolutePath}/keys/sops-key.agekey.age";
-
+    caddy-cloudflare.file = "${secretsAbsolutePath}/caddy-cloudflare.env.age";
     # Samba Users
     ashley-samba-user-pw.file = "${secretsAbsolutePath}/samba-ashley-password.age";
     media-samba-user-pw.file = "${secretsAbsolutePath}/samba-media-password.age";
@@ -200,6 +200,34 @@ in
         hostInterface = "br0";
         hostSubnet = config.homelab.networks.subnets.ldn.ipv4;
         hostGateway = config.homelab.networks.subnets.ldn.gateway;
+      };
+    };
+  };
+
+
+  # -------------------------------- CADDY --------------------------------
+
+  caddy = {
+    enable = true;
+    environmentFile = config.age.secrets.caddy-cloudflare.path;
+
+    virtualHosts = {
+      "home-manager" = {
+        name = "ludicolo";
+        destinationPort = 8082;
+        site = "ldn";
+      };
+
+      "frigate" = {
+        name = "frigate";
+        destinationPort = 5001;
+        site = "ldn";
+      };
+
+      "jellyfin" = {
+        name = "jellyfin";
+        destinationPort = 8096;
+        site = "ldn";
       };
     };
   };

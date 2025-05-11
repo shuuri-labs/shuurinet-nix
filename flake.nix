@@ -142,6 +142,7 @@
             ./modules/monitoring
             ./modules/netbird/router
             ./modules/frigate
+            ./modules/caddy
             inputs.vpn-confinement.nixosModules.default
             inputs.virtualisation.nixosModules.default
           ] "x86_64-linux";
