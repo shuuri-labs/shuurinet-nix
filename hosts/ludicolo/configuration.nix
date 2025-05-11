@@ -210,24 +210,22 @@ in
   caddy = {
     enable = true;
     environmentFile = config.age.secrets.caddy-cloudflare.path;
+    defaultSite = "ldn";
 
     virtualHosts = {
       "home-manager" = {
         name = "ludicolo";
         destinationPort = 8082;
-        site = "ldn";
       };
 
       "frigate" = {
         name = "frigate";
         destinationPort = 5001;
-        site = "ldn";
       };
 
       "jellyfin" = {
         name = "jellyfin";
         destinationPort = 8096;
-        site = "ldn";
       };
     };
   };

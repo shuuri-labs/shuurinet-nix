@@ -58,7 +58,7 @@ in
           {
             "Frigate" = {
               icon = "frigate.png";
-              href = "https://${hostMainIp}:8971";
+              href = "https://frigate.ldn.shuuri.net";
               siteMonitor = "http://127.0.0.1:5001";
               description = "Home Security";
               widget = {
@@ -75,7 +75,7 @@ in
           {
             Jellyfin = {
               icon = "jellyfin.png";
-              href = "http://${hostMainIp}:8096";
+              href = "https://jellyfin.ldn.shuuri.net";
               siteMonitor = "http://${hostMainIp}:8096";
               description = "Media Server";
               widget = {

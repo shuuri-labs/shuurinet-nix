@@ -1,6 +1,7 @@
 { config, lib, pkgs, inputs, ... }:
 let
   cfg = config.caddy;
+  siteEnum = lib.types.enum [ "ldn" "bln" "tats" ];
 in
 {
   options.caddy = {
@@ -11,8 +12,12 @@ in
       description = "Path to the environment file";
     };
 
+    defaultSite = lib.mkOption {
+      type = lib.types.nullOr siteEnum;
+    };
+
     virtualHosts = lib.mkOption {
-      type = lib.types.attrsOf (lib.types.submodule ({
+      type = lib.types.attrsOf (lib.types.submodule ({ config, ... }: {
         options = {
           name = lib.mkOption {
             type = lib.types.str;
@@ -24,7 +29,8 @@ in
           };
 
           site = lib.mkOption {
-            type = lib.types.nullOr (lib.types.enum [ "ldn" "bln" "tats" ]);
+            type = lib.types.nullOr siteEnum;
+            default = cfg.defaultSite;
           };
 
           destinationAddress = lib.mkOption {
