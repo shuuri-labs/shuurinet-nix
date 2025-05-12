@@ -10,6 +10,8 @@ let
 
   hostIdentifier = "10";
   hostMainIp = "${config.homelab.networks.subnets.ldn.ipv4}.${hostIdentifier}";
+
+  kanidmCert = (import ../../lib/utils/mkCertForDomain.nix { inherit pkgs lib; }).mkCertForDomain "kanidm" "auth.ldn.shuuri.net";
 in
 {
   imports = [
@@ -207,6 +209,16 @@ in
 
   # -------------------------------- CADDY --------------------------------
 
+  kanidm = {
+    enable = true;
+
+    tls_chain = "${kanidmCert}/kanidm.pem";
+    tls_key = "${kanidmCert}/kanidm-key.pem";
+
+    adminPasswordFile = config.age.secrets.castform-main-user-password.path;
+    idmAdminPasswordFile = config.age.secrets.castform-main-user-password.path;
+  };
+
   caddy = {
     enable = true;
     environmentFile = config.age.secrets.caddy-cloudflare.path;
@@ -225,7 +237,14 @@ in
 
       "frigate" = {
         name = "frigate";
-        destinationPort = 5001;
+        destinationAddress = "https://127.0.0.1";
+        destinationPort = 8971;
+
+        proxyExtraConfig = ''
+          transport http {
+            tls_insecure_skip_verify
+          }
+        '';
       };
 
       "jellyfin" = {
@@ -251,8 +270,26 @@ in
       "transmission" = {
         name = "transmission";
         destinationPort = 9091;
-        destinationAddress = "192.168.15.1";
+        destinationAddress = "http://192.168.15.1";
+      };
+
+      "kanidm" = {
+        name = "auth";
+        destinationPort = 8443;
+        destinationAddress = "https://127.0.0.1";
+
+        proxyExtraConfig = ''
+          header_up X-Forwarded-For {remote_host}
+          header_up X-Forwarded-Proto {scheme}
+
+          transport http {
+            tls_trusted_ca_certs ${kanidmCert}/ca.pem
+            tls_client_auth ${kanidmCert}/kanidm.pem ${kanidmCert}/kanidm-key.pem
+          }
+        '';
       };
     };
   };
 }
+
+# tls_insecure_skip_verify

@@ -46,6 +46,16 @@ in
             type = lib.types.str;
             default = "dns cloudflare {env.CF_API_KEY_TOKEN}";
           };
+
+          proxyExtraConfig = lib.mkOption {
+            type = lib.types.str;
+            default = "";
+          };
+
+          extraConfig = lib.mkOption {
+            type = lib.types.str;
+            default = "";
+          };
         };
       }));
     };
@@ -71,11 +81,15 @@ in
       virtualHosts = lib.mkMerge (map (host: {
         "${host.name}${lib.optionalString (host.site != null) ".${host.site}"}.${host.baseUrl}" = {
           extraConfig = ''
-            reverse_proxy ${host.destinationAddress}:${toString host.destinationPort}
+            reverse_proxy ${host.destinationAddress}:${toString host.destinationPort} {
+              ${host.proxyExtraConfig}
+            }
 
             tls {
               ${host.tls}
             }
+
+            ${host.extraConfig}
           '';
         };
       }) (lib.attrsets.mapAttrsToList (name: value: value) cfg.virtualHosts));
