@@ -131,7 +131,7 @@ in
           {
             Transmission = {
               icon = "transmission.png";
-              href = "https://transmission.ldn.shuuri.net";
+              href = "http://10.11.20.10:9091";
               siteMonitor = "http://192.168.15.1:9091";
               widget = {
                 type = "transmission";

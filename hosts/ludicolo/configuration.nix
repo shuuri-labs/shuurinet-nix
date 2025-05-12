@@ -86,6 +86,11 @@ in
       owner = "grafana";
       group = "grafana";
     };
+    kanidm-admin-password = {
+      file = "${secretsAbsolutePath}/kanidm-admin-password.age";
+      owner = "kanidm";
+      group = "kanidm";
+    };
     paperless-password.file = "${secretsAbsolutePath}/paperless-password.age";
   };
 
@@ -205,9 +210,8 @@ in
       };
     };
   };
-
-
-  # -------------------------------- CADDY --------------------------------
+  
+  # -------------------------------- SECURITY --------------------------------
 
   kanidm = {
     enable = true;
@@ -215,9 +219,16 @@ in
     tls_chain = "${kanidmCert}/kanidm.pem";
     tls_key = "${kanidmCert}/kanidm-key.pem";
 
-    adminPasswordFile = config.age.secrets.castform-main-user-password.path;
-    idmAdminPasswordFile = config.age.secrets.castform-main-user-password.path;
+    adminPasswordFile = config.age.secrets.kanidm-admin-password.path;
+    idmAdminPasswordFile = config.age.secrets.kanidm-admin-password.path;
   };
+
+  # Add our CA certificates to the system's 'trusted' store
+  security.pki.certificateFiles = [
+    "${kanidmCert}/ca.pem"
+  ];
+
+  # -------------------------------- REVERSE PROXY --------------------------------
 
   caddy = {
     enable = true;

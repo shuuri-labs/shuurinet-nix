@@ -1,18 +1,6 @@
 { config, lib, pkgs, ... }:
 let
   cfg = config.kanidm;
-
-  # Build a self-signed leaf cert for auth.ldn.shuuri.net
-  mkCert = domain: pkgs.runCommand "cert" { } ''
-    HOME=$TMPDIR
-    ${pkgs.mkcert}/bin/mkcert -install
-    ${pkgs.mkcert}/bin/mkcert -cert-file ${domain}.pem -key-file ${domain}-key.pem "${domain}" "127.0.0.1"
-    mkdir $out
-    cp ${domain}.pem ${domain}-key.pem $out/
-    cp $HOME/.local/share/mkcert/rootCA.pem $out/ca.pem
-  '';
-
-  cert = mkCert "auth.ldn.shuuri.net";
 in
 {
   options.kanidm = {
@@ -39,18 +27,12 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    # Add the CA certificate to the system's trust store
-    security.pki.certificateFiles = [
-      "${cert}/ca.pem"
-      "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
-    ];
-
     environment.systemPackages = [
-      pkgs.kanidm_1_5
+      pkgs.kanidmWithSecretProvisioning_1_5
     ];
 
     services.kanidm = {
-      package = pkgs.kanidm_1_5;
+      package = pkgs.kanidmWithSecretProvisioning_1_5;
 
       enableServer = true;
 
@@ -64,6 +46,8 @@ in
       };
 
       provision = { 
+        enable = true;
+
         adminPasswordFile = cfg.adminPasswordFile;
         idmAdminPasswordFile = cfg.idmAdminPasswordFile;
 
@@ -74,8 +58,25 @@ in
             mailAddresses = [ "ashley@shuuri.net" ];
           };
         };
+
+        groups = {
+          "jellyfin-access" = {
+            present = true;
+            members = [ "ashley" ]; # can also add via provision.persons.<name>.groups
+          };
+        };
       };
     };
   };
 }
+
+# you can 'login' to the admin account in the terminal with:
+# sudo kanidm login -D admin --url https://127.0.0.1:8443
+
+# set the instance name that shows up in the UI. can't see a nix option for this (currently, 12/05/2025):
+# sudo kanidm system domain set-displayname --url https://127.0.0.1:8443  "shuurinet London"
+
+# users (even those defined in provision.persons) need to be enrolled manually:
+# sudo kanidmd recover-account <username> --url https://127.0.0.1:8443
+# sudo kanidm login -D <username> --url https://127.0.0.1:8443
 
