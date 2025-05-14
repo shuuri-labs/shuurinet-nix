@@ -238,6 +238,7 @@ in
     virtualHosts = {
       "home-manager" = {
         name = "ludicolo";
+        site = null;
         destinationPort = 8082;
       };
 
