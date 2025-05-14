@@ -2,7 +2,7 @@
 {
   disko.devices = {
     disk.disk1 = {
-      device = "/dev/disk/by-id/ata-SanDisk_SDSSDH3_250G_214676446013";
+      device = "/dev/disk/by-id/nvme-nvme.1e4b-313132343035303730313731363531-5445414d20544d3846504b30303154-00000001";
       type = "disk";
       content = {
         type = "gpt";
