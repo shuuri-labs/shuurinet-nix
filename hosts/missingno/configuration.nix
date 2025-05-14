@@ -83,7 +83,7 @@ in
   host.uefi-boot.enable = true;
 
   # users.users.ashley.hashedPasswordFile = config.age.secrets.castform-main-user-password.path;
-  # users.users.ashley.password = "temporary123";
+  users.users.ashley.password = "temporary123";
 
   swapDevices = [{
     device = "/swapfile";
