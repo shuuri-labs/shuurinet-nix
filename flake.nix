@@ -147,19 +147,20 @@
             inputs.virtualisation.nixosModules.default
           ] "x86_64-linux";
 
-          tatsugiri = mkNixosHost "tatsugiri" [
-            ./modules/uefi-boot
-            ./modules/virtualisation
-            ./modules/power-saving
-            ./modules/intel
-            ./modules/disk-care
-            ./modules/openwrt
-            ./modules/netbird/router
+          missingno = mkNixosHost "missingno" [
+            # ./modules/monitoring
             ./modules/homepage-dashboard
+            ./modules/hdd-spindown
+            ./modules/intel
+            ./modules/power-saving
+            ./modules/disk-care
             ./modules/iperf
-            ./modules/monitoring
+            ./modules/uefi-boot
+            ./modules/openwrt/configs/auto-deploy.nix
+            ./modules/netbird/router
+            inputs.vpn-confinement.nixosModules.default
+            inputs.virtualisation.nixosModules.default
           ] "x86_64-linux";
-        };
       };
 
       perSystem = { system, pkgs, ... }: {
