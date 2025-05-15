@@ -52,7 +52,7 @@
     };
 
     sessionVariables = {
-      SOPS_AGE_KEY_FILE = "/run/agenix/sops-key.agekey";
+      SOPS_AGE_KEY_FILE = "/run/agenix/sops-key";
     };
   };
 

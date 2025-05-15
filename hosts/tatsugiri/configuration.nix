@@ -12,6 +12,8 @@ let
   hostPrimaryIp = "${config.homelab.networks.subnets.bln-lan.ipv4}.${hostAddress}";
 
   deploymentMode = true;
+
+  
 in
 {
   imports = [
@@ -39,8 +41,8 @@ in
         # LAN
         {
           name = "br0";
-          subnet = config.homelab.networks.subnets.bln-lan;
-          identifier = hostAddress;
+          subnet = if deploymentMode then null else config.homelab.networks.subnets.bln-lan;
+          identifier = if deploymentMode then null else hostAddress;
           isPrimary = !deploymentMode;
           tapDevices = [ "opnwrt-tap" "haos-tap" ];
         }
@@ -64,7 +66,33 @@ in
 
   # -------------------------------- SYSTEM CONFIGURATION --------------------------------
 
-  systemd.services."br0-disabled-4-deployment" = lib.mkIf deploymentMode {
+  # systemd.services."br0-disabled-4-deployment" = lib.mkIf deploymentMode {
+  #   wantedBy = [ "multi-user.target" ];
+  #   after = [
+  #     "network-online.target"
+  #     "systemd-networkd.service"
+  #     "network.target"
+  #   ];
+  #   wants = [
+  #     "network-online.target"
+  #     "systemd-networkd.service"
+  #     "network.target"
+  #   ];
+    
+  #   serviceConfig = {
+  #     Type = "oneshot";
+  #     ExecStart = if deploymentMode then 
+  #     ''
+  #       ${pkgs.iproute2}/bin/ip link set br0 down
+  #     '' 
+  #     else 
+  #     ''
+  #       ${pkgs.iproute2}/bin/ip link set br0 up
+  #     '';
+  #   };
+  # };
+
+  systemd.services."fix-slow-ethernet" = {
     wantedBy = [ "multi-user.target" ];
     after = [
       "network-online.target"
@@ -79,7 +107,8 @@ in
     serviceConfig = {
       Type = "oneshot";
       ExecStart = ''
-        ${pkgs.iproute2}/bin/ip link set br0 down
+        ${pkgs.iproute2}/bin/ip link set eno1 mtu 1492
+        ${pkgs.ethtool}/bin/ethtool -C eno1 rx-usecs 768
       '';
     };
   };
@@ -91,6 +120,7 @@ in
 
   environment.systemPackages = with pkgs; [
     python3
+    ethtool
   ];
 
   time.timeZone = "Europe/Berlin";
@@ -115,7 +145,7 @@ in
   # -------------------------------- SECRETS --------------------------------
 
   age.secrets = {
-    sops-key.file = "${secretsAbsolutePath}/keys/sops-key.agekey.age";
+    sops-key.file = "${secretsAbsolutePath}/keys/sops-key.age";
     netbird-management-url.file = "${secretsAbsolutePath}/netbird-management-url.age";
 
     obsd-couchdb-config = {  
@@ -125,7 +155,7 @@ in
     };
   };
 
-  common.secrets.sopsKeyPath = "${secretsAbsolutePath}/keys/sops-key.agekey.age";
+  common.secrets.sopsKeyPath = config.age.secrets.sops-key.path;
 
   # -------------------------------- DISK CONFIGURATION --------------------------------
 
@@ -142,83 +172,83 @@ in
 
   # -------------------------------- Virtualisation & VMs --------------------------------
 
-  # virtualisation = {
-  #   intel.enable = true;
+  virtualisation = {
+    intel.enable = true;
     
-  #   qemu.manager = {
-  #     images = {
-  #       "openwrt" = {
-  #         enable = true;
-  #         # openwrt imagebuilder input is pinned to a specific revision to prevent updates upon flake update/rebuild -
-  #         # to update the image, see flake.nix openwrt-imagebuilder input
-  #         source = inputs.self.packages.${pkgs.system}.berlin-router-img;
-  #         sourceFormat = "raw";
-  #         compressedFormat = "gz";
-  #       };
+    qemu.manager = {
+      images = {
+        "openwrt" = {
+          enable = true;
+          # openwrt imagebuilder input is pinned to a specific revision to prevent updates upon flake update/rebuild -
+          # to update the image, see flake.nix openwrt-imagebuilder input
+          source = inputs.self.packages.${pkgs.system}.berlin-router-img;
+          sourceFormat = "raw";
+          compressedFormat = "gz";
+        };
         
-  #       "haos" = {
-  #         enable = true;
-  #         source = "https://github.com/home-assistant/operating-system/releases/download/15.2/haos_ova-15.2.qcow2.xz";
-  #         sourceFormat = "qcow2";
-  #         sourceSha256 = "0jbjajfnv3m37khk9446hh71g338xpnbnzxjij8v86plymxi063d";
-  #         compressedFormat = "xz";
-  #       };
-  #     };
+        "haos" = {
+          enable = true;
+          source = "https://github.com/home-assistant/operating-system/releases/download/15.2/haos_ova-15.2.qcow2.xz";
+          sourceFormat = "qcow2";
+          sourceSha256 = "0jbjajfnv3m37khk9446hh71g338xpnbnzxjij8v86plymxi063d";
+          compressedFormat = "xz";
+        };
+      };
 
-  #     # To 'factory reset VM, delete overlay in "/var/lib/vm/images" and restart service
-  #     # VM service names are the names of the service attribute sets below, e.g. "openwrt" or "home-assistant"
-  #     services = {
-  #       "openwrt" = {
-  #         enable     = true;
-  #         baseImage  = "openwrt";
-  #         uefi       = true;
-  #         memory     = 1024;
-  #         smp        = 8;
-  #         taps       = [ 
-  #           { name = "opnwrt-tap";      macAddress = "fe:b5:aa:0f:29:57"; }
-  #           { name = "opnwrt-apps-tap"; macAddress = "fe:b5:aa:0f:29:58"; }
-  #         ];
-  #         bridges    = [ "br0" "br1" ];
-  #         pciHosts   = [ 
-  #           { address = "01:00.0"; vendorDeviceId = "8086:150e"; } 
-  #           { address = "01:00.1"; }
-  #           { address = "01:00.2"; }
-  #           { address = "01:00.3"; }
-  #         ];
-  #         vncPort   = 1;
-  #       };
+      # To 'factory reset VM, delete overlay in "/var/lib/vm/images" and restart service
+      # VM service names are the names of the service attribute sets below, e.g. "openwrt" or "home-assistant"
+      services = {
+        "openwrt" = {
+          enable     = true;
+          baseImage  = "openwrt";
+          uefi       = true;
+          memory     = 1024;
+          smp        = 8;
+          taps       = [ 
+            { name = "opnwrt-tap";      macAddress = "fe:b5:aa:1f:29:24"; }
+            { name = "opnwrt-apps-tap"; macAddress = "fe:b5:aa:1f:29:21"; }
+          ];
+          bridges    = [ "br0" "br1" ];
+          pciHosts   = [ 
+            { address = "01:00.0"; vendorDeviceId = "8086:150e"; } 
+            { address = "01:00.1"; }
+            { address = "01:00.2"; }
+            { address = "01:00.3"; }
+          ];
+          vncPort   = 1;
+        };
 
-  #       "home-assistant" = {
-  #         enable     = true;
-  #         baseImage  = "haos";
-  #         uefi       = true;
-  #         memory     = 3072;
-  #         smp        = 2;
-  #         taps       = [ 
-  #           { name = "haos-tap"; macAddress = "ce:b0:37:6c:1a:ff"; }
-  #         ];
-  #         bridges    = [ "br0" ];
-  #         rootScsi   = true;
-  #         vncPort    = 2;
-  #       };
-  #     };
-  #   };
-  # };
+        "home-assistant" = {
+          enable     = true;
+          baseImage  = "haos";
+          uefi       = true;
+          memory     = 3072;
+          smp        = 2;
+          taps       = [ 
+            { name = "haos-tap"; macAddress = "ce:b0:37:6d:1a:de"; }
+          ];
+          bridges    = [ "br0" ];
+          rootScsi   = true;
+          vncPort    = 2;
+        };
+      };
+    };
+  };
 
-  # ## OpenWrt Config Auto-Deploy
-  # openwrt.config-auto-deploy = {
-  #   enable = true;
-  #   sopsAgeKeyFile = config.age.secrets.sops-key.path;
+  # OpenWrt Config Auto-Deploy
+  openwrt.config-auto-deploy = {
+    enable = true;
+    sopsAgeKeyFile = config.age.secrets.sops-key.path;
 
-  #   configs = {
-  #     vm-test-router-config = {
-  #       drv = inputs.self.packages.${pkgs.system}.vm-test-router-config;
-  #       imageDrv = inputs.self.packages.${pkgs.system}.berlin-router-img;
-  #       serviceName = "openwrt";
-  #       host = "192.168.11.51";
-  #     };  
-  #   };
-  # };
+    configs = {
+      berlin-router-config = {
+        drv = inputs.self.packages.${pkgs.system}.berlin-router-config;
+        imageDrv = inputs.self.packages.${pkgs.system}.berlin-router-img;
+        serviceName = "openwrt";
+        host = "192.168.11.1";
+      };  
+    };
+  };
 
   ### Containers
   netbird.router = {
