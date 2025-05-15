@@ -2,16 +2,16 @@
 let
   common = import ./common.nix;
 
-  lanBridge = common.mkBridge [ "eth0" "eth1" "eth2" "eth3" ];
+  lanBridge = common.mkBridge [ "eth0" "eth2" "eth3" "eth4" ];
   lanBridgeVlans = common.mkBridgeVlans {
-    trunkPorts = [ "eth1" "eth2" ];
-    lanPorts   = [ "eth0" "eth3" ];
+    trunkPorts = [ "eth2" "eth3" ];
+    lanPorts   = [ "eth0" "eth2" ];
   };
 
   interfaces = common.mkInterfaces {
     hostAddress = 1;
-    # dnsAddress  = 1;
-    # setGateway  = true;
+    dnsAddress  = 1;
+    setGateway  = true;
   }; 
 
   firewallZones      = common.firewallZones;
