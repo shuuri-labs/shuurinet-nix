@@ -147,7 +147,7 @@
             inputs.virtualisation.nixosModules.default
           ] "x86_64-linux";
 
-          missingno = mkNixosHost "missingno" [
+          tatsugiri = mkNixosHost "tatsugiri" [
             # ./modules/monitoring
             ./modules/homepage-dashboard
             ./modules/hdd-spindown
