@@ -136,7 +136,7 @@ in
           enable = true;
           # openwrt imagebuilder input is pinned to a specific revision to prevent updates upon flake update/rebuild -
           # to update the image, see flake.nix openwrt-imagebuilder input
-          source = inputs.self.packages.${pkgs.system}.berlin-router-img;
+          source = inputs.self.packages.${pkgs.system}.berlin-vm-test-router-img;
           sourceFormat = "raw";
           compressedFormat = "gz";
         };

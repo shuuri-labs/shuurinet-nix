@@ -7,7 +7,7 @@ let
   # Router configuration parameters
   routerArgs = {
     hostname = "shuurinet-router-bln";
-    ipAddress = "192.168.11.1";
+    ipAddress = "192.168.11.51";
     gateway = "192.168.11.1";
     dnsServer = "192.168.11.1";
   };

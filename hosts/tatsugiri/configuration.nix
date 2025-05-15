@@ -59,15 +59,36 @@ in
       };
     };
   };
+  
 
   deployment.bootstrap.gitClone.host = hostCfgVars.network.hostName;
 
   # -------------------------------- SYSTEM CONFIGURATION --------------------------------
 
-  boot.kernelParams = [
-    "pcie_aspm=force"
-    "pcie_aspm.policy=powersave"
-  ];
+  systemd.services."br0-disabled-4-deployment" = lib.mkIf deploymentMode {
+    wantedBy = [ "multi-user.target" ];
+    after = [
+      "network-online.target"
+      "systemd-networkd.service"
+      "network.target"
+    ];
+    wants = [
+      "network-online.target"
+      "systemd-networkd.service"
+      "network.target"
+    ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = ''
+        ${pkgs.iproute2}/bin/ip link set br0 down
+      '';
+    };
+  };
+
+  # boot.kernelParams = [
+  #   "pcie_aspm=force"
+  #   "pcie_aspm.policy=powersave"
+  # ];
 
   environment.systemPackages = with pkgs; [
     python3
@@ -90,7 +111,7 @@ in
 
   # Intel-specific & Power Saving
   intel.graphics.enable = true;
-  powersave.enable = true; 
+  # powersave.enable = true; 
 
   # -------------------------------- SECRETS --------------------------------
 
@@ -185,7 +206,7 @@ in
   #   };
   # };
 
-  ### OpenWrt Config Auto-Deploy
+  # ## OpenWrt Config Auto-Deploy
   # openwrt.config-auto-deploy = {
   #   enable = true;
   #   sopsAgeKeyFile = config.age.secrets.sops-key.path;

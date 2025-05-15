@@ -45,7 +45,7 @@
       # commit hash is will be between 'github:astro/nix-openwrt-imagebuilder/' and '?narHash=...'
       # can also clone repo and use local path instead of url if their hashes are not up to date (happens rarely), see my openwrt module for details
       # don't forget to update nixpkgs-openwrt, too
-      url = "github:astro/nix-openwrt-imagebuilder/5e10fa398b293ee0eae7e62ca03e48a3fac3ff52";
+      url = "github:astro/nix-openwrt-imagebuilder/cc3db25ec5e0a64b2ef2f740d09700a1be1b99c8";
       inputs.nixpkgs.follows = "nixpkgs-openwrt";
     };
 
@@ -179,6 +179,12 @@
           berlin-router-img = (import ./modules/openwrt/image-definitions/builder-extractor { inherit inputs; }).mkImageExtractor {
             name = "berlin-router";
             imageDerivation = (import ./modules/openwrt/image-definitions/berlin/router.nix { inherit inputs; });
+            format = "squashfs-combined-efi";
+          };
+
+          berlin-vm-router-img = (import ./modules/openwrt/image-definitions/builder-extractor { inherit inputs; }).mkImageExtractor {
+            name = "berlin-vm-router";
+            imageDerivation = (import ./modules/openwrt/image-definitions/berlin/vm-test-router.nix { inherit inputs; });
             format = "squashfs-combined-efi";
           };
 

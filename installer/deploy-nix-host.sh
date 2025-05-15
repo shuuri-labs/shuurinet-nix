@@ -101,7 +101,7 @@ nix run github:nix-community/nixos-anywhere/9afe1f9fa36da6075fdbb48d4d87e6345653
 --build-on remote \
 --flake ".#${TARGET_HOST}" \
 --target-host "root@${TARGET_IP}" \
---generate-hardware-config nixos-generate-config "~/shuurinet-nix/hosts/${TARGET_HOST}/hardware-configuration.nix" \
+--generate-hardware-config nixos-generate-config "hosts/${TARGET_HOST}/hardware-configuration.nix" \
 --extra-files "$temp" \
 --option pure-eval false \
 --chown /home/ashley/.ssh 1000:985 \
