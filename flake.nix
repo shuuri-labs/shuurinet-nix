@@ -45,7 +45,7 @@
       # commit hash is will be between 'github:astro/nix-openwrt-imagebuilder/' and '?narHash=...'
       # can also clone repo and use local path instead of url if their hashes are not up to date (happens rarely), see my openwrt module for details
       # don't forget to update nixpkgs-openwrt, too
-      url = "github:astro/nix-openwrt-imagebuilder/c5d49328cf45c6d79e8a9def48aa9a763c8e9e58";
+      url = "github:astro/nix-openwrt-imagebuilder/5e10fa398b293ee0eae7e62ca03e48a3fac3ff52";
       inputs.nixpkgs.follows = "nixpkgs-openwrt";
     };
 
