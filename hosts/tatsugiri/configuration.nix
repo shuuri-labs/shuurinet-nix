@@ -30,7 +30,7 @@ in
         # Management
         {
           name = "br2";
-          memberInterfaces = [ "enp2s0" ];  
+          memberInterfaces = [ "eno1" ];  
           subnet = config.homelab.networks.subnets.bln-mngmt;
           identifier = hostAddress;
           isPrimary = deploymentMode; 
