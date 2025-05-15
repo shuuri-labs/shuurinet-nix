@@ -161,6 +161,7 @@
             inputs.vpn-confinement.nixosModules.default
             inputs.virtualisation.nixosModules.default
           ] "x86_64-linux";
+        };
       };
 
       perSystem = { system, pkgs, ... }: {
