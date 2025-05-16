@@ -10,12 +10,15 @@ let
   commonModules = [
     ./modules/post-deployment-bootstrap
     ./modules/common
-    ./options-host
-    ./options-homelab
     inputs.vscode-server.nixosModules.default
     inputs.agenix.nixosModules.default
     inputs.home-manager.nixosModules.home-manager
     inputs.disko.nixosModules.disko
+  ];
+
+  commonmModulesHomelab = [
+    ./options-host
+    ./options-homelab
   ];
 
   commonConfig = { config, pkgs, inputs, stateVersion, ... }: {
@@ -41,6 +44,20 @@ let
   };
 
   mkNixosHost = hostName: extraModules: system:
+    nixosSystem {
+      inherit system;
+
+      specialArgs = { 
+        inherit inputs stateVersion; 
+      };
+      
+      modules = [
+        (mkHostPath hostName)
+        commonConfig
+      ] ++ commonModules ++ commonmModulesHomelab ++ extraModules;
+    };
+
+  mkNixosCloudHost = hostName: extraModules: system:
     nixosSystem {
       inherit system;
 

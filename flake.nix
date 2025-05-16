@@ -44,7 +44,7 @@
       # commit hash is will be between 'github:astro/nix-openwrt-imagebuilder/' and '?narHash=...'
       # can also clone repo and use local path instead of url if their hashes are not up to date (happens rarely), see my openwrt module for details
       # don't forget to update nixpkgs-openwrt, too
-      url = "github:astro/nix-openwrt-imagebuilder/cc3db25ec5e0a64b2ef2f740d09700a1be1b99c8";
+      url = "github:astro/nix-openwrt-imagebuilder/79c46bb72da76ae3bbac8e1975013c4f5b0f2610";
       inputs.nixpkgs.follows = "nixpkgs-openwrt";
     };
 
@@ -161,7 +161,13 @@
             inputs.vpn-confinement.nixosModules.default
             inputs.virtualisation.nixosModules.default
           ] "x86_64-linux";
-        };
+
+          talonflame = mkNixosCloudHost "talonflame" [
+            ./modules/homepage-dashboard
+            ./modules/uefi-boot
+            inputs.vpn-confinement.nixosModules.default
+            inputs.virtualisation.nixosModules.default
+          ] "x86_64-linux";
       };
 
       perSystem = { system, pkgs, ... }: {
@@ -182,8 +188,8 @@
             format = "squashfs-combined-efi";
           };
 
-          berlin-vm-router-img = (import ./modules/openwrt/image-definitions/builder-extractor { inherit inputs; }).mkImageExtractor {
-            name = "berlin-vm-router";
+          berlin-vm-test-router-img = (import ./modules/openwrt/image-definitions/builder-extractor { inherit inputs; }).mkImageExtractor {
+            name = "berlin-vm-test-router";
             imageDerivation = (import ./modules/openwrt/image-definitions/berlin/vm-test-router.nix { inherit inputs; });
             format = "squashfs-combined-efi";
           };
