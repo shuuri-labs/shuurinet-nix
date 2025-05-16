@@ -19,6 +19,8 @@ in
   # See /options-host
   
   networking.hostName = "talonflame";
+  networking.interfaces.eth0.useDHCP = true;
+  boot.kernelParams = ["net.ifnames=0"];
 
   deployment.bootstrap.gitClone.host = "talonflame";
 
@@ -35,9 +37,10 @@ in
 
   # Bootloader
   boot.loader.grub = {
-    devices = [ "nodev" ];
-    efiSupport = true;
-    efiInstallAsRemovable = true;
+    enable = true;
+    version = 2;
+    forceInstall = true;
+    device = "/dev/sda";
   };
 
   # users.users.ashley.hashedPasswordFile = config.age.secrets.castform-main-user-password.path;

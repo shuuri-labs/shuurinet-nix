@@ -2,15 +2,20 @@
 {
   disko.devices = {
     disk.disk1 = {
-      device = "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_62237364";
+      device = lib.mkDefault "/dev/sda";
       type = "disk";
       content = {
         type = "gpt";
         partitions = {
+          boot = {
+            name = "boot";
+            size = "1M";
+            type = "EF02";
+          };
           esp = {
             name = "ESP";
-            size = "1G";  # Increased from 500M for better future-proofing
-            type = "EF00"; # EFI System Partition type
+            size = "500M";
+            type = "EF00";
             content = {
               type = "filesystem";
               format = "vfat";
