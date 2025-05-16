@@ -17,7 +17,7 @@ in
 
   # -------------------------------- HOST VARIABLES --------------------------------
   # See /options-host
-  
+      
   networking.hostName = "talonflame";
   networking.interfaces.eth0.useDHCP = true;
   boot.kernelParams = ["net.ifnames=0"];
@@ -38,9 +38,9 @@ in
   # Bootloader
   boot.loader.grub = {
     enable = true;
-    version = 2;
-    forceInstall = true;
-    device = "/dev/sda";
+    devices = [ "/dev/sda" ];
+    efiSupport = true;
+    efiInstallAsRemovable = true;
   };
 
   # users.users.ashley.hashedPasswordFile = config.age.secrets.castform-main-user-password.path;
