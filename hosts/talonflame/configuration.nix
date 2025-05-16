@@ -35,6 +35,7 @@ in
 
   # Bootloader
   boot.loader.grub = {
+    devices = [ ];
     efiSupport = true;
     efiInstallAsRemovable = true;
   };
