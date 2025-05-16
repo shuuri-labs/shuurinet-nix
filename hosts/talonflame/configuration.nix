@@ -5,7 +5,6 @@
 { config, pkgs, inputs, lib, ... }:
 
 let
-  hostCfgVars         = config.host.vars;
   secretsAbsolutePath = "/home/ashley/shuurinet-nix/secrets"; 
 
   deploymentMode = false;
