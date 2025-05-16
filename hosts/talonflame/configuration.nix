@@ -20,7 +20,7 @@ in
   
   networking.hostName = "talonflame";
 
-  deployment.bootstrap.gitClone.host = hostCfgVars.network.hostName;
+  deployment.bootstrap.gitClone.host = "talonflame";
 
   # -------------------------------- SYSTEM CONFIGURATION --------------------------------
 
