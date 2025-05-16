@@ -83,7 +83,7 @@ in
   host.uefi-boot.enable = true;
 
   # users.users.ashley.hashedPasswordFile = config.age.secrets.castform-main-user-password.path;
-  # users.users.ashley.password = "temporary123";
+  users.users.ashley.password = "temporary123";
 
   swapDevices = [{
     device = "/swapfile";
@@ -117,7 +117,7 @@ in
   diskCare = {
     enableTrim = true;
     disksToSmartMonitor = [
-      { device = "/dev/disk/by-id/ata-SanDisk_SDSSDH3_250G_214676446013"; } # boot drive
+      { device = "/dev/disk/by-id/nvme-nvme.1e4b-313132343035303730313731363531-5445414d20544d3846504b30303154-00000001"; } # boot drive
     ];
   };
 
@@ -136,7 +136,7 @@ in
           enable = true;
           # openwrt imagebuilder input is pinned to a specific revision to prevent updates upon flake update/rebuild -
           # to update the image, see flake.nix openwrt-imagebuilder input
-          source = inputs.self.packages.${pkgs.system}.berlin-router-img;
+          source = inputs.self.packages.${pkgs.system}.berlin-vm-test-router-img;
           sourceFormat = "raw";
           compressedFormat = "gz";
         };
@@ -190,7 +190,7 @@ in
     };
   };
 
-  ### OpenWrt Config Auto-Deploy
+  ## OpenWrt Config Auto-Deploy
   openwrt.config-auto-deploy = {
     enable = true;
     sopsAgeKeyFile = config.age.secrets.sops-key.path;

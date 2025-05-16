@@ -17,7 +17,7 @@ in
   imports = [
     ./hardware-configuration.nix
     ./disk-config.nix
-  ];
+  ]; 
 
   # -------------------------------- HOST VARIABLES --------------------------------
   # See /options-host
@@ -30,7 +30,7 @@ in
         # Management
         {
           name = "br2";
-          # memberInterfaces = [ "enp2s0" ];  
+          memberInterfaces = [ "eno1" ];  
           subnet = config.homelab.networks.subnets.bln-mngmt;
           identifier = hostAddress;
           isPrimary = deploymentMode; 
@@ -39,9 +39,8 @@ in
         # LAN
         {
           name = "br0";
-          memberInterfaces = [ "enp2s0" ];  
-          subnet = config.homelab.networks.subnets.bln-lan;
-          identifier = hostAddress;
+          subnet = if deploymentMode then null else config.homelab.networks.subnets.bln-lan;
+          identifier = if deploymentMode then null else hostAddress;
           isPrimary = !deploymentMode;
           tapDevices = [ "opnwrt-tap" "haos-tap" ];
         }
@@ -60,19 +59,40 @@ in
       };
     };
   };
+  
+  deployment.bootstrap.gitClone.host = hostCfgVars.network.hostName;
 
   # -------------------------------- SYSTEM CONFIGURATION --------------------------------
+
+  systemd.services."fix-slow-builtin-ethernet" = {
+    wantedBy = [ "multi-user.target" ];
+    after = [
+      "network-online.target"
+      "systemd-networkd.service"
+      "network.target"
+    ];
+    wants = [
+      "network-online.target"
+      "systemd-networkd.service"
+      "network.target"
+    ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = ''
+        ${pkgs.iproute2}/bin/ip link set eno1 mtu 1492
+        ${pkgs.ethtool}/bin/ethtool -C eno1 rx-usecs 768
+      '';
+    };
+  };
 
   boot.kernelParams = [
     "pcie_aspm=force"
     "pcie_aspm.policy=powersave"
   ];
 
-  # Use the Linux kernel from nixpkgs-unstable for latest i226 driver
-  boot.kernelPackages = inputs.nixpkgs-unstable.legacyPackages.${pkgs.system}.linuxPackages_latest;
-
   environment.systemPackages = with pkgs; [
     python3
+    ethtool
   ];
 
   time.timeZone = "Europe/Berlin";
@@ -81,7 +101,7 @@ in
   host.uefi-boot.enable = true;
 
   # users.users.ashley.hashedPasswordFile = config.age.secrets.castform-main-user-password.path;
-  # users.users.ashley.password = "temporary123";
+  users.users.ashley.password = "temporary123";
 
   swapDevices = [{
     device = "/swapfile";
@@ -97,7 +117,7 @@ in
   # -------------------------------- SECRETS --------------------------------
 
   age.secrets = {
-    sops-key.file = "${secretsAbsolutePath}/keys/sops-key.agekey.age";
+    sops-key.file = "${secretsAbsolutePath}/keys/sops-key.age";
     netbird-management-url.file = "${secretsAbsolutePath}/netbird-management-url.age";
 
     obsd-couchdb-config = {  
@@ -106,6 +126,8 @@ in
       group = "couchdb";
     };
   };
+
+  common.secrets.sopsKeyPath = config.age.secrets.sops-key.path;
 
   # -------------------------------- DISK CONFIGURATION --------------------------------
 
@@ -155,8 +177,8 @@ in
           memory     = 1024;
           smp        = 8;
           taps       = [ 
-            { name = "opnwrt-tap";      macAddress = "fe:b5:aa:0f:29:57"; }
-            { name = "opnwrt-apps-tap"; macAddress = "fe:b5:aa:0f:29:58"; }
+            { name = "opnwrt-tap";      macAddress = "fe:b5:aa:1f:29:24"; }
+            { name = "opnwrt-apps-tap"; macAddress = "fe:b5:aa:1f:29:21"; }
           ];
           bridges    = [ "br0" "br1" ];
           pciHosts   = [ 
@@ -175,7 +197,7 @@ in
           memory     = 3072;
           smp        = 2;
           taps       = [ 
-            { name = "haos-tap"; macAddress = "ce:b0:37:6c:1a:ff"; }
+            { name = "haos-tap"; macAddress = "ce:b0:37:6d:1a:de"; }
           ];
           bridges    = [ "br0" ];
           rootScsi   = true;
@@ -185,16 +207,17 @@ in
     };
   };
 
-  ### OpenWrt Config Auto-Deploy
+  # OpenWrt Config Auto-Deploy
   openwrt.config-auto-deploy = {
     enable = true;
     sopsAgeKeyFile = config.age.secrets.sops-key.path;
 
     configs = {
-      vm-test-router-config = {
-        drv = inputs.self.packages.${pkgs.system}.vm-test-router-config;
+      berlin-router-config = {
+        drv = inputs.self.packages.${pkgs.system}.berlin-router-config;
         imageDrv = inputs.self.packages.${pkgs.system}.berlin-router-img;
         serviceName = "openwrt";
+        host = "192.168.11.1";
       };  
     };
   };
@@ -228,9 +251,5 @@ in
     enable = true;
     configFile = config.age.secrets.obsd-couchdb-config.path;
     bindAddress = hostPrimaryIp;
-  };
-
-  networking.firewall = {
-    allowedTCPPorts = [ 5984 ];
   };
 }

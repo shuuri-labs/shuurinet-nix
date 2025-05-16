@@ -72,7 +72,7 @@ let
       pkgs = inputs.nixpkgs.legacyPackages.${system};
     in
     pkgs.callPackage inputs.dewclaw {
-      configuration = import (./. + configPath) { inherit inputs; };
+      configuration = import (builtins.path { path = ./.; name = "source"; } + "/${configPath}") { inherit inputs; };
     };
 
 in {

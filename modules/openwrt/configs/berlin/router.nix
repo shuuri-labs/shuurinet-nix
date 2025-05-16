@@ -2,26 +2,27 @@
 let
   common = import ./common.nix;
 
-  lanBridge = common.mkBridge [ "eth0" "eth1" "eth2" "eth3" ];
+  lanBridge = common.mkBridge [ "eth0" "eth1" "eth2" "eth3" "eth4" ];
   lanBridgeVlans = common.mkBridgeVlans {
-    trunkPorts = [ "eth1" "eth2" ];
-    lanPorts   = [ "eth0" "eth3" ];
+    trunkPorts = [ "eth2" "eth3" ];
+    lanPorts   = [ "eth0" "eth4" ];
+    appsPorts   = [ "eth1" ];
   };
 
   interfaces = common.mkInterfaces {
     hostAddress = 1;
-    # dnsAddress  = 1;
-    # setGateway  = true;
+    dnsAddress  = 1;
+    setGateway  = true;
   }; 
 
   firewallZones      = common.firewallZones;
   firewallForwarding = common.firewallForwarding;
 
-  wanPort = "eth4";
+  wanPort = "eth5";
 
   # dnsIp = "192.168.11.1";
 in {
-  openwrt.vm-test-router-config = {
+  openwrt.berlin-router-config = {
     deploy.host = "192.168.11.1";
 
     deploy.sshConfig = {

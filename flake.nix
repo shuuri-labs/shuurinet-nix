@@ -1,4 +1,3 @@
-
 {
   description = "shuurinet nix config flake";
 
@@ -45,7 +44,7 @@
       # commit hash is will be between 'github:astro/nix-openwrt-imagebuilder/' and '?narHash=...'
       # can also clone repo and use local path instead of url if their hashes are not up to date (happens rarely), see my openwrt module for details
       # don't forget to update nixpkgs-openwrt, too
-      url = "github:astro/nix-openwrt-imagebuilder/c5d49328cf45c6d79e8a9def48aa9a763c8e9e58";
+      url = "github:astro/nix-openwrt-imagebuilder/cc3db25ec5e0a64b2ef2f740d09700a1be1b99c8";
       inputs.nixpkgs.follows = "nixpkgs-openwrt";
     };
 
@@ -149,16 +148,18 @@
           ] "x86_64-linux";
 
           tatsugiri = mkNixosHost "tatsugiri" [
-            ./modules/uefi-boot
-            ./modules/virtualisation
-            ./modules/power-saving
-            ./modules/intel
-            ./modules/disk-care
-            ./modules/openwrt
-            ./modules/netbird/router
+            # ./modules/monitoring
             ./modules/homepage-dashboard
+            ./modules/hdd-spindown
+            ./modules/intel
+            ./modules/power-saving
+            ./modules/disk-care
             ./modules/iperf
-            ./modules/monitoring
+            ./modules/uefi-boot
+            ./modules/openwrt/configs/auto-deploy.nix
+            ./modules/netbird/router
+            inputs.vpn-confinement.nixosModules.default
+            inputs.virtualisation.nixosModules.default
           ] "x86_64-linux";
         };
       };
@@ -181,6 +182,12 @@
             format = "squashfs-combined-efi";
           };
 
+          berlin-vm-router-img = (import ./modules/openwrt/image-definitions/builder-extractor { inherit inputs; }).mkImageExtractor {
+            name = "berlin-vm-router";
+            imageDerivation = (import ./modules/openwrt/image-definitions/berlin/vm-test-router.nix { inherit inputs; });
+            format = "squashfs-combined-efi";
+          };
+
           london-test-router-img = (import ./modules/openwrt/image-definitions/builder-extractor { inherit inputs; }).mkImageExtractor {
             name = "london-test-router";
             imageDerivation = (import ./modules/openwrt/image-definitions/london/test-router.nix { inherit inputs; });
@@ -188,8 +195,8 @@
           };
 
           # OpenWRT Configs
-          berlin-router-config = helper.mkOpenWrtConfig "/modules/openwrt/configs/berlin/router.nix" system;
-          vm-test-router-config = helper.mkOpenWrtConfig "/modules/openwrt/configs/berlin/vm-test-router.nix" system;
+          berlin-router-config = helper.mkOpenWrtConfig "./modules/openwrt/configs/berlin/router.nix" system;
+          vm-test-router-config = helper.mkOpenWrtConfig "./modules/openwrt/configs/berlin/vm-test-router.nix" system;
         };
       };
     };

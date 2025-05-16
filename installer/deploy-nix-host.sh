@@ -98,11 +98,10 @@ chmod -R 755 "$temp/home/ashley/shuurinet-nix"
 
 # Deploy to remote Linux machine, pinned to older commit atm because --build-on-remote is currently broken
 nix run github:nix-community/nixos-anywhere/9afe1f9fa36da6075fdbb48d4d87e63456535858 -- \
---build-on-remote \
+--build-on remote \
 --flake ".#${TARGET_HOST}" \
 --target-host "root@${TARGET_IP}" \
---build-on-remote \
---generate-hardware-config nixos-generate-config "../hosts/${TARGET_HOST}/hardware-configuration.nix" \
+--generate-hardware-config nixos-generate-config "hosts/${TARGET_HOST}/hardware-configuration.nix" \
 --extra-files "$temp" \
 --option pure-eval false \
 --chown /home/ashley/.ssh 1000:985 \

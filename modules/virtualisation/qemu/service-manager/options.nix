@@ -10,8 +10,12 @@ let
 
   pciHost = lib.types.submodule {
       options = {
-        address         = lib.mkOption { type = lib.types.str; };
-        vendorDeviceId  = lib.mkOption { type = lib.types.str; default = ""; };
+        address         = lib.mkOption { type = lib.types.str; description = "PCI address of the host device, get with 'lspci -nn (first column)'"; };
+        vendorDeviceId  = lib.mkOption { 
+          type = lib.types.str; 
+          description = "Vendor and device ID of the host device, get with 'lspci -nn (in XX:XX format)'"; 
+          default = ""; 
+        };
     };
   };
 
