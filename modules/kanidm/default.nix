@@ -24,6 +24,16 @@ in
     tls_key = lib.mkOption {
       type = lib.types.path;
     };
+
+    domain = lib.mkOption {
+      type = lib.types.str;
+      description = "The domain of the Kanidm instance";
+    };
+
+    origin = lib.mkOption {
+      type = lib.types.str;
+      description = "The origin of the Kanidm instance";
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -40,8 +50,8 @@ in
         tls_chain = cfg.tls_chain;
         tls_key = cfg.tls_key;
         ldapbindaddress = "127.0.0.1:636";
-        domain = "auth.ldn.shuuri.net";
-        origin = "https://auth.ldn.shuuri.net";
+        domain = cfg.domain;
+        origin = cfg.origin;
         trust_x_forward_for = true;
       };
 
@@ -77,6 +87,5 @@ in
 # sudo kanidm system domain set-displayname --url https://127.0.0.1:8443  "shuurinet London"
 
 # users (even those defined in provision.persons) need to be enrolled manually:
-# sudo kanidmd recover-account <username> --url https://127.0.0.1:8443
+# sudo kanidmd recover-account <username>
 # sudo kanidm login -D <username> --url https://127.0.0.1:8443
-

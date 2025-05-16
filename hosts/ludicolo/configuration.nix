@@ -219,6 +219,9 @@ in
     tls_chain = "${kanidmCert}/kanidm.pem";
     tls_key = "${kanidmCert}/kanidm-key.pem";
 
+    domain = "auth.ldn.shuuri.net";
+    origin = "https://auth.ldn.shuuri.net";
+
     adminPasswordFile = config.age.secrets.kanidm-admin-password.path;
     idmAdminPasswordFile = config.age.secrets.kanidm-admin-password.path;
   };
