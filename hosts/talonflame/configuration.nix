@@ -26,9 +26,6 @@ in
 
   # -------------------------------- SYSTEM CONFIGURATION --------------------------------
 
-
-  # Use the Linux kernel from nixpkgs-unstable for latest i226 driver
-
   environment.systemPackages = with pkgs; [
     python3
   ];
@@ -46,13 +43,11 @@ in
   # users.users.ashley.hashedPasswordFile = config.age.secrets.castform-main-user-password.path;
   users.users.ashley.password = "p@ssuw4d0!2334";
 
-
   # -------------------------------- SECRETS --------------------------------
 
   age.secrets = {
 
   };
-
 
   # -------------------------------- MONITORING & DASHBOARD --------------------------------
 
