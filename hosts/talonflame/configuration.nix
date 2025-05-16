@@ -75,6 +75,32 @@ in
     };
   };
 
+  # -------------------------------- Caddy --------------------------------
+
+  caddy = {
+    enable = true;
+    environmentFile = config.age.secrets.caddy-cloudflare.path;
+    defaultSite = "cloud";
+
+    virtualHosts = {
+      "kanidm" = {
+        name = "auth";
+        destinationPort = 8443;
+        destinationAddress = "https://127.0.0.1";
+
+        proxyExtraConfig = ''
+          header_up X-Forwarded-For {remote_host}
+          header_up X-Forwarded-Proto {scheme}
+
+          transport http {
+            tls_trusted_ca_certs ${kanidmCert}/ca.pem
+            tls_client_auth ${kanidmCert}/kanidm.pem ${kanidmCert}/kanidm-key.pem
+          }
+        '';
+      };
+    };
+  };
+
   # -------------------------------- MONITORING & DASHBOARD --------------------------------
 
   homepage-dashboard = {
@@ -100,38 +126,6 @@ in
   security.pki.certificateFiles = [
     "${kanidmCert}/ca.pem"
   ];
-
-  # -------------------------------- Caddy --------------------------------
-
-  caddy = {
-    enable = true;
-    environmentFile = config.age.secrets.caddy-cloudflare.path;
-    defaultSite = "cloud";
-
-    virtualHosts = {
-      # "home-manager" = {
-      #   name = "talonflame";
-      #   site = null;
-      #   destinationPort = 8082;
-      # };
-
-      "kanidm" = {
-        name = "auth";
-        destinationPort = 8443;
-        destinationAddress = "https://127.0.0.1";
-
-        proxyExtraConfig = ''
-          header_up X-Forwarded-For {remote_host}
-          header_up X-Forwarded-Proto {scheme}
-
-          transport http {
-            tls_trusted_ca_certs ${kanidmCert}/ca.pem
-            tls_client_auth ${kanidmCert}/kanidm.pem ${kanidmCert}/kanidm-key.pem
-          }
-        '';
-      };
-    };
-  };
 
   # -------------------------------- Netbird --------------------------------
 
