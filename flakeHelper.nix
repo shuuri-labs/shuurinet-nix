@@ -93,5 +93,5 @@ let
     };
 
 in {
-  inherit mkNixosHost mkDarwinHost mkOpenWrtConfig;
+  inherit mkNixosHost mkNixosCloudHost mkDarwinHost mkOpenWrtConfig;
 }
