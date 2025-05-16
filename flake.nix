@@ -164,7 +164,6 @@
 
           talonflame = mkNixosCloudHost "talonflame" [
             ./modules/homepage-dashboard
-            ./modules/uefi-boot
             inputs.vpn-confinement.nixosModules.default
             inputs.virtualisation.nixosModules.default
           ] "x86_64-linux";

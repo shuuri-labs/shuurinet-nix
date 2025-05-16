@@ -34,7 +34,10 @@ in
   time.timeZone = "Europe/Helsinki";
 
   # Bootloader
-  host.uefi-boot.enable = true;
+  boot.loader.grub = {
+    efiSupport = true;
+    efiInstallAsRemovable = true;
+  };
 
   # users.users.ashley.hashedPasswordFile = config.age.secrets.castform-main-user-password.path;
   users.users.ashley.password = "p@ssuw4d0!2334";
