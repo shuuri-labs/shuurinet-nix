@@ -1,4 +1,3 @@
-
 {
   description = "shuurinet nix config flake";
 
@@ -195,8 +194,8 @@
           };
 
           # OpenWRT Configs
-          berlin-router-config = helper.mkOpenWrtConfig "/modules/openwrt/configs/berlin/router.nix" system;
-          vm-test-router-config = helper.mkOpenWrtConfig "/modules/openwrt/configs/berlin/vm-test-router.nix" system;
+          berlin-router-config = helper.mkOpenWrtConfig "./modules/openwrt/configs/berlin/router.nix" system;
+          vm-test-router-config = helper.mkOpenWrtConfig "./modules/openwrt/configs/berlin/vm-test-router.nix" system;
         };
       };
     };

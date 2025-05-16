@@ -11,9 +11,7 @@ let
   hostAddress = "2";
   hostPrimaryIp = "${config.homelab.networks.subnets.bln-lan.ipv4}.${hostAddress}";
 
-  deploymentMode = true;
-
-  
+  deploymentMode = false;
 in
 {
   imports = [
@@ -66,33 +64,7 @@ in
 
   # -------------------------------- SYSTEM CONFIGURATION --------------------------------
 
-  # systemd.services."br0-disabled-4-deployment" = lib.mkIf deploymentMode {
-  #   wantedBy = [ "multi-user.target" ];
-  #   after = [
-  #     "network-online.target"
-  #     "systemd-networkd.service"
-  #     "network.target"
-  #   ];
-  #   wants = [
-  #     "network-online.target"
-  #     "systemd-networkd.service"
-  #     "network.target"
-  #   ];
-    
-  #   serviceConfig = {
-  #     Type = "oneshot";
-  #     ExecStart = if deploymentMode then 
-  #     ''
-  #       ${pkgs.iproute2}/bin/ip link set br0 down
-  #     '' 
-  #     else 
-  #     ''
-  #       ${pkgs.iproute2}/bin/ip link set br0 up
-  #     '';
-  #   };
-  # };
-
-  systemd.services."fix-slow-ethernet" = {
+  systemd.services."fix-slow-builtin-ethernet" = {
     wantedBy = [ "multi-user.target" ];
     after = [
       "network-online.target"
@@ -113,10 +85,10 @@ in
     };
   };
 
-  # boot.kernelParams = [
-  #   "pcie_aspm=force"
-  #   "pcie_aspm.policy=powersave"
-  # ];
+  boot.kernelParams = [
+    "pcie_aspm=force"
+    "pcie_aspm.policy=powersave"
+  ];
 
   environment.systemPackages = with pkgs; [
     python3
@@ -140,7 +112,7 @@ in
 
   # Intel-specific & Power Saving
   intel.graphics.enable = true;
-  # powersave.enable = true; 
+  powersave.enable = true; 
 
   # -------------------------------- SECRETS --------------------------------
 
@@ -279,9 +251,5 @@ in
     enable = true;
     configFile = config.age.secrets.obsd-couchdb-config.path;
     bindAddress = hostPrimaryIp;
-  };
-
-  networking.firewall = {
-    allowedTCPPorts = [ 5984 ];
   };
 }
