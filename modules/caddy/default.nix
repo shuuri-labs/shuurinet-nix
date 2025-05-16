@@ -1,7 +1,7 @@
 { config, lib, pkgs, inputs, ... }:
 let
   cfg = config.caddy;
-  siteEnum = lib.types.enum [ "ldn" "bln" "tats" ];
+  siteEnum = lib.types.enum [ "ldn" "bln" "tats" "cloud" ];
 in
 {
   options.caddy = {
