@@ -100,7 +100,7 @@ in
   # -------------------------------- SECRETS --------------------------------
 
   age.secrets = {
-    sops-key.file = "${secretsAbsolutePath}/keys/sops-key.agekey.age";
+    sops-key.file = "${secretsAbsolutePath}/keys/sops-key.age";
     netbird-management-url.file = "${secretsAbsolutePath}/netbird-management-url.age";
 
     obsd-couchdb-config = {  
@@ -110,7 +110,7 @@ in
     };
   };
 
-  common.secrets.sopsKeyPath = "${secretsAbsolutePath}/keys/sops-key.agekey.age";
+  common.secrets.sopsKeyPath = config.age.secrets.sops-key.path;
 
   # -------------------------------- DISK CONFIGURATION --------------------------------
 
@@ -165,7 +165,7 @@ in
           ];
           bridges    = [ "br0" "br1" ];
           pciHosts   = [ 
-            { address = "01:00.0"; vendorDeviceId = "8086:150e"; } 
+            { address = "01:00.0"; vendorDeviceId = "8086:1521"; } 
             { address = "01:00.1"; }
             { address = "01:00.2"; }
             { address = "01:00.3"; }

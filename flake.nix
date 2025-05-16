@@ -55,7 +55,7 @@
   };
 
   outputs = inputs@{ flake-parts, nixpkgs-virtualisation, ... }: let
-    inherit (helper) mkNixosHost mkDarwinHost mkOpenWrtConfig;
+    inherit (helper) mkNixosHost mkNixosCloudHost mkDarwinHost mkOpenWrtConfig;
     
     helper = import ./flakeHelper.nix { inherit inputs; };
   in
@@ -147,6 +147,12 @@
             inputs.vpn-confinement.nixosModules.default
             inputs.virtualisation.nixosModules.default
           ] "x86_64-linux";
+
+          talonflame = mkNixosCloudHost "talonflame" [
+            ./modules/homepage-dashboard
+            inputs.vpn-confinement.nixosModules.default
+            inputs.virtualisation.nixosModules.default
+          ] "x86_64-linux";
         };
       };
 
@@ -187,4 +193,3 @@
       };
     };
 }
-

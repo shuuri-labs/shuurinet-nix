@@ -94,7 +94,7 @@ in {
         rule = [
           { name = "allow_mdns"; src = "*"; src_port = "5353"; dest_port = "5353"; proto = "udp"; dest_ip = "224.0.0.251"; target = "ACCEPT"; }
 
-          { name = "guest_dns_dhcp";      src = "guest";      dest_port = "53 67 68"; target = "ACCEPT"; }
+          { name = "guest_dns_dhcp";      src = "guest";      dest_port = "53 67 69"; target = "ACCEPT"; }
           { name = "iot_dns_dhcp";        src = "iot";        dest_port = "53 67 68"; target = "ACCEPT"; }
           { name = "apps_dns_dhcp";       src = "apps";       dest_port = "53 67 68"; target = "ACCEPT"; }
           { name = "management_dns_dhcp"; src = "management"; dest_port = "53 67 68"; target = "ACCEPT"; }
