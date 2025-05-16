@@ -119,6 +119,7 @@ in
   age.secrets = {
     sops-key.file = "${secretsAbsolutePath}/keys/sops-key.age";
     netbird-management-url.file = "${secretsAbsolutePath}/netbird-management-url.age";
+    caddy-cloudflare.file = "${secretsAbsolutePath}/caddy-cloudflare.env.age";
 
     obsd-couchdb-config = {  
       file = "${secretsAbsolutePath}/obsd-couchdb-config.ini.age";
@@ -153,9 +154,10 @@ in
           enable = true;
           # openwrt imagebuilder input is pinned to a specific revision to prevent updates upon flake update/rebuild -
           # to update the image, see flake.nix openwrt-imagebuilder input
-          source = inputs.self.packages.${pkgs.system}.berlin-router-img;
-          sourceFormat = "raw";
-          compressedFormat = "gz";
+          source = "file:///var/lib/vm/images/openwrt-full.qcow2";
+          sourceSha256 = "127r2mzdhf6ykradxjsj0y2by5xilspkycck82bzky85sxx4asrv";
+          sourceFormat = "qcow2";
+          # compressedFormat = "gz";
         };
         
         "haos" = {
@@ -175,7 +177,7 @@ in
           baseImage  = "openwrt";
           uefi       = true;
           memory     = 1024;
-          smp        = 8;
+          smp        = 4;
           taps       = [ 
             { name = "opnwrt-tap";      macAddress = "fe:b5:aa:1f:29:24"; }
             { name = "opnwrt-apps-tap"; macAddress = "fe:b5:aa:1f:29:21"; }
@@ -208,19 +210,19 @@ in
   };
 
   # OpenWrt Config Auto-Deploy
-  openwrt.config-auto-deploy = {
-    enable = true;
-    sopsAgeKeyFile = config.age.secrets.sops-key.path;
+  # openwrt.config-auto-deploy = {
+  #   enable = true;
+  #   sopsAgeKeyFile = config.age.secrets.sops-key.path;
 
-    configs = {
-      berlin-router-config = {
-        drv = inputs.self.packages.${pkgs.system}.berlin-router-config;
-        imageDrv = inputs.self.packages.${pkgs.system}.berlin-router-img;
-        serviceName = "openwrt";
-        host = "192.168.11.1";
-      };  
-    };
-  };
+  #   configs = {
+  #     berlin-router-config = {
+  #       drv = inputs.self.packages.${pkgs.system}.berlin-router-config;
+  #       imageDrv = inputs.self.packages.${pkgs.system}.berlin-router-img;
+  #       serviceName = "openwrt";
+  #       host = "192.168.11.1";
+  #     };  
+  #   };
+  # };
 
   ### Containers
   netbird.router = {
@@ -251,5 +253,24 @@ in
     enable = true;
     configFile = config.age.secrets.obsd-couchdb-config.path;
     bindAddress = hostPrimaryIp;
+  };
+
+  caddy = {
+    enable = true;
+    environmentFile = config.age.secrets.caddy-cloudflare.path;
+    defaultSite = "bln";
+
+    virtualHosts = {
+      "home-manager" = {
+        name = "tatsugiri";
+        site = null;
+        destinationPort = 8082;
+      };
+
+      "obsidian-livesync" = {
+        name = "obsidian-livesync";
+        destinationPort = 5984;
+      };
+    };
   };
 }
