@@ -35,7 +35,7 @@ in
 
   # Bootloader
   boot.loader.grub = {
-    devices = [ "nodev" ]
+    devices = [ "nodev" ];
     efiSupport = true;
     efiInstallAsRemovable = true;
   };
