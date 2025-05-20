@@ -26,10 +26,12 @@ in
     network = {
       hostName = "dondozo";
       staticIpConfig.enable = true;
+      networkManager.unmanaged = [ "eno2" ];
+      
       bridges = [
         {
           name = "br0";
-          memberInterfaces = [ "enp2s0f1np1" "eno1" "eno2" ];  
+          memberInterfaces = [ "enp1s0f1np1" "eno1" ];  
           subnet = config.homelab.networks.subnets.bln-lan;
           identifier = hostIdentifier;
           isPrimary = true;
