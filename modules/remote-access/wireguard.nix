@@ -23,14 +23,19 @@ in {
         description = "The path to the file containing the private key";
       };
 
-      addresses = lib.mkOption {
+      ips = lib.mkOption {
         type = lib.types.listOf lib.types.str;  
         description = "The addresses to assign to the wireguard interface";
       };
 
       peers = lib.mkOption {
-        type = lib.types.attrsOf (lib.types.submodule {
+        type = lib.types.listOf (lib.types.submodule {
           options = {
+            name = lib.mkOption {
+              type = lib.types.str;
+              description = "Name of the peer (for reference)";
+            };
+
             publicKey = lib.mkOption {
               type = lib.types.str;
               description = "The public key of the peer";
@@ -42,6 +47,7 @@ in {
             };
           };
         });
+        description = "List of WireGuard peers";
       };
     };
   
@@ -52,9 +58,12 @@ in {
         listenPort = cfg.port;
 
         privateKeyFile = cfg.privateKeyFile;
-        addresses = cfg.addresses;
+        ips = cfg.ips;
 
-        peers = cfg.peers;
+        peers = map (peer: {
+          publicKey = peer.publicKey;
+          allowedIPs = peer.allowedIPs;
+        }) cfg.peers;
       };
     };
   };

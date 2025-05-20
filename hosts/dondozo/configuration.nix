@@ -87,6 +87,19 @@ in
       mode = "440";
     };
     paperless-password.file = "${secretsAbsolutePath}/paperless-password.age";
+    
+    cloudflare-api-token = {
+      file = "${secretsAbsolutePath}/cloudflare-api-token.age";
+      # owner = "ddclient";
+      # group = "ddclient";
+      # mode = "440";
+    };
+
+    dondozo-wg-public-key.file = "${secretsAbsolutePath}/dondozo-wg-public-key.age";
+    dondozo-wg-private-key.file = "${secretsAbsolutePath}/dondozo-wg-private-key.age";
+
+    rotom-laptop-wg-public-key.file = "${secretsAbsolutePath}/rotom-laptop-wg-public-key.age";
+    rotom-laptop-wg-private-key.file = "${secretsAbsolutePath}/rotom-laptop-wg-private-key.age";
   };
 
   common.secrets.sopsKeyPath = "${secretsAbsolutePath}/keys/sops-key.agekey.age";
@@ -177,5 +190,32 @@ in
   
   virtualisation = {
     intel.enable = true;
+  };
+
+  # -------------------------------- REMOTE ACCESS --------------------------------
+
+  remoteAccess = {
+    ddns = {
+      enable = true;
+      tokenFile = config.age.secrets.cloudflare-api-token.path;
+      zone = "shuuri.net";
+      zoneId = "40c1535430debbd0a12815c3b35c2d15";  # You'll need to replace this with your actual zone ID from Cloudflare
+      domains = [ "remote.bln.shuurinet.com" ];
+    };
+
+    # wireguard = {
+    #   enable = true;
+
+    #   privateKeyFile = config.age.secrets.dondozo-wg-private-key.path;
+    #   ips = [ "10.100.77.1/24" ];
+
+    #   peers = [
+    #     {
+    #       name = "rotom-laptop";
+    #       publicKey = "2tdesOokkHYhXKeizN69iczaK7YIP+cqzMUneX/EqiA=";
+    #       allowedIPs = [ "10.100.77.2/32" "192.168.11.0/24" ];
+    #     }
+    #   ];
+    # };
   };
 }
