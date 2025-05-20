@@ -44,7 +44,7 @@ let
   };
 
   commonConfigHomelab = { config, pkgs, ... }: commonConfig { inherit config pkgs inputs stateVersion; } // {
-    environment.systemPackages = [
+    environment.systemPackages = (commonConfig { inherit config pkgs inputs stateVersion; }).environment.systemPackages ++ [
       pkgs.lm_sensors
       pkgs.python3
       pkgs.passmark-performancetest
