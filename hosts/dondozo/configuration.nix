@@ -199,8 +199,7 @@ in
       enable = true;
       tokenFile = config.age.secrets.cloudflare-api-token.path;
       zone = "shuuri.net";
-      zoneId = "40c1535430debbd0a12815c3b35c2d15";  # You'll need to replace this with your actual zone ID from Cloudflare
-      domains = [ "remote.bln.shuurinet.com" ];
+      domains = [ "remote.bln.shuuri.net" ];
     };
 
     # wireguard = {

@@ -18,11 +18,6 @@ in
         example = "example.com";
       };
 
-      zoneId = lib.mkOption {
-        type = lib.types.str;
-        description = "The Cloudflare Zone ID";
-      };
-
       domains = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         description = "The domains to update";
@@ -56,7 +51,6 @@ in
       passwordFile = cfg.tokenFile;
 
       zone         = cfg.zone;
-      # zoneId       = cfg.zoneId;
       domains      = cfg.domains;
 
       usev4        = cfg.usev4;
