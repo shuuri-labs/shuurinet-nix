@@ -118,8 +118,9 @@ in
             description = "OpenWRT configuration derivation to deploy";
           };
           imageDrv = mkOption {
-            type        = types.package;
+            type        = types.nullOr types.package;
             description = "OpenWRT image derivation to monitor for changes";
+            default     = null;
           };
           serviceName = mkOption {
             type        = types.nullOr types.str;

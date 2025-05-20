@@ -100,7 +100,7 @@ in
   # -------------------------------- SECRETS --------------------------------
 
   age.secrets = {
-    sops-key.file = "${secretsAbsolutePath}/keys/sops-key.age";
+    sops-key.file = "${secretsAbsolutePath}/keys/sops-key.agekey.age";
     netbird-management-url.file = "${secretsAbsolutePath}/netbird-management-url.age";
 
     obsd-couchdb-config = {  
@@ -110,7 +110,7 @@ in
     };
   };
 
-  common.secrets.sopsKeyPath = config.age.secrets.sops-key.path;
+  common.secrets.sopsKeyPath = "${secretsAbsolutePath}/keys/sops-key.agekey.age";
 
   # -------------------------------- DISK CONFIGURATION --------------------------------
 
@@ -136,9 +136,9 @@ in
           enable = true;
           # openwrt imagebuilder input is pinned to a specific revision to prevent updates upon flake update/rebuild -
           # to update the image, see flake.nix openwrt-imagebuilder input
-          source = inputs.self.packages.${pkgs.system}.berlin-vm-test-router-img;
-          sourceFormat = "raw";
-          compressedFormat = "gz";
+          source = "file:///var/lib/vm/images/openwrt-full.qcow2";
+          sourceSha256 = "1bjrbn6x8wy9rzvfshsa64in2bpc00kb7d2ziyz0jl62rbcbngih";
+          sourceFormat = "qcow2";
         };
         
         "haos" = {
@@ -165,7 +165,7 @@ in
           ];
           bridges    = [ "br0" "br1" ];
           pciHosts   = [ 
-            { address = "01:00.0"; vendorDeviceId = "8086:1521"; } 
+            { address = "01:00.0"; vendorDeviceId = "8086:150e"; } 
             { address = "01:00.1"; }
             { address = "01:00.2"; }
             { address = "01:00.3"; }
@@ -198,7 +198,7 @@ in
     configs = {
       vm-test-router-config = {
         drv = inputs.self.packages.${pkgs.system}.vm-test-router-config;
-        imageDrv = inputs.self.packages.${pkgs.system}.berlin-router-img;
+        # imageDrv = inputs.self.packages.${pkgs.system}.berlin-router-img;
         serviceName = "openwrt";
         host = "192.168.11.51";
       };  
