@@ -202,19 +202,19 @@ in
       domains = [ "remote.bln.shuuri.net" ];
     };
 
-    # wireguard = {
-    #   enable = true;
+    wireguard = {
+      enable = true;
 
-    #   privateKeyFile = config.age.secrets.dondozo-wg-private-key.path;
-    #   ips = [ "10.100.77.1/24" ];
+      privateKeyFile = config.age.secrets.dondozo-wg-private-key.path;
+      ips = [ "10.100.77.1/32" ];
 
-    #   peers = [
-    #     {
-    #       name = "rotom-laptop";
-    #       publicKey = "2tdesOokkHYhXKeizN69iczaK7YIP+cqzMUneX/EqiA=";
-    #       allowedIPs = [ "10.100.77.2/32" "192.168.11.0/24" ];
-    #     }
-    #   ];
-    # };
+      peers = [
+        {
+          name = "rotom-laptop";
+          publicKey = "2tdesOokkHYhXKeizN69iczaK7YIP+cqzMUneX/EqiA=";
+          allowedIPs = [ "10.100.77.0/24" ];
+        }
+      ];
+    };
   };
 }

@@ -9,7 +9,7 @@ in {
       port = lib.mkOption {
         type = lib.types.int;
         description = "The port to listen on";
-        default = 58120;
+        default = 58133;
       };
 
       interface = lib.mkOption {
@@ -53,17 +53,28 @@ in {
   
 
   config = lib.mkIf cfg.enable {
-    networking.wireguard.interfaces = {
-      ${cfg.interface} = {
-        listenPort = cfg.port;
+    networking = {
+      firewall.trustedInterfaces = [ cfg.interface ];
+      firewall.allowedUDPPorts = [ cfg.port ];
 
-        privateKeyFile = cfg.privateKeyFile;
-        ips = cfg.ips;
+      nat = {
+        enable = true;
+        internalInterfaces = [ cfg.interface ];
+        externalInterface = "br0";
+      };
 
-        peers = map (peer: {
-          publicKey = peer.publicKey;
-          allowedIPs = peer.allowedIPs;
-        }) cfg.peers;
+      wireguard.interfaces = {
+        ${cfg.interface} = {
+          listenPort = cfg.port;
+
+          privateKeyFile = cfg.privateKeyFile;
+          ips = cfg.ips;
+
+          peers = map (peer: {
+            publicKey = peer.publicKey;
+            allowedIPs = peer.allowedIPs;
+          }) cfg.peers;
+        };
       };
     };
   };
