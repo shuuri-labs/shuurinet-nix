@@ -13,11 +13,10 @@ in {
         default = "br0";
       };
 
-        subnet = lib.mkOption {
-          type = lib.types.str;
-          description = "The subnet of the host";
-          default = "192.168.11";
-        };
+      subnet = lib.mkOption {
+        type = lib.types.str;
+        description = "The subnet of the host";
+        default = "192.168.11";
       };
     };
 
@@ -75,7 +74,7 @@ in {
       nat = {
         enable = true;
         internalInterfaces = [ cfg.interface ];
-        externalInterface = cfg.hostBridge;
+        externalInterface = cfg.host.bridge;
       };
 
       wireguard.interfaces = {

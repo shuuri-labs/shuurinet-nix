@@ -78,6 +78,7 @@
             ./modules/monitoring
             ./modules/paperless-ngx
             ./modules/remote-access
+            ./modules/caddy
             inputs.vpn-confinement.nixosModules.default
             inputs.virtualisation.nixosModules.default
           ] "x86_64-linux";

@@ -101,12 +101,12 @@ in
     rotom-laptop-wg-public-key.file = "${secretsAbsolutePath}/rotom-laptop-wg-public-key.age";
     rotom-laptop-wg-private-key.file = "${secretsAbsolutePath}/rotom-laptop-wg-private-key.age";
 
-    caddy-cloudflare = {
-      file = "${secretsAbsolutePath}/caddy-cloudflare.age";
-      owner = "caddy";
-      group = "caddy";
-      mode = "440";
-    };
+    # caddy-cloudflare = {
+    #   file = "${secretsAbsolutePath}/caddy-cloudflare.age";
+    #   owner = "caddy";
+    #   group = "caddy";
+    #   mode = "440";
+    # };
   };
 
   common.secrets.sopsKeyPath = "${secretsAbsolutePath}/keys/sops-key.agekey.age";
@@ -236,17 +236,17 @@ in
     };
   };
 
-  caddy = {
-    enable = true;
-    environmentFile = config.age.secrets.caddy-cloudflare.path;
-    defaultSite = "bln";
+  # caddy = {
+  #   enable = true;
+  #   environmentFile = config.age.secrets.caddy-cloudflare.path;
+  #   defaultSite = "bln";
 
-    virtualHosts = {
-      "kodi.apps.remote" = {
-        name = "kodi";
-        destinationAddress = "http://127.0.0.1:8096";
-        destinationPort = 8096;  # Adjust this port to match your Kodi web interface port
-      };
-    };
-  };
+  #   virtualHosts = {
+  #     "kodi.apps.remote" = {
+  #       name = "kodi";
+  #       destinationAddress = "http://127.0.0.1:8096";
+  #       destinationPort = 8096;  # Adjust this port to match your Kodi web interface port
+  #     };
+  #   };
+  # };
 }

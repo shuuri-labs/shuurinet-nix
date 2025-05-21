@@ -290,6 +290,11 @@ in
     wireguard = {
       enable = true;
 
+      host = {
+        bridge = "br0";
+        subnet = "192.168.11";
+      };
+
       privateKeyFile = config.age.secrets.tatsugiri-wg-private-key.path;
       ips = [ "10.100.88.1/32" ];
       port = 58134;
@@ -298,7 +303,7 @@ in
         {
           name = "rotom-laptop";
           publicKey = "2tdesOokkHYhXKeizN69iczaK7YIP+cqzMUneX/EqiA=";
-          allowedIPs = [ "10.100.88.0/24" ];
+          allowedIPs = [ "10.100.88.0/24" "192.168.11.0/24" ];
         }
         {
           name = "tats-kodi-box";
