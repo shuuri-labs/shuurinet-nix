@@ -68,8 +68,9 @@ in {
 
   config = lib.mkIf cfg.enable {
     networking = {
-      firewall.trustedInterfaces = [ cfg.interface ];
-      firewall.allowedUDPPorts = [ cfg.port ];
+      firewall = {
+        allowedUDPPorts = [ cfg.port ];
+      };
 
       nat = {
         enable = true;
@@ -88,10 +89,6 @@ in {
             publicKey = peer.publicKey;
             allowedIPs = peer.allowedIPs;
           }) cfg.peers;
-
-          postSetup = ''
-            ip route add ${cfg.host.subnet}.0/24 dev ${cfg.host.bridge} table main
-          '';
         };
       };
     };

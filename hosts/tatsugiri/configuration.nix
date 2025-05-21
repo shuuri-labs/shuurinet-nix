@@ -303,7 +303,7 @@ in
         {
           name = "rotom-laptop";
           publicKey = "2tdesOokkHYhXKeizN69iczaK7YIP+cqzMUneX/EqiA=";
-          allowedIPs = [ "10.100.88.0/24" "192.168.11.0/24" ];
+          allowedIPs = [ "10.100.88.0/24" ];
         }
         {
           name = "tats-kodi-box";
