@@ -11,6 +11,7 @@ in {
         type = lib.types.str;
         description = "The name of the host bridge";
         default = "br0";
+      };
 
         subnet = lib.mkOption {
           type = lib.types.str;

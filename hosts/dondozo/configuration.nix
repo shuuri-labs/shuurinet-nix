@@ -224,13 +224,13 @@ in
         {
           name = "rotom-laptop";
           publicKey = "2tdesOokkHYhXKeizN69iczaK7YIP+cqzMUneX/EqiA=";
-          allowedIPs = [ "10.100.77.0/24" ];
+          allowedIPs = [ "10.100.77.0/24" "192.168.11.0/24" ];
         }
 
         {
           name = "tats-kodi-box";
           publicKey = "WdBIvTH0MpRxYyI6exP7xhP6zO+qo/WNnGwGuIhqm1A=";  # Replace with actual public key
-          allowedIPs = [ "10.100.77.15/32" "192.168.11.0/24" ];  # Use a unique IP for this peer
+          allowedIPs = [ "10.100.77.15/32" ];  # Use a unique IP for this peer
         }
       ];
     };
