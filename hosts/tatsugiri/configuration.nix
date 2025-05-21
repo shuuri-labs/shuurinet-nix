@@ -121,6 +121,9 @@ in
     netbird-management-url.file = "${secretsAbsolutePath}/netbird-management-url.age";
     caddy-cloudflare.file = "${secretsAbsolutePath}/caddy-cloudflare.env.age";
 
+    cloudflare-api-token.file = "${secretsAbsolutePath}/cloudflare-api-token.age";
+    tatsugiri-wg-private-key.file = "${secretsAbsolutePath}/tatsugiri-wg-private-key.age";
+
     obsd-couchdb-config = {  
       file = "${secretsAbsolutePath}/obsd-couchdb-config.ini.age";
       owner = "couchdb";
@@ -271,6 +274,39 @@ in
         name = "obsidian-livesync";
         destinationPort = 5984;
       };
+    };
+  };
+
+  # -------------------------------- Remote Access --------------------------------
+
+  remoteAccess = {
+    ddns = {
+      enable = true;
+      tokenFile = config.age.secrets.cloudflare-api-token.path;
+      zone = "shuuri.net";
+      domains = [ "rmt.bln.shuuri.net" ];
+    };
+
+    wireguard = {
+      enable = true;
+
+      privateKeyFile = config.age.secrets.tatsugiri-wg-private-key.path;
+      ips = [ "10.100.88.1/32" ];
+      port = 58134;
+
+      peers = [
+        {
+          name = "rotom-laptop";
+          publicKey = "2tdesOokkHYhXKeizN69iczaK7YIP+cqzMUneX/EqiA=";
+          allowedIPs = [ "10.100.88.0/24" ];
+        }
+
+        {
+          name = "tats-kodi-box";
+          publicKey = "WdBIvTH0MpRxYyI6exP7xhP6zO+qo/WNnGwGuIhqm1A=";  # Replace with actual public key
+          allowedIPs = [ "10.100.88.1/32" ];  # Use a unique IP for this peer
+        }
+      ];
     };
   };
 }
