@@ -300,7 +300,6 @@ in
           publicKey = "2tdesOokkHYhXKeizN69iczaK7YIP+cqzMUneX/EqiA=";
           allowedIPs = [ "10.100.88.0/24" ];
         }
-
         {
           name = "tats-kodi-box";
           publicKey = "WdBIvTH0MpRxYyI6exP7xhP6zO+qo/WNnGwGuIhqm1A=";  # Replace with actual public key

@@ -212,6 +212,11 @@ in
     wireguard = {
       enable = true;
 
+      host = {
+        bridge = "br0";
+        subnet = "192.168.11";
+      };
+
       privateKeyFile = config.age.secrets.dondozo-wg-private-key.path;
       ips = [ "10.100.77.1/32" ];
 
@@ -225,7 +230,7 @@ in
         {
           name = "tats-kodi-box";
           publicKey = "WdBIvTH0MpRxYyI6exP7xhP6zO+qo/WNnGwGuIhqm1A=";  # Replace with actual public key
-          allowedIPs = [ "10.100.77.15/32" ];  # Use a unique IP for this peer
+          allowedIPs = [ "10.100.77.15/32" "192.168.11.0/24" ];  # Use a unique IP for this peer
         }
       ];
     };
