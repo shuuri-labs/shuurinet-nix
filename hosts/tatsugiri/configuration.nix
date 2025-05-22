@@ -303,12 +303,15 @@ in
         {
           name = "rotom-laptop";
           publicKey = "2tdesOokkHYhXKeizN69iczaK7YIP+cqzMUneX/EqiA=";
-          allowedIPs = [ "10.100.88.2/32" ];
+          ip = "10.100.88.2/32";
         }
         {
           name = "tats-kodi-box";
-          publicKey = "WdBIvTH0MpRxYyI6exP7xhP6zO+qo/WNnGwGuIhqm1A=";  # Replace with actual public key
-          allowedIPs = [ "10.100.88.32/32" ];  # Use a unique IP for this peer
+          publicKey = "WdBIvTH0MpRxYyI6exP7xhP6zO+qo/WNnGwGuIhqm1A=";
+          ip = "10.100.88.32/32";
+          allowedPorts = {
+            "tcp" = [ 8096 ]; # jellyfin
+          };
         }
       ];
     };
