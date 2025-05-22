@@ -6,19 +6,12 @@ in {
   options.remoteAccess.wireguard = {
     enable = lib.mkEnableOption "wireguard";
 
-    host = {
-      bridge = lib.mkOption {
-        type = lib.types.str;
-        description = "The name of the host bridge";
-        default = "br0";
-      };
-
-      subnet = lib.mkOption {
-        type = lib.types.str;
-        description = "The subnet of the host";
-        default = "192.168.11";
-      };
+    host.bridge = lib.mkOption {
+      type = lib.types.str;
+      description = "The name of the host bridge";
+      default = "br0";
     };
+    
 
     privateKeyFile = lib.mkOption {
       type = lib.types.str;

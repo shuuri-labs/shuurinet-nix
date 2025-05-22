@@ -290,10 +290,7 @@ in
     wireguard = {
       enable = true;
 
-      host = {
-        bridge = "br0";
-        subnet = "192.168.11";
-      };
+      host.bridge = "br0";
 
       privateKeyFile = config.age.secrets.tatsugiri-wg-private-key.path;
       ips = [ "10.100.88.1/32" ];
