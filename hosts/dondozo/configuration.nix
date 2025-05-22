@@ -209,25 +209,25 @@ in
       domains = [ "remote.bln.shuuri.net" ];
     };
 
-    wireguard = {
-      enable = true;
+    # wireguard = {
+    #   enable = true;
 
-      host = {
-        bridge = "br0";
-        subnet = "192.168.11";
-      };
+    #   host = {
+    #     bridge = "br0";
+    #     subnet = "192.168.11";
+    #   };
 
-      privateKeyFile = config.age.secrets.dondozo-wg-private-key.path;
-      ips = [ "10.100.77.1/32" ];
+    #   privateKeyFile = config.age.secrets.dondozo-wg-private-key.path;
+    #   ips = [ "10.100.77.1/32" ];
 
-      peers = [
-        {
-          name = "rotom-laptop";
-          publicKey = "2tdesOokkHYhXKeizN69iczaK7YIP+cqzMUneX/EqiA=";
-          allowedIPs = [ "10.100.77.2/32" ];
-        }
-      ];
-    };
+    #   peers = [
+    #     {
+    #       name = "rotom-laptop";
+    #       publicKey = "2tdesOokkHYhXKeizN69iczaK7YIP+cqzMUneX/EqiA=";
+    #       allowedIPs = [ "10.100.77.2/32" ];
+    #     }
+    #   ];
+    # };
   };
 
   # caddy = {
