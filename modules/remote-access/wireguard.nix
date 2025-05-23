@@ -70,6 +70,10 @@ in {
   
 
   config = lib.mkIf cfg.enable {
+    boot.kernel.sysctl = lib.mkForce {
+      "net.ipv4.ip_forward" = 1;
+    };
+    
     networking = {
       firewall = {
         allowedUDPPorts = [ cfg.port ];

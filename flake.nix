@@ -156,6 +156,19 @@
             inputs.vpn-confinement.nixosModules.default
             inputs.virtualisation.nixosModules.default
           ] "x86_64-linux";
+
+          misdreavus = mkNixosHost "misdreavus" [
+            # ./modules/monitoring
+            ./modules/homepage-dashboard
+            ./modules/intel
+            ./modules/power-saving
+            ./modules/disk-care
+            ./modules/iperf
+            ./modules/uefi-boot
+            ./modules/remote-access
+            ./modules/caddy 
+            inputs.virtualisation.nixosModules.default
+          ] "x86_64-linux";
         };
       };
 
