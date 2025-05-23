@@ -293,7 +293,7 @@ in
       host.bridge = "br0";
 
       privateKeyFile = config.age.secrets.tatsugiri-wg-private-key.path;
-      ips = [ "10.100.88.1/32" ];
+      ips = [ "10.100.88.1/27" ];
       port = 58134;
 
       peers = [
@@ -305,7 +305,7 @@ in
         {
           name = "tats-kodi-box";
           publicKey = "WdBIvTH0MpRxYyI6exP7xhP6zO+qo/WNnGwGuIhqm1A=";
-          ip = "10.100.88.32/32";
+          ip = "10.100.88.33/32";
           allowedPorts = {
             "tcp" = [ 8096 ]; # jellyfin
           };

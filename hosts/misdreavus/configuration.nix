@@ -96,40 +96,40 @@ in
 
   # -------------------------------- Virtualisation & VMs --------------------------------
 
-  virtualisation = {
-    intel.enable = true;
+  # virtualisation = {
+  #   intel.enable = true;
     
-    qemu.manager = {
-      images = {
-        "haos" = {
-          enable = true;
-          source = "https://github.com/home-assistant/operating-system/releases/download/15.2/haos_ova-15.2.qcow2.xz";
-          sourceFormat = "qcow2";
-          sourceSha256 = "0jbjajfnv3m37khk9446hh71g338xpnbnzxjij8v86plymxi063d";
-          compressedFormat = "xz";
-        };
-      };
+  #   qemu.manager = {
+  #     images = {
+  #       "haos" = {
+  #         enable = true;
+  #         source = "https://github.com/home-assistant/operating-system/releases/download/15.2/haos_ova-15.2.qcow2.xz";
+  #         sourceFormat = "qcow2";
+  #         sourceSha256 = "0jbjajfnv3m37khk9446hh71g338xpnbnzxjij8v86plymxi063d";
+  #         compressedFormat = "xz";
+  #       };
+  #     };
 
-      # To 'factory reset VM, delete overlay in "/var/lib/vm/images" and restart service
-      # VM service names are the names of the service attribute sets below, e.g. "openwrt" or "home-assistant"
-      services = {
-        "home-assistant" = {
-          enable     = true;
-          baseImage  = "haos";
-          uefi       = true;
-          memory     = 3072;
-          smp        = 2;
-          taps       = [ 
-            { name = "haos-tap"; macAddress = "cb:a1:37:6c:1d:fa"; }
-          ];
-          bridges    = [ "br0" ];
-          usbHosts   = [ { address = "10c4"; vendorDeviceId = "ea60"; } ];
-          rootScsi   = true;
-          vncPort    = 2;
-        };
-      };
-    };
-  };
+  #     # To 'factory reset VM, delete overlay in "/var/lib/vm/images" and restart service
+  #     # VM service names are the names of the service attribute sets below, e.g. "openwrt" or "home-assistant"
+  #     services = {
+  #       "home-assistant" = {
+  #         enable     = true;
+  #         baseImage  = "haos";
+  #         uefi       = true;
+  #         memory     = 3072;
+  #         smp        = 2;
+  #         taps       = [ 
+  #           { name = "haos-tap"; macAddress = "cb:a1:37:6c:1d:fa"; }
+  #         ];
+  #         bridges    = [ "br0" ];
+  #         usbHosts   = [ { address = "10c4"; vendorDeviceId = "ea60"; } ];
+  #         rootScsi   = true;
+  #         vncPort    = 2;
+  #       };
+  #     };
+  #   };
+  # };
 
   # -------------------------------- Services --------------------------------
 
@@ -141,22 +141,22 @@ in
       domains = [ "rmt.tats.shuuri.net" ];
     };
 
-    wireguard = {
-      enable = true;
+    # wireguard = {
+    #   enable = true;
 
-      host.bridge = "br0";
+    #   host.bridge = "br0";
     
-      privateKeyFile = config.age.secrets.misdreavus-wg-prv-key.path;
-      ips = [ "10.100.88.33/32" ];
-      port = 58134;
+    #   privateKeyFile = config.age.secrets.misdreavus-wg-prv-key.path;
+    #   ips = [ "10.100.88.32/27" ]; # /27 means this site owns IPS 32-63 (32 IPs)
+    #   port = 58135;
 
-      peers = [
-        {
-          name = "rotom-laptop";
-          publicKey = "2tdesOokkHYhXKeizN69iczaK7YIP+cqzMUneX/EqiA=";
-          ip = "10.100.88.2/32";
-        }
-      ];
-    };
+    #   peers = [
+    #     {
+    #       name = "rotom-laptop";
+    #       publicKey = "2tdesOokkHYhXKeizN69iczaK7YIP+cqzMUneX/EqiA=";
+    #       ip = "10.100.88.2/32";
+    #     }
+    #   ];
+    # };
   };
 }
