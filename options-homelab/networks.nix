@@ -37,6 +37,9 @@ in
       };
       "tats" = {
         ipv4 = "192.168.178";
+        ipv6 = "fd76:3a95:ae2c::10eb:f3f5:a168";
+        gateway6 = "fe80::9a9b:cbff:fe4c:1c59";
+        vlan = 1; 
       };
     };
   };

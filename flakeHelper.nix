@@ -48,6 +48,7 @@ let
       pkgs.lm_sensors
       pkgs.python3
       pkgs.passmark-performancetest
+      pkgs.usbutils
     ];
   };
 
