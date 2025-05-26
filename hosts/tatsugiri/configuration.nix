@@ -255,7 +255,7 @@ in
   services.couchdb = {
     enable = true;
     configFile = config.age.secrets.obsd-couchdb-config.path;
-    bindAddress = hostPrimaryIp;
+    # bindAddress = hostPrimaryIp;
   };
 
   caddy = {
@@ -303,9 +303,14 @@ in
           ip = "10.100.88.2/32";
         }
         {
+          name = "rotom-phone";
+          publicKey = "ljwu1Ucrev/dtEFmlc+FA7x8Sdnx56Zg7QlBQKnv1Bk=";
+          ip = "10.100.88.4/32";
+        }
+        {
           name = "tats-kodi-box";
           publicKey = "WdBIvTH0MpRxYyI6exP7xhP6zO+qo/WNnGwGuIhqm1A=";
-          ip = "10.100.88.32/32";
+          ip = "10.100.88.3/32";
           allowedPorts = {
             "tcp" = [ 8096 ]; # jellyfin
           };
