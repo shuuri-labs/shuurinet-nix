@@ -27,8 +27,9 @@ in
     
     firewall = {
       enable = true;
-      allowedTCPPorts = [ 80 443 22 ];
-      allowedUDPPorts = [ 80 443 22 ];
+      allowedTCPPorts = [ 22 80 443 33073 10000 33080 ];
+      allowedUDPPorts = [ 3478 ];
+      allowedUDPPortRanges = [ { from = 49152; to = 65535; } ];
     };
   };
 
@@ -56,23 +57,64 @@ in
     efiInstallAsRemovable = true;
   };
 
+  # environment.systemPackages = with pkgs; [
+  #   caddy
+  # ];
+
   # users.users.ashley.hashedPasswordFile = config.age.secrets.castform-main-user-password.path;
   # users.users.ashley.password = "p@ssuw4d0!2334";
 
   # -------------------------------- SECRETS --------------------------------
 
+  # users.groups = {
+  #   oauth2-secrets = {
+  #     name = "oauth2-secrets-access";
+  #     gid = 506;
+  #   };
+  # };
+
+  # users.users = {
+  #   kanidm.extraGroups = [ "oauth2-secrets-access" ];
+  #   turnserver.extraGroups = [ "oauth2-secrets-access" ];
+  # };
+
   age.secrets = {
+    caddy-cloudflare = {
+      file = "${secretsAbsolutePath}/caddy-cloudflare.env.age";
+      owner = "caddy";
+      group = "caddy";
+    };
+
     kanidm-admin-password = {
       file = "${secretsAbsolutePath}/kanidm-admin-password.age";
       owner = "kanidm";
       group = "kanidm";
     };
 
-    caddy-cloudflare = {
-      file = "${secretsAbsolutePath}/caddy-cloudflare.env.age";
-      owner = "caddy";
-      group = "caddy";
+    kanidm-netbird-client-secret = {
+      file = "${secretsAbsolutePath}/kanidm-netbird-client-secret.age";
+      owner = "kanidm";
+      group = "kanidm";
+      # mode = "0640";
     };
+
+    netbird-coturn-password = {
+      file = "${secretsAbsolutePath}/netbird-coturn-password.age";
+      owner = "turnserver";
+      group = "turnserver";
+    };
+
+    netbird-turn-password = {
+      file = "${secretsAbsolutePath}/netbird-turn-password.age";
+      owner = "turnserver";
+      group = "turnserver";
+    };
+    
+    netbird-mgmt-data-store-encryp-key = {
+      file = "${secretsAbsolutePath}/netbird-mgmt-data-store-encryp-key.age";
+      owner = "turnserver";
+      group = "turnserver";
+    }; 
   };
 
   # -------------------------------- Caddy --------------------------------
@@ -127,7 +169,67 @@ in
     "${kanidmCert}/ca.pem"
   ];
 
+  services.kanidm.provision = {
+    groups = {
+      "netbird-access" = {
+        present = true;
+        members = [ "ashley" ];
+      };
+    };
+
+    systems.oauth2 = {
+      netbird = {
+        displayName = "Netbird";
+        present = true;
+        public = true;
+        enableLocalhostRedirects = true;
+
+        # basicSecretFile = config.age.secrets.kanidm-netbird-client-secret.path;
+
+        originUrl = [
+          "https://bird.shuuri.net/peers"
+          "https://bird.shuuri.net/add-peers"
+          "http://localhost:53000"
+        ];
+
+        originLanding = "https://bird.shuuri.net";
+        # enableLocalhostRedirects = true;
+
+        scopeMaps = {
+          netbird-access = [ 
+            "openid"
+            "email"
+            "profile"
+            "offline_access"
+            "api"
+          ];
+        };
+      };
+    };
+  };
+
   # -------------------------------- Netbird --------------------------------
 
+  netbird.server = {
+    enable = true;
 
+    domain = "bird.shuuri.net";
+    authDomain = "auth.cloud.shuuri.net";
+
+    coturn = {
+      passwordFile = config.age.secrets.netbird-coturn-password.path;
+    };
+
+    turn = {
+      passwordFile = config.age.secrets.netbird-turn-password.path;
+    };
+
+    management = {
+      dataStoreEncrypKeyFile = config.age.secrets.netbird-mgmt-data-store-encryp-key.path;
+    };
+
+    # relay = {
+    #   authSecretFile = config.age.secrets.netbird-relay-auth-secret.path;
+    # }
+  };
 }

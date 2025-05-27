@@ -57,6 +57,7 @@ in
 
       provision = { 
         enable = true;
+        autoRemove = true;
 
         adminPasswordFile = cfg.adminPasswordFile;
         idmAdminPasswordFile = cfg.idmAdminPasswordFile;
@@ -69,23 +70,23 @@ in
           };
         };
 
-        groups = {
-          "jellyfin-access" = {
-            present = true;
-            members = [ "ashley" ]; # can also add via provision.persons.<name>.groups
-          };
-        };
+        # groups = {
+        #   "jellyfin-access" = {
+        #     present = true;
+        #     members = [ "ashley" ]; # can also add via provision.persons.<name>.groups
+        #   };
+        # };
       };
     };
   };
 }
 
 # you can 'login' to the admin account in the terminal with:
-# sudo kanidm login -D admin --url https://127.0.0.1:8443
+# kanidm login -D admin --url https://127.0.0.1:8443
 
 # set the instance name that shows up in the UI. can't see a nix option for this (currently, 12/05/2025):
-# sudo kanidm system domain set-displayname --url https://127.0.0.1:8443  "shuurinet London"
+# kanidm system domain set-displayname --url https://127.0.0.1:8443  "shuurinet London"
 
 # users (even those defined in provision.persons) need to be enrolled manually:
-# sudo kanidmd recover-account <username>
-# sudo kanidm login -D <username> --url https://127.0.0.1:8443
+# sudo kanidmd recover-account ashley
+# kanidm login -D ashley --url https://127.0.0.1:8443

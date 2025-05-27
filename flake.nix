@@ -151,7 +151,7 @@
           talonflame = mkNixosCloudHost "talonflame" [
             ./modules/kanidm
             ./modules/caddy
-            # ./modules/netbird/server
+            ./modules/netbird/server
             ./modules/homepage-dashboard
             inputs.vpn-confinement.nixosModules.default
             inputs.virtualisation.nixosModules.default
