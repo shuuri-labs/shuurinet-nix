@@ -321,17 +321,17 @@
         "systems": "systems_2"
       },
       "locked": {
-        "lastModified": 1747297447,
-        "narHash": "sha256-TTMRvlVseJkhfpIaXw+y6mA48OEh551jPAGz3+pwJlY=",
+        "lastModified": 1748420691,
+        "narHash": "sha256-ncxu60cfiIDzPmjukYI9xutya+6jKxAXmRJ/JiGz8Tg=",
         "owner": "astro",
         "repo": "nix-openwrt-imagebuilder",
-        "rev": "cc3db25ec5e0a64b2ef2f740d09700a1be1b99c8",
+        "rev": "84ae327a09f7b4a2ed19048704bf49555505f27b",
         "type": "github"
       },
       "original": {
         "owner": "astro",
         "repo": "nix-openwrt-imagebuilder",
-        "rev": "cc3db25ec5e0a64b2ef2f740d09700a1be1b99c8",
+        "rev": "84ae327a09f7b4a2ed19048704bf49555505f27b",
         "type": "github"
       }
     },
@@ -420,15 +420,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1746639766,
-        "narHash": "sha256-smABgdrkediYnFnxtiYrYSwCVBgGZdbgTb80DVkyFMA=",
+        "lastModified": 1748465808,
+        "narHash": "sha256-Gmv3IZyxTV4ZMqdn8FC5Tnvkm8oswj2ACm7Kba9xNdo=",
         "owner": "shuuri-labs",
         "repo": "nix-virtualisation",
-        "rev": "4986b55a921aa4d6266ca3158ace2b9a8cfb4e96",
+        "rev": "5573f64e5a96b792c35e5ca5620dfae3fe6682f0",
         "type": "github"
       },
       "original": {
         "owner": "shuuri-labs",
+        "ref": "feat/auto-bridge-creation",
         "repo": "nix-virtualisation",
         "type": "github"
       }

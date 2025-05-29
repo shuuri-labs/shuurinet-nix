@@ -44,12 +44,12 @@
       # commit hash is will be between 'github:astro/nix-openwrt-imagebuilder/' and '?narHash=...'
       # can also clone repo and use local path instead of url if their hashes are not up to date (happens rarely), see my openwrt module for details
       # don't forget to update nixpkgs-openwrt, too
-      url = "github:astro/nix-openwrt-imagebuilder/cc3db25ec5e0a64b2ef2f740d09700a1be1b99c8";
+      url = "github:astro/nix-openwrt-imagebuilder/84ae327a09f7b4a2ed19048704bf49555505f27b";
       inputs.nixpkgs.follows = "nixpkgs-openwrt";
     };
 
     virtualisation = {
-      url = "github:shuuri-labs/nix-virtualisation";
+      url = "github:shuuri-labs/nix-virtualisation/feat/auto-bridge-creation";
       inputs.nixpkgs.follows = "nixpkgs-virtualisation";
     };
   };

@@ -122,7 +122,7 @@ in
           taps       = [ 
             { name = "haos-tap"; macAddress = "cb:a1:37:6c:1d:fa"; }
           ];
-          bridges    = [ "br0" ];
+          hostBridges    = [ "br0" ];
           usbHosts   = [ { address = "10c4"; vendorDeviceId = "ea60"; } ];
           rootScsi   = true;
           vncPort    = 2;

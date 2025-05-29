@@ -2,7 +2,10 @@
 let
   common = import ./common.nix;
 
+  hostName = "shuurinet-router-bln";
+
   lanBridge = common.mkBridge [ "eth0" "eth1" "eth2" "eth3" "eth4" ];
+
   lanBridgeVlans = common.mkBridgeVlans {
     trunkPorts = [ "eth2" "eth3" ];
     lanPorts   = [ "eth0" "eth4" ];
@@ -60,6 +63,13 @@ in {
         "bridge-vlan" = lanBridgeVlans.bridge-vlan;
 
         interface = interfaces // {
+          system = {
+            system = [{
+              hostname = hostName;
+              timezone = "UTC";
+            }];
+          };
+
           wan = {
             device           = wanPort;
             proto            = "pppoe";
