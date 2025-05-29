@@ -49,7 +49,7 @@
     };
 
     virtualisation = {
-      url = "github:shuuri-labs/nix-virtualisation/feat/auto-bridge-creation";
+      url = "github:shuuri-labs/nix-virtualisation";
       inputs.nixpkgs.follows = "nixpkgs-virtualisation";
     };
   };

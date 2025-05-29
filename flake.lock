@@ -429,7 +429,6 @@
       },
       "original": {
         "owner": "shuuri-labs",
-        "ref": "feat/auto-bridge-creation",
         "repo": "nix-virtualisation",
         "type": "github"
       }
