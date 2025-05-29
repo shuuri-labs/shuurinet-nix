@@ -33,6 +33,7 @@ in
           subnet = hostSubnet;
           identifier = hostAddress;
           isPrimary = true;
+          # tapDevices = [ "haos-tap" ];
         }
       ];
     };
@@ -121,7 +122,10 @@ in
           uefi       = true;
           memory     = 3072;
           smp        = 2;
-          hostBridges    = [ "br0" ];
+          taps       = [ 
+            { name = "haos-tap"; macAddress = "8e:56:d7:e3:4a:44"; }
+          ];
+          bridges    = [ "br0" ];
           # usbHosts   = [ { vendorId = "4292"; productId = "60000"; } ];
           rootScsi   = true;
           vncPort    = 2;
