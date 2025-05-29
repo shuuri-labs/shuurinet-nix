@@ -134,12 +134,12 @@ in
           enable = true;
           # openwrt imagebuilder input is pinned to a specific revision to prevent updates upon flake update/rebuild -
           # to update the image, see flake.nix openwrt-imagebuilder input
-          # source = inputs.self.packages.${pkgs.system}.berlin-vm-router-img;
-          # sourceFormat = "raw";
-          # compressedFormat = "gz";
-          source = "file:///var/lib/vm/images/openwrt-full.qcow2";
-          sourceFormat = "qcow2";
-          sourceSha256 = "1c2n1qms0prj6chcn7gb169m0fc2692q2nwmah8hv70dla643g7g";
+          source = inputs.self.packages.${pkgs.system}.berlin-vm-router-img;
+          sourceFormat = "raw";
+          compressedFormat = "gz";
+          # source = "file:///var/lib/vm/images/openwrt-full.qcow2";
+          # sourceFormat = "qcow2";
+          # sourceSha256 = "1c2n1qms0prj6chcn7gb169m0fc2692q2nwmah8hv70dla643g7g";
         };
         
         "haos" = {
@@ -185,30 +185,20 @@ in
   };
 
   ## OpenWrt Config Auto-Deploy
-  openwrt.config-auto-deploy = {
-    enable = true;
-    sopsAgeKeyFile = config.age.secrets.sops-key.path;
+  # openwrt.config-auto-deploy = {
+  #   enable = true;
+  #   sopsAgeKeyFile = config.age.secrets.sops-key.path;
 
-    configs = {
-      vm-test-router-config = {
-        drv = inputs.self.packages.${pkgs.system}.vm-test-router-config;
-        # imageDrv = inputs.self.packages.${pkgs.system}.berlin-router-img;
-        serviceName = "openwrt";
-        host = "192.168.11.51";
-      };  
-    };
-  };
+  #   configs = {
+  #     vm-test-router-config = {
+  #       drv = inputs.self.packages.${pkgs.system}.vm-test-router-config;
+  #       # imageDrv = inputs.self.packages.${pkgs.system}.berlin-router-img;
+  #       serviceName = "openwrt";
+  #       host = "192.168.11.51";
+  #     };  
+  #   };
+  # };
 
   # -------------------------------- Services --------------------------------
-
-  ### Obsidian Livesync
-  services.couchdb = {
-    enable = true;
-    configFile = config.age.secrets.obsd-couchdb-config.path;
-    bindAddress = hostPrimaryIp;
-  };
-
-  networking.firewall = {
-    allowedTCPPorts = [ 5984 ];
-  };
+  
 }
