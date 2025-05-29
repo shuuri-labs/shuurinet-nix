@@ -33,7 +33,7 @@ in
           subnet = hostSubnet;
           identifier = hostAddress;
           isPrimary = true;
-          tapDevices = [ "haos-tap" ];
+          # tapDevices = [ "haos-tap" ];
         }
       ];
     };
@@ -53,6 +53,9 @@ in
     "pcie_aspm=force"
     "pcie_aspm.policy=powersave"
   ];
+
+  boot.blacklistedKernelModules = [ "r8169" ];
+  boot.extraModulePackages = with config.boot.kernelPackages; [ r8168 ];
 
   time.timeZone = "Europe/Berlin";
 
@@ -110,7 +113,7 @@ in
         };
       };
 
-      # To 'factory reset VM, delete overlay in "/var/lib/vm/images" and restart service
+      # To 'factory reset' VM, delete overlay in "/var/lib/vm/images" and restart service
       # VM service names are the names of the service attribute sets below, e.g. "openwrt" or "home-assistant"
       services = {
         "home-assistant" = {
@@ -120,12 +123,17 @@ in
           memory     = 3072;
           smp        = 2;
           taps       = [ 
-            { name = "haos-tap"; macAddress = "cb:a1:37:6c:1d:fa"; }
+            { name = "haos-tap"; macAddress = "8e:56:d7:e3:4a:44"; }
           ];
           bridges    = [ "br0" ];
-          usbHosts   = [ { address = "10c4"; vendorDeviceId = "ea60"; } ];
+          # usbHosts   = [ { vendorId = "4292"; productId = "60000"; } ];
           rootScsi   = true;
           vncPort    = 2;
+          extraArgs = [
+            "usb"
+            "device qemu-xhci,id=xhci"
+            "device usb-host,bus=xhci.0,vendorid=0x10c4,productid=0xea60"
+          ];
         };
       };
     };
@@ -147,14 +155,14 @@ in
       host.bridge = "br0";
     
       privateKeyFile = config.age.secrets.misdreavus-wg-prv-key.path;
-      ips = [ "10.100.88.33/32" ];
-      port = 58134;
+      ips = [ "10.100.44.1/32" ];
+      port = 58135;
 
       peers = [
         {
           name = "rotom-laptop";
           publicKey = "2tdesOokkHYhXKeizN69iczaK7YIP+cqzMUneX/EqiA=";
-          ip = "10.100.88.2/32";
+          ip = "10.100.44.2/32";
         }
       ];
     };

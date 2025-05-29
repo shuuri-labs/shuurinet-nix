@@ -31,6 +31,8 @@
       nfuo = "nix flake update --update-input nixpkgs-openwrt";
       nfus = "nix flake update";
 
+      nfui = "nix flake update input"; # add specific input eg virtualisation
+
       cdnx = "cd ~/shuurinet-nix";
       lservices = "systemctl list-units --type=service --state=running";
       laservices = "systemctl list-units --type=service";

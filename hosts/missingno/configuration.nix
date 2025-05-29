@@ -43,13 +43,11 @@ in
           subnet = config.homelab.networks.subnets.bln-lan;
           identifier = hostAddress;
           isPrimary = !deploymentMode;
-          tapDevices = [ "opnwrt-tap" "haos-tap" ];
         }
 
         # Apps
         {
           name = "br1";
-          tapDevices = [ "opnwrt-apps-tap" ];
         }
       ];
     };
@@ -136,9 +134,12 @@ in
           enable = true;
           # openwrt imagebuilder input is pinned to a specific revision to prevent updates upon flake update/rebuild -
           # to update the image, see flake.nix openwrt-imagebuilder input
+          # source = inputs.self.packages.${pkgs.system}.berlin-vm-router-img;
+          # sourceFormat = "raw";
+          # compressedFormat = "gz";
           source = "file:///var/lib/vm/images/openwrt-full.qcow2";
-          sourceSha256 = "1bjrbn6x8wy9rzvfshsa64in2bpc00kb7d2ziyz0jl62rbcbngih";
           sourceFormat = "qcow2";
+          sourceSha256 = "1c2n1qms0prj6chcn7gb169m0fc2692q2nwmah8hv70dla643g7g";
         };
         
         "haos" = {
@@ -154,18 +155,14 @@ in
       # VM service names are the names of the service attribute sets below, e.g. "openwrt" or "home-assistant"
       services = {
         "openwrt" = {
-          enable     = true;
-          baseImage  = "openwrt";
-          uefi       = true;
-          memory     = 1024;
-          smp        = 8;
-          taps       = [ 
-            { name = "opnwrt-tap";      macAddress = "fe:b5:aa:0f:29:57"; }
-            { name = "opnwrt-apps-tap"; macAddress = "fe:b5:aa:0f:29:58"; }
-          ];
-          bridges    = [ "br0" "br1" ];
-          pciHosts   = [ 
-            { address = "01:00.0"; vendorDeviceId = "8086:150e"; } 
+          enable      = true;
+          baseImage   = "openwrt";
+          uefi        = true;
+          memory      = 1024;
+          smp         = 8;
+          hostBridges = [ "br0" "br1" ];
+          pciHosts    = [ 
+            { address = "01:00.0"; vendorDeviceId = "8086:1521"; } 
             { address = "01:00.1"; }
             { address = "01:00.2"; }
             { address = "01:00.3"; }
@@ -174,17 +171,14 @@ in
         };
 
         "home-assistant" = {
-          enable     = true;
-          baseImage  = "haos";
-          uefi       = true;
-          memory     = 3072;
-          smp        = 2;
-          taps       = [ 
-            { name = "haos-tap"; macAddress = "ce:b0:37:6c:1a:ff"; }
-          ];
-          bridges    = [ "br0" ];
-          rootScsi   = true;
-          vncPort    = 2;
+          enable      = true;
+          baseImage   = "haos";
+          uefi        = true;
+          memory      = 3072;
+          smp         = 2;
+          hostBridges = [ "br0" ];
+          rootScsi    = true;
+          vncPort     = 2;
         };
       };
     };
@@ -203,28 +197,6 @@ in
         host = "192.168.11.51";
       };  
     };
-  };
-
-  ### Containers
-  netbird.router = {
-    enable = true;
-    
-    managementUrlPath = config.age.secrets.netbird-management-url.path;
-    
-    # peers = {
-    #   master = {
-    #     enable = lib.mkForce true;
-    #     setupKey = config.age.secrets.missingno-netbird-master-setup-key.path;
-    #     hostInterface = "br0";
-    #     hostSubnet = config.homelab.networks.subnets.bln-lan.ipv4;
-    #   };
-
-    #   apps = {
-    #     enable = lib.mkForce true;
-    #     setupKey = config.age.secrets.missingno-netbird-apps-setup-key.path;
-    #     hostSubnet = config.homelab.networks.subnets.bln-apps.ipv4; 
-    #   };
-    # };
   };
 
   # -------------------------------- Services --------------------------------

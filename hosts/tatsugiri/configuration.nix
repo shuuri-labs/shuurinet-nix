@@ -42,13 +42,11 @@ in
           subnet = if deploymentMode then null else config.homelab.networks.subnets.bln-lan;
           identifier = if deploymentMode then null else hostAddress;
           isPrimary = !deploymentMode;
-          tapDevices = [ "opnwrt-tap" "haos-tap" ];
         }
 
         # Apps
         {
           name = "br1";
-          tapDevices = [ "opnwrt-apps-tap" ];
         }
       ];
     };
@@ -181,11 +179,7 @@ in
           uefi       = true;
           memory     = 1024;
           smp        = 4;
-          taps       = [ 
-            { name = "opnwrt-tap";      macAddress = "fe:b5:aa:1f:29:24"; }
-            { name = "opnwrt-apps-tap"; macAddress = "fe:b5:aa:1f:29:21"; }
-          ];
-          bridges    = [ "br0" "br1" ];
+          hostBridges    = [ "br0" "br1" ];
           pciHosts   = [ 
             { address = "01:00.0"; vendorDeviceId = "8086:150e"; } 
             { address = "01:00.1"; }
@@ -201,10 +195,7 @@ in
           uefi       = true;
           memory     = 3072;
           smp        = 2;
-          taps       = [ 
-            { name = "haos-tap"; macAddress = "ce:b0:37:6d:1a:de"; }
-          ];
-          bridges    = [ "br0" ];
+          hostBridges    = [ "br0" ];
           rootScsi   = true;
           vncPort    = 2;
         };
@@ -255,7 +246,6 @@ in
   services.couchdb = {
     enable = true;
     configFile = config.age.secrets.obsd-couchdb-config.path;
-    # bindAddress = hostPrimaryIp;
   };
 
   caddy = {
