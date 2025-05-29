@@ -53,6 +53,9 @@ in
     "pcie_aspm.policy=powersave"
   ];
 
+  boot.blacklistedKernelModules = [ "r8169" ];
+  boot.extraModulePackages = with config.boot.kernelPackages; [ r8168 ];
+
   time.timeZone = "Europe/Berlin";
 
   # Bootloader
@@ -109,7 +112,7 @@ in
         };
       };
 
-      # To 'factory reset VM, delete overlay in "/var/lib/vm/images" and restart service
+      # To 'factory reset' VM, delete overlay in "/var/lib/vm/images" and restart service
       # VM service names are the names of the service attribute sets below, e.g. "openwrt" or "home-assistant"
       services = {
         "home-assistant" = {
@@ -119,9 +122,14 @@ in
           memory     = 3072;
           smp        = 2;
           hostBridges    = [ "br0" ];
-          usbHosts   = [ { address = "10c4"; vendorDeviceId = "ea60"; } ];
+          # usbHosts   = [ { vendorId = "4292"; productId = "60000"; } ];
           rootScsi   = true;
           vncPort    = 2;
+          extraArgs = [
+            "usb"
+            "device qemu-xhci,id=xhci"
+            "device usb-host,bus=xhci.0,vendorid=0x10c4,productid=0xea60"
+          ];
         };
       };
     };
