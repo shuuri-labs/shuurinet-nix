@@ -119,10 +119,10 @@ in
             "Power Usage" = {
               icon = "home-assistant.png";
               href = "http://10.10.33.231";
-              siteMonitor = "http://192.168.11.210:8123";
+              siteMonitor = "http://192.168.11.240:8123";
               widget = {
                 type = "homeassistant";
-                url = "http://192.168.11.210:8123";
+                url = "http://192.168.11.240:8123";
                 key = "{{HOMEPAGE_VAR_HOMEASSISTANT_API_KEY}}";
                 custom = [
                   {

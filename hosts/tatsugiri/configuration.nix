@@ -17,6 +17,7 @@ in
   imports = [
     ./hardware-configuration.nix
     ./disk-config.nix
+    (import ./homepage-config.nix { inherit config; })
   ]; 
 
   # -------------------------------- HOST VARIABLES --------------------------------
@@ -118,6 +119,8 @@ in
     sops-key.file = "${secretsAbsolutePath}/keys/sops-key.age";
     netbird-management-url.file = "${secretsAbsolutePath}/netbird-management-url.age";
     caddy-cloudflare.file = "${secretsAbsolutePath}/caddy-cloudflare.env.age";
+    homepage-vars.file = "${secretsAbsolutePath}/dondozo-homepage-vars.age";
+
 
     cloudflare-api-token.file = "${secretsAbsolutePath}/cloudflare-api-token.age";
     tatsugiri-wg-private-key.file = "${secretsAbsolutePath}/tatsugiri-wg-private-key.age";
