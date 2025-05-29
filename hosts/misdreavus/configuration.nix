@@ -33,7 +33,6 @@ in
           subnet = hostSubnet;
           identifier = hostAddress;
           isPrimary = true;
-          tapDevices = [ "haos-tap" ];
         }
       ];
     };
@@ -119,9 +118,6 @@ in
           uefi       = true;
           memory     = 3072;
           smp        = 2;
-          taps       = [ 
-            { name = "haos-tap"; macAddress = "cb:a1:37:6c:1d:fa"; }
-          ];
           hostBridges    = [ "br0" ];
           usbHosts   = [ { address = "10c4"; vendorDeviceId = "ea60"; } ];
           rootScsi   = true;
@@ -147,14 +143,14 @@ in
       host.bridge = "br0";
     
       privateKeyFile = config.age.secrets.misdreavus-wg-prv-key.path;
-      ips = [ "10.100.88.33/32" ];
-      port = 58134;
+      ips = [ "10.100.44.1/32" ];
+      port = 58135;
 
       peers = [
         {
           name = "rotom-laptop";
           publicKey = "2tdesOokkHYhXKeizN69iczaK7YIP+cqzMUneX/EqiA=";
-          ip = "10.100.88.2/32";
+          ip = "10.100.44.2/32";
         }
       ];
     };
