@@ -99,13 +99,8 @@ in
 
   age.secrets = {
     sops-key.file = "${secretsAbsolutePath}/keys/sops-key.agekey.age";
-    netbird-management-url.file = "${secretsAbsolutePath}/netbird-management-url.age";
 
-    obsd-couchdb-config = {  
-      file = "${secretsAbsolutePath}/obsd-couchdb-config.ini.age";
-      owner = "couchdb";
-      group = "couchdb";
-    };
+    caddy-cloudflare.file = "${secretsAbsolutePath}/caddy-cloudflare.env.age";
   };
 
   common.secrets.sopsKeyPath = "${secretsAbsolutePath}/keys/sops-key.agekey.age";
@@ -182,6 +177,13 @@ in
         };
       };
     };
+  };
+
+  homelab = {
+    enable = true;
+    reverseProxy.caddy.environmentFile = config.age.secrets.caddy-cloudflare.path;
+    
+    services.mealie.enable = true;
   };
 
   ## OpenWrt Config Auto-Deploy

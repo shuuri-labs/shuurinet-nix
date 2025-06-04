@@ -110,6 +110,7 @@
             ./modules/uefi-boot
             ./modules/openwrt/configs/auto-deploy.nix
             ./modules/netbird/router
+            ./homelab
             inputs.vpn-confinement.nixosModules.default
             inputs.virtualisation.nixosModules.default
           ] "x86_64-linux";
