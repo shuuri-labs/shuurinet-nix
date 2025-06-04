@@ -6,11 +6,9 @@ let
 in
 {
   options = {
-    enable = lib.mkOption {
-      type        = lib.types.bool;
-      default     = true;
-      description = "Whether to enable the ${service} service";
-    };
+    enable = lib.mkEnableOption (builtins.concatStringsSep "" [
+      "Enable " service " service"
+    ]);
 
     address = lib.mkOption {
       type        = lib.types.str;

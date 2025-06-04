@@ -32,5 +32,6 @@ in
       port = cfg.port;
       domain = cfg.domain.final;
     }))
+    # TODO: automatically add DNS record to cloudflare 
   ];
 }

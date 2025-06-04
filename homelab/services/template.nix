@@ -1,6 +1,6 @@
 # Template for creating new homelab services
 # Copy this file and replace:
-# - "SERVICE_NAME" with your service name (e.g., "jellyfin", "nextcloud")
+# - "SERVICE_NAME" with  service name (e.g. "jellyfin", "nextcloud")
 # - PORT_NUMBER with the default port for your service
 # - Add any service-specific options as needed
 
