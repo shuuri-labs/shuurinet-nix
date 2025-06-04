@@ -8,6 +8,10 @@
     "${domain}" = {
       extraConfig = ''
         reverse_proxy ${address}:${toString port}
+
+        tls {
+          dns cloudflare {env.CF_API_KEY_TOKEN}
+        }
       '';
     };
   };

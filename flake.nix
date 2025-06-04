@@ -2,7 +2,7 @@
   description = "shuurinet nix config flake";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     nixpkgs-virtualisation.url = "github:nixos/nixpkgs/nixos-24.11";
     nixpkgs-openwrt.url = "github:NixOS/nixpkgs/nixos-24.11";

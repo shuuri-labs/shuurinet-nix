@@ -3,7 +3,7 @@
 let
   inherit (inputs.nixpkgs.lib) nixosSystem;
 
-  stateVersion = "24.11";
+  stateVersion = "25.05";
 
   mkHostPath = hostName: ./hosts/${hostName}/configuration.nix;
 
@@ -27,6 +27,7 @@ let
     environment.systemPackages = [
       inputs.agenix.packages.${pkgs.system}.default
       inputs.home-manager.packages.${pkgs.system}.default
+      pkgs.bind
     ];
 
     nixpkgs.overlays = [

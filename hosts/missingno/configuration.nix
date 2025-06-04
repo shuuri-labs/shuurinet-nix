@@ -120,64 +120,64 @@ in
 
   # -------------------------------- Virtualisation & VMs --------------------------------
 
-  virtualisation = {
-    intel.enable = true;
+  # virtualisation = {
+  #   intel.enable = true;
     
-    qemu.manager = {
-      images = {
-        "openwrt" = {
-          enable = true;
-          # openwrt imagebuilder input is pinned to a specific revision to prevent updates upon flake update/rebuild -
-          # to update the image, see flake.nix openwrt-imagebuilder input
-          source = inputs.self.packages.${pkgs.system}.berlin-vm-router-img;
-          sourceFormat = "raw";
-          compressedFormat = "gz";
-          # source = "file:///var/lib/vm/images/openwrt-full.qcow2";
-          # sourceFormat = "qcow2";
-          # sourceSha256 = "1c2n1qms0prj6chcn7gb169m0fc2692q2nwmah8hv70dla643g7g";
-        };
+  #   qemu.manager = {
+  #     images = {
+  #       "openwrt" = {
+  #         enable = true;
+  #         # openwrt imagebuilder input is pinned to a specific revision to prevent updates upon flake update/rebuild -
+  #         # to update the image, see flake.nix openwrt-imagebuilder input
+  #         source = inputs.self.packages.${pkgs.system}.berlin-vm-router-img;
+  #         sourceFormat = "raw";
+  #         compressedFormat = "gz";
+  #         # source = "file:///var/lib/vm/images/openwrt-full.qcow2";
+  #         # sourceFormat = "qcow2";
+  #         # sourceSha256 = "1c2n1qms0prj6chcn7gb169m0fc2692q2nwmah8hv70dla643g7g";
+  #       };
         
-        "haos" = {
-          enable = true;
-          source = "https://github.com/home-assistant/operating-system/releases/download/15.2/haos_ova-15.2.qcow2.xz";
-          sourceFormat = "qcow2";
-          sourceSha256 = "0jbjajfnv3m37khk9446hh71g338xpnbnzxjij8v86plymxi063d";
-          compressedFormat = "xz";
-        };
-      };
+  #       "haos" = {
+  #         enable = true;
+  #         source = "https://github.com/home-assistant/operating-system/releases/download/15.2/haos_ova-15.2.qcow2.xz";
+  #         sourceFormat = "qcow2";
+  #         sourceSha256 = "0jbjajfnv3m37khk9446hh71g338xpnbnzxjij8v86plymxi063d";
+  #         compressedFormat = "xz";
+  #       };
+  #     };
 
-      # To 'factory reset VM, delete overlay in "/var/lib/vm/images" and restart service
-      # VM service names are the names of the service attribute sets below, e.g. "openwrt" or "home-assistant"
-      services = {
-        "openwrt" = {
-          enable      = true;
-          baseImage   = "openwrt";
-          uefi        = true;
-          memory      = 1024;
-          smp         = 8;
-          hostBridges = [ "br0" "br1" ];
-          pciHosts    = [ 
-            { address = "01:00.0"; vendorDeviceId = "8086:1521"; } 
-            { address = "01:00.1"; }
-            { address = "01:00.2"; }
-            { address = "01:00.3"; }
-          ];
-          vncPort   = 1;
-        };
+  #     # To 'factory reset VM, delete overlay in "/var/lib/vm/images" and restart service
+  #     # VM service names are the names of the service attribute sets below, e.g. "openwrt" or "home-assistant"
+  #     services = {
+  #       "openwrt" = {
+  #         enable      = true;
+  #         baseImage   = "openwrt";
+  #         uefi        = true;
+  #         memory      = 1024;
+  #         smp         = 8;
+  #         hostBridges = [ "br0" "br1" ];
+  #         pciHosts    = [ 
+  #           { address = "01:00.0"; vendorDeviceId = "8086:1521"; } 
+  #           { address = "01:00.1"; }
+  #           { address = "01:00.2"; }
+  #           { address = "01:00.3"; }
+  #         ];
+  #         vncPort   = 1;
+  #       };
 
-        "home-assistant" = {
-          enable      = true;
-          baseImage   = "haos";
-          uefi        = true;
-          memory      = 3072;
-          smp         = 2;
-          hostBridges = [ "br0" ];
-          rootScsi    = true;
-          vncPort     = 2;
-        };
-      };
-    };
-  };
+  #       "home-assistant" = {
+  #         enable      = true;
+  #         baseImage   = "haos";
+  #         uefi        = true;
+  #         memory      = 3072;
+  #         smp         = 2;
+  #         hostBridges = [ "br0" ];
+  #         rootScsi    = true;
+  #         vncPort     = 2;
+  #       };
+  #     };
+  #   };
+  # };
 
   homelab = {
     enable = true;

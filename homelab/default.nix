@@ -1,4 +1,4 @@
-{ lib, config, ... }:
+{ lib, config, pkgs, ... }:
 let
   cfg = config.homelab;
 in
@@ -23,16 +23,16 @@ in
     };
 
     domain = {
-      base = lib.mkOption {
-        type = lib.types.str;
-        default = "shuuri.net";
-        description = "Base domain name to be used to access the homelab services via Caddy reverse proxy";
-      };
-
       sub = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;
         description = "Subdomain to be used to access the homelab services via Caddy reverse proxy";
+      };
+      
+      base = lib.mkOption {
+        type = lib.types.str;
+        default = "shuuri.net";
+        description = "Base domain name to be used to access the homelab services via Caddy reverse proxy";
       };
     };
   };
@@ -50,7 +50,7 @@ in
     #   size = 16 * 1024; # 16GB
     # }];
 
-    homelab.reverseProxy.caddy.environmentFile = "/etc/environment";
+    # homelab.reverseProxy.caddy.environmentFile = "/etc/environment";
   };
 
   imports = [
