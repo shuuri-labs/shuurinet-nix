@@ -113,10 +113,16 @@ in
             port = cfg.port;
           };
         };
-        dns = {
-          enable = cfg.domain.enable;
-          comment = "Auto-managed by homelab for ${service}";
-        };
+      };
+      
+      # Create DNS record directly in the DNS module
+      homelab.dns.records.${service} = lib.mkIf cfg.domain.enable {
+        name = cfg.domain.final;
+        type = "A";
+        content = homelab.dns.globalTargetIp;
+        proxied = false;
+        ttl = 3600;
+        comment = "Auto-managed by homelab for ${service}";
       };
     })
   ];

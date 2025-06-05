@@ -46,45 +46,6 @@ in
           description = "Additional Caddy configuration";
         };
       };
-
-      # DNS configuration
-      dns = {
-        enable = mkOption {
-          type = types.bool;
-          default = true;
-          description = "Whether to create DNS records for this host";
-        };
-
-        targetIp = mkOption {
-          type = types.nullOr types.str;
-          default = null;
-          description = "Target IP for DNS record (falls back to global publicIp if null)";
-        };
-
-        type = mkOption {
-          type = types.enum [ "A" "AAAA" "CNAME" ];
-          default = "A";
-          description = "DNS record type";
-        };
-
-        proxied = mkOption {
-          type = types.bool;
-          default = true;
-          description = "Whether to proxy traffic through Cloudflare";
-        };
-
-        ttl = mkOption {
-          type = types.int;
-          default = 3600;
-          description = "Time to live in seconds";
-        };
-
-        comment = mkOption {
-          type = types.str;
-          default = "";
-          description = "Comment for the DNS record";
-        };
-      };
     };
   };
 } 

@@ -220,6 +220,7 @@ in
 
     dns = {
       cloudflare.credentialsFile = config.age.secrets.cloudflare-credentials.path;
+      # globalTargetIp = "192.168.11.151";
     };
 
     reverseProxy = {
@@ -229,9 +230,6 @@ in
     services = {
       mealie.enable = true;
     };
-    
-    # Override the DNS configuration for mealie to use the host's IP instead of relying on the fallback
-    reverseProxy.hosts.mealie.dns.targetIp = hostPrimaryIp;
   };
 
   # -------------------------------- Services --------------------------------

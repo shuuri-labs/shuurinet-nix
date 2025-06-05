@@ -23,31 +23,6 @@ in
         enable = true;
         port = cfg.port;
       };
-      
-      # Example: Override the host configuration created by common.nix
-      # This demonstrates how you can customize proxy/DNS settings per service
-      # homelab.reverseProxy.hosts.${service} = {
-      #   proxy = {
-      #     # Add custom Caddy configuration for mealie
-      #     extraConfig = ''
-      #       # Increase client max body size for recipe imports
-      #       request_body {
-      #         max_size 50MB
-      #       }
-      #       
-      #       # Custom headers for mealie
-      #       header {
-      #         X-Frame-Options "SAMEORIGIN"
-      #         X-Content-Type-Options "nosniff"
-      #       }
-      #     '';
-      #   };
-      #   dns = {
-      #     # Example: Use a different IP for mealie (e.g., if running on a VM)
-      #     # targetIp = "10.0.0.150";
-      #     # ttl = 300;
-      #   };
-      # };
     })
   ];
 }

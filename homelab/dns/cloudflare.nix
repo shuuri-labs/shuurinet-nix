@@ -12,8 +12,7 @@ let
     source ${cfg.credentialsFile}
     
     ZONE_ID="$CLOUDFLARE_ZONE_ID"
-    EMAIL="$CLOUDFLARE_EMAIL"
-    API_KEY="$CLOUDFLARE_API_KEY"
+    API_TOKEN="$CLOUDFLARE_API_KEY"  # This is actually an API Token
     
     RECORD_NAME="${record.name}"
     RECORD_TYPE="${record.type}"
@@ -25,19 +24,22 @@ let
     echo "Managing DNS record: $RECORD_NAME ($RECORD_TYPE)"
     
     # Check if record exists
-    EXISTING_RECORD=$(${pkgs.curl}/bin/curl -s \
-      -H "X-Auth-Email: $EMAIL" \
-      -H "X-Auth-Key: $API_KEY" \
+    LOOKUP_RESPONSE=$(${pkgs.curl}/bin/curl -s \
+      -H "Authorization: Bearer $API_TOKEN" \
       -H "Content-Type: application/json" \
-      "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records?name=$RECORD_NAME&type=$RECORD_TYPE" \
-      | ${pkgs.jq}/bin/jq -r '.result[0].id // "null"')
+      "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records?name=$RECORD_NAME&type=$RECORD_TYPE")
+    
+    echo "Lookup response: $LOOKUP_RESPONSE"
+    
+    EXISTING_RECORD=$(echo "$LOOKUP_RESPONSE" | ${pkgs.jq}/bin/jq -r '.result[0].id // "null"')
+    
+    echo "Existing record ID: $EXISTING_RECORD"
     
     if [ "$EXISTING_RECORD" = "null" ]; then
       echo "Creating new DNS record..."
-      ${pkgs.curl}/bin/curl -s \
+      RESPONSE=$(${pkgs.curl}/bin/curl -s \
         -X POST \
-        -H "X-Auth-Email: $EMAIL" \
-        -H "X-Auth-Key: $API_KEY" \
+        -H "Authorization: Bearer $API_TOKEN" \
         -H "Content-Type: application/json" \
         -d "{
           \"type\": \"$RECORD_TYPE\",
@@ -47,14 +49,37 @@ let
           \"proxied\": $RECORD_PROXIED,
           \"comment\": \"$RECORD_COMMENT\"
         }" \
-        "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records" \
-        | ${pkgs.jq}/bin/jq -r '.success'
-    else
+        "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records")
+      echo "Create API Response: $RESPONSE"
+      
+      SUCCESS=$(echo "$RESPONSE" | ${pkgs.jq}/bin/jq -r '.success')
+      if [ "$SUCCESS" = "false" ]; then
+        echo "Creation failed. Checking if record exists now..."
+        # Retry lookup in case record was created by another process
+        RETRY_LOOKUP=$(${pkgs.curl}/bin/curl -s \
+          -H "Authorization: Bearer $API_TOKEN" \
+          -H "Content-Type: application/json" \
+          "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records?name=$RECORD_NAME&type=$RECORD_TYPE")
+        RETRY_RECORD=$(echo "$RETRY_LOOKUP" | ${pkgs.jq}/bin/jq -r '.result[0].id // "null"')
+        
+        if [ "$RETRY_RECORD" != "null" ]; then
+          echo "Record exists after creation failure. Updating instead..."
+          EXISTING_RECORD="$RETRY_RECORD"
+        else
+          echo "Creation genuinely failed: $(echo "$RESPONSE" | ${pkgs.jq}/bin/jq -r '.errors')"
+          exit 1
+        fi
+      else
+        echo "Record created successfully"
+        exit 0
+      fi
+    fi
+    
+    if [ "$EXISTING_RECORD" != "null" ]; then
       echo "Updating existing DNS record (ID: $EXISTING_RECORD)..."
-      ${pkgs.curl}/bin/curl -s \
+      RESPONSE=$(${pkgs.curl}/bin/curl -s \
         -X PUT \
-        -H "X-Auth-Email: $EMAIL" \
-        -H "X-Auth-Key: $API_KEY" \
+        -H "Authorization: Bearer $API_TOKEN" \
         -H "Content-Type: application/json" \
         -d "{
           \"type\": \"$RECORD_TYPE\",
@@ -64,8 +89,9 @@ let
           \"proxied\": $RECORD_PROXIED,
           \"comment\": \"$RECORD_COMMENT\"
         }" \
-        "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records/$EXISTING_RECORD" \
-        | ${pkgs.jq}/bin/jq -r '.success'
+        "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records/$EXISTING_RECORD")
+      echo "API Response: $RESPONSE"
+      echo "$RESPONSE" | ${pkgs.jq}/bin/jq -r '.success'
     fi
   '';
 
@@ -100,7 +126,7 @@ let
         StartLimitIntervalSec = 300;
       };
     };
-  }) dnsCfg.records);
+  }) dnsCfg.recordsList);
 
 in
 {
@@ -113,15 +139,18 @@ in
         Path to file containing Cloudflare credentials.
         Should contain:
           CLOUDFLARE_ZONE_ID=your_zone_id
-          CLOUDFLARE_EMAIL=your_email
-          CLOUDFLARE_API_KEY=your_api_key
+          CLOUDFLARE_API_KEY=your_api_token (API Token, not Global API Key)
+        
+        Note: This uses Cloudflare API Token authentication, not the legacy Global API Key.
+        Create an API Token at https://dash.cloudflare.com/profile/api-tokens
       '';
     };
     
-    publicIp = mkOption {
-      type = types.str;
-      description = "Public IP address to use for A records";
-    };
+    # publicIp = mkOption {
+    #   type = types.str;
+    #   default = dnsCfg.globalTargetIp;
+    #   description = "Public IP address to use for A records";
+    # };
   };
 
   config = mkIf (cfg.enable && dnsCfg.enable && dnsCfg.provider == "cloudflare") {
@@ -149,6 +178,6 @@ in
           Persistent = true;
         };
       };
-    }) dnsCfg.records);
+    }) dnsCfg.recordsList);
   };
 } 

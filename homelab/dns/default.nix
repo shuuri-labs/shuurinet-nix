@@ -58,16 +58,40 @@ in
       description = "DNS provider to use";
     };
     
+    globalTargetIp = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = "Global target IP address to use as fallback for DNS records when no specific targetIp is set";
+    };
+    
     records = mkOption {
-      type = types.listOf dnsRecordType;
-      default = [];
-      description = "DNS records to manage";
+      type = types.attrsOf dnsRecordType;
+      default = {};
+      description = "DNS records to manage, organized by service/record name";
+      example = {
+        mealie = {
+          name = "mealie.example.com";
+          type = "A";
+          content = "192.168.1.100";
+          proxied = true;
+          ttl = 3600;
+          comment = "Mealie service";
+        };
+      };
     };
     
     autoManage = mkOption {
       type = types.bool;
       default = true;
       description = "Whether to automatically manage DNS records for reverse proxy domains";
+    };
+    
+    # Internal option populated by auto-dns.nix for DNS providers
+    recordsList = mkOption {
+      type = types.listOf dnsRecordType;
+      default = [];
+      internal = true;
+      description = "Internal list of DNS records converted from the records attribute set";
     };
   };
 

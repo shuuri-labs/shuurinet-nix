@@ -67,9 +67,10 @@ in
       dns = {
         enable = true;
 
+        globalTargetIp = cfg.network.primaryBridge.address;
+
         cloudflare = {
           enable = true;
-          publicIp = cfg.network.primaryBridge.address;
         };
       };
     };
