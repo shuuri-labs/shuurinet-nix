@@ -55,10 +55,10 @@ in
     # homelab.reverseProxy.caddy.environmentFile = "/etc/environment";
 
     homelab = {
-      dashboard = {
-        enable = true;
-        glances.networkInterfaces = [ "enp3s0" ];
-      };
+      # dashboard = {
+      #   enable = true;
+      #   glances.networkInterfaces = [ "enp3s0" ];
+      # };
 
       reverseProxy = {
         enable = true;
@@ -70,12 +70,13 @@ in
         cloudflare = {
           enable = true;
           publicIp = cfg.networking.primaryBridge.address;
-        }
+        };
       };
     };
   };
 
   imports = [
+    ./network
     # ./dashboard
     ./reverse-proxy
     ./dns

@@ -114,12 +114,10 @@ in
 
     (mkIf cfg.staticIpConfig.enable {
       # Mark bridge and member interfaces as unmanaged for NetworkManager
-      host.vars.network.networkManager.unmanaged =  
+      homelab.network.networkManager.unmanaged =  
         (map (bridge: bridge.name) cfg.bridges)
         ++
-        (flatten (map (bridge: bridge.memberInterfaces) cfg.bridges))
-        ++
-        (map (tap: tap.name) allTapDevices);
+        (flatten (map (bridge: bridge.memberInterfaces) cfg.bridges));
 
       systemd.network = {
         enable = true;

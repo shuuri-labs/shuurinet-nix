@@ -5,7 +5,7 @@
 { config, pkgs, inputs, lib, ... }:
 
 let
-  hostCfgVars         = config.host.vars;
+  # hostCfgVars         = config.host.vars;
   secretsAbsolutePath = "/home/ashley/shuurinet-nix/secrets"; 
 
   hostAddress = "151";
@@ -59,7 +59,7 @@ in
   #   };
   # };
 
-  deployment.bootstrap.gitClone.host = hostCfgVars.network.hostName;
+  deployment.bootstrap.gitClone.host = config.homelab.network.hostName;
 
   # -------------------------------- SYSTEM CONFIGURATION --------------------------------
 
@@ -118,7 +118,7 @@ in
 
   # -------------------------------- MONITORING & DASHBOARD --------------------------------
 
-  homepage-dashboard.enable = true; # configured in ./homepage-config.nix
+  # homepage-dashboard.enable = true; # configured in ./homepage-config.nix
 
   # -------------------------------- Virtualisation & VMs --------------------------------
 
@@ -212,7 +212,7 @@ in
         }
       ];
     };
-    
+
     dns = {
       cloudflare.credentialsFile = config.age.secrets.cloudflare-credentials.path;
     };
