@@ -101,7 +101,7 @@
 
           missingno = mkNixosHost "missingno" [
             # ./modules/monitoring
-            ./modules/homepage-dashboard
+            # ./modules/homepage-dashboard
             ./modules/hdd-spindown
             ./modules/intel
             ./modules/power-saving

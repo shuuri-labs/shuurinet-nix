@@ -22,42 +22,42 @@ in
   # -------------------------------- HOST VARIABLES --------------------------------
   # See /options-host
   
-  host.vars = {
-    network = {
-      hostName = "missingno";
-      staticIpConfig.enable = true;
-      bridges = [
-        # Management
-        {
-          name = "br2";
-          # memberInterfaces = [ "enp2s0" ];  
-          subnet = config.homelab.networks.subnets.bln-mngmt;
-          identifier = hostAddress;
-          isPrimary = deploymentMode; 
-        }
+  # host.vars = {
+  #   network = {
+  #     hostName = "missingno";
+  #     staticIpConfig.enable = true;
+  #     bridges = [
+  #       # Management
+  #       {
+  #         name = "br2";
+  #         # memberInterfaces = [ "enp2s0" ];  
+  #         subnet = config.homelab.networks.subnets.bln-mngmt;
+  #         identifier = hostAddress;
+  #         isPrimary = deploymentMode; 
+  #       }
 
-        # LAN
-        {
-          name = "br0";
-          memberInterfaces = [ "enp3s0" ];  
-          subnet = config.homelab.networks.subnets.bln-lan;
-          identifier = hostAddress;
-          isPrimary = !deploymentMode;
-        }
+  #       # LAN
+  #       {
+  #         name = "br0";
+  #         memberInterfaces = [ "enp3s0" ];  
+  #         subnet = config.homelab.networks.subnets.bln-lan;
+  #         identifier = hostAddress;
+  #         isPrimary = !deploymentMode;
+  #       }
 
-        # Apps
-        {
-          name = "br1";
-        }
-      ];
-    };
+  #       # Apps
+  #       {
+  #         name = "br1";
+  #       }
+  #     ];
+  #   };
 
-    storage = {
-      paths = {
-        bulkStorage = "/home/ashley";
-      };
-    };
-  };
+  #   storage = {
+  #     paths = {
+  #       bulkStorage = "/home/ashley";
+  #     };
+  #   };
+  # };
 
   deployment.bootstrap.gitClone.host = hostCfgVars.network.hostName;
 
@@ -101,6 +101,8 @@ in
     sops-key.file = "${secretsAbsolutePath}/keys/sops-key.agekey.age";
 
     caddy-cloudflare.file = "${secretsAbsolutePath}/caddy-cloudflare.env.age";
+
+    cloudflare-credentials.file = "${secretsAbsolutePath}/cloudflare-credentials.age";
   };
 
   common.secrets.sopsKeyPath = "${secretsAbsolutePath}/keys/sops-key.agekey.age";
@@ -181,25 +183,48 @@ in
 
   homelab = {
     enable = true;
-    reverseProxy.caddy.environmentFile = config.age.secrets.caddy-cloudflare.path;
+
+    network = {
+      hostName = "missingno";
+      staticIpConfig.enable = true;
+      bridges = [
+        # Management
+        {
+          name = "br2";
+          # memberInterfaces = [ "enp2s0" ];  
+          subnet = config.homelab.networks.subnets.bln-mngmt;
+          identifier = hostAddress;
+          isPrimary = deploymentMode; 
+        }
+
+        # LAN
+        {
+          name = "br0";
+          memberInterfaces = [ "enp3s0" ];  
+          subnet = config.homelab.networks.subnets.bln-lan;
+          identifier = hostAddress;
+          isPrimary = !deploymentMode;
+        }
+
+        # Apps
+        {
+          name = "br1";
+        }
+      ];
+    };
     
-    services.mealie.enable = true;
+    dns = {
+      cloudflare.credentialsFile = config.age.secrets.cloudflare-credentials.path;
+    };
+
+    reverseProxy = {
+      caddy.environmentFile = config.age.secrets.caddy-cloudflare.path;
+    };
+    
+    services = {
+      mealie.enable = true;
+    };
   };
-
-  ## OpenWrt Config Auto-Deploy
-  # openwrt.config-auto-deploy = {
-  #   enable = true;
-  #   sopsAgeKeyFile = config.age.secrets.sops-key.path;
-
-  #   configs = {
-  #     vm-test-router-config = {
-  #       drv = inputs.self.packages.${pkgs.system}.vm-test-router-config;
-  #       # imageDrv = inputs.self.packages.${pkgs.system}.berlin-router-img;
-  #       serviceName = "openwrt";
-  #       host = "192.168.11.51";
-  #     };  
-  #   };
-  # };
 
   # -------------------------------- Services --------------------------------
   

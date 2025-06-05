@@ -2,7 +2,7 @@
 
 let
   inherit (lib) mkOption mkEnableOption types;
-  inherit (import ../lib/network/network-types.nix { inherit lib; }) networkTypes;
+  inherit (import ./network-types.nix { inherit lib; }) networkTypes;
 in
 {
   options.homelab.networks = {

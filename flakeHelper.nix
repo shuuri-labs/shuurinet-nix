@@ -17,8 +17,8 @@ let
   ];
 
   commonmModulesHomelab = [
-    ./options-host
-    ./options-homelab
+    # ./options-host
+    # ./options-homelab
   ];
 
   commonConfig = { config, pkgs, inputs, stateVersion, ... }: {

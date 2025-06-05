@@ -4,9 +4,7 @@ let
   cfg = config.homelab.services.${service};
   homelab = config.homelab;
 
-  common    = import ../common.nix { inherit lib config homelab service; };
-  addProxy  = import ../../reverse-proxy/add-proxy.nix;
-  domainLib = import ../../lib/domain.nix;
+  common = import ../common.nix { inherit lib config homelab service; };
 in
 {
   options.homelab.services.${service} = common.options // {
@@ -25,13 +23,31 @@ in
         enable = true;
         port = cfg.port;
       };
+      
+      # Example: Override the host configuration created by common.nix
+      # This demonstrates how you can customize proxy/DNS settings per service
+      # homelab.reverseProxy.hosts.${service} = {
+      #   proxy = {
+      #     # Add custom Caddy configuration for mealie
+      #     extraConfig = ''
+      #       # Increase client max body size for recipe imports
+      #       request_body {
+      #         max_size 50MB
+      #       }
+      #       
+      #       # Custom headers for mealie
+      #       header {
+      #         X-Frame-Options "SAMEORIGIN"
+      #         X-Content-Type-Options "nosniff"
+      #       }
+      #     '';
+      #   };
+      #   dns = {
+      #     # Example: Use a different IP for mealie (e.g., if running on a VM)
+      #     # targetIp = "10.0.0.150";
+      #     # ttl = 300;
+      #   };
+      # };
     })
-    
-    (lib.mkIf (cfg.enable && cfg.domain.enable) (addProxy {
-      address = cfg.address;
-      port = cfg.port;
-      domain = cfg.domain.final;
-    }))
-    # TODO: automatically add DNS record to cloudflare 
   ];
 }

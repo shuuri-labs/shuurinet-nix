@@ -1,10 +1,12 @@
 { lib, config, pkgs, ... }:
 let
   cfg = config.homelab;
+
+  hostDomain = "${config.networking.hostName}.${cfg.domain.base}";
 in
 {
   options.homelab = {
-    enable = lib.mkEnableOption "homelab";
+    enable = lib.mkEnableOption "Enable homelab";
 
     system = {
       isPhysical = lib.mkOption {
@@ -51,11 +53,32 @@ in
     # }];
 
     # homelab.reverseProxy.caddy.environmentFile = "/etc/environment";
+
+    homelab = {
+      dashboard = {
+        enable = true;
+        glances.networkInterfaces = [ "enp3s0" ];
+      };
+
+      reverseProxy = {
+        enable = true;
+      };
+
+      dns = {
+        enable = true;
+
+        cloudflare = {
+          enable = true;
+          publicIp = cfg.networking.primaryBridge.address;
+        }
+      };
+    };
   };
 
   imports = [
-    ./services
-    # ./networks
+    # ./dashboard
     ./reverse-proxy
+    ./dns
+    ./services
   ];
 }

@@ -66,37 +66,58 @@ in
       };
     };
 
-    homepage = {
+    dashboard = {
       enable = lib.mkEnableOption (builtins.concatStringsSep "" [
-        "Enable " service " homepage entry"
+        "Enable " service " dashboard entry"
       ]);
 
       description = lib.mkOption {
         type    = lib.types.str;
         default = lib.mkDefault service;
-        description = "Description of the service for the homepage.";
+        description = "Description of the service for the dashboard.";
       };
 
       icon = lib.mkOption {
         type    = lib.types.str;
         default = lib.mkDefault "default";
-        description = "Icon to use for the service on the homepage.";
+        description = "Icon to use for the service on the dashboard.";
       };
 
       href = lib.mkOption {
         type    = lib.types.str;
         default = lib.mkDefault "https://${config.homelab.services.${service}.domain.final}";
-        description = "URL for the service on the homepage.";
+        description = "URL for the service on the dashboard.";
       };
     };
   };
 
-  config = {
-    # Set the computed domain value
-    homelab.services.${service}.domain.final = domainLib.computeDomain {
-      topLevel = cfg.domain.topLevel;
-      sub = cfg.domain.sub;
-      base = cfg.domain.base;
-    };
-  };
+  config = lib.mkMerge [
+    {
+      # Set the computed domain value
+      homelab.services.${service}.domain.final = domainLib.computeDomain {
+        topLevel = cfg.domain.topLevel;
+        sub = cfg.domain.sub;
+        base = cfg.domain.base;
+      };
+    }
+    
+    # Create host configuration directly
+    # see reverse-proxy/host-options.nix for more details on type
+    (lib.mkIf cfg.enable {
+      homelab.reverseProxy.hosts.${service} = {
+        proxy = {
+          enable = cfg.domain.enable;
+          domain = cfg.domain.final;
+          backend = {
+            address = cfg.address;
+            port = cfg.port;
+          };
+        };
+        dns = {
+          enable = cfg.domain.enable;
+          comment = "Auto-managed by homelab for ${service}";
+        };
+      };
+    })
+  ];
 }

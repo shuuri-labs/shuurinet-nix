@@ -10,11 +10,10 @@ let
   cfg = config.homelab.services.${service};
   homelab = config.homelab;
 
-  addProxy = import ../../reverse-proxy/add-proxy.nix;
   domainLib = import ../../lib/domain.nix;
 
   # Import the common options (includes domain computation via domain.nix)
-  homelabServiceCommon = import ../common-options.nix {
+  homelabServiceCommon = import ../common.nix {
     inherit lib config homelab service;
   };
 in
@@ -46,18 +45,27 @@ in
         port = cfg.port;
         # Add other NixOS service options as needed
       };
+      
+      # Example: Override or extend the host configuration created by common.nix
+      # This will merge with the configuration automatically created in common.nix
+      # homelab.reverseProxy.hosts.${service} = {
+      #   proxy = {
+      #     # The common config creates basic proxy settings, you can override:
+      #     # extraConfig = ''
+      #     #   # Custom Caddy directives for this service
+      #     #   header / {
+      #     #     X-Custom-Header "value"
+      #     #   }
+      #     # '';
+      #   };
+      #   dns = {
+      #     # Override DNS settings:
+      #     # targetIp = "10.0.0.100";  # Custom IP for this service
+      #     # ttl = 300;                # Custom TTL
+      #     # type = "CNAME";           # Use CNAME instead of A record
+      #     # proxied = false;          # Disable Cloudflare proxy
+      #   };
+      # };
     })
-    
-    (lib.mkIf (cfg.enable && cfg.domain.enable) (addProxy {
-      address = cfg.address;
-      port = cfg.port;
-      domain = cfg.domain.final;
-    }))
-    
-    # Add additional configuration blocks as needed
-    # Example for homepage integration:
-    # (lib.mkIf (cfg.enable && cfg.homepage.enable) {
-    #   # Homepage dashboard configuration
-    # })
   ];
 } 

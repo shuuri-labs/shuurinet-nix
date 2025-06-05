@@ -1,20 +1,66 @@
 { config, lib, ... }:
 let
   inherit (lib) mkOption mkEnableOption types mkIf mkMerge flatten optional hasSuffix listToAttrs;
-  inherit (import ../../lib/network/network-types.nix { inherit lib; }) networkTypes;
+  inherit (import ./network-types.nix { inherit lib; }) networkTypes;
 
-  cfg = config.host.vars.network;
+  cfg = config.homelab.network;
+  
+  primaryBridges = builtins.filter (bridge: bridge.isPrimary) cfg.bridges;
+  primaryBridgeCount = builtins.length primaryBridges;
+  
+  bridge = types.submodule ({ config, ... }: {
+    options = {
+      name = mkOption {
+        type = types.str;
+        description = "Interface name";
+      };
+      
+      subnet = mkOption {
+        type = types.nullOr networkTypes.subnet;
+        default = null;
+        description = "Reference to a subnet configuration or null for an empty bridge";
+      };
+      
+      identifier = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "Last octet of the interface IP";
+      };
 
-  # Collect all tap devices with their parent bridge name
-  allTapDevices = flatten (map (bridge:
-    map (tap: {
-      name = tap;
-      bridge = bridge.name;
-    }) bridge.tapDevices
-  ) cfg.bridges);
+      address = mkOption {
+        type = types.nullOr types.str;
+        description = "Interface IP address";
+        default = if config.subnet != null && config.identifier != null
+                 then "${config.subnet.ipv4}.${config.identifier}"
+                 else null;
+      };
+
+      address6 = mkOption {
+        type = types.nullOr types.str;
+        description = "Interface IPv6 address";
+        default = if config.subnet != null && config.subnet.ipv6 != null && config.identifier != null then
+          if hasSuffix "::" config.subnet.ipv6
+            then "${config.subnet.ipv6}:${config.identifier}"
+            else "${config.subnet.ipv6}::${config.identifier}"
+          else null;
+      };
+
+      memberInterfaces = mkOption {
+        type = types.listOf types.str;
+        default = [];
+        description = "List of member interfaces to attach to this bridge";
+      };
+
+      isPrimary = mkOption {
+        type = types.bool;
+        default = false;
+        description = "Whether this is the primary interface";
+      };
+    };
+  });
 in
 {
-  options.host.vars.network = {
+  options.homelab.network = {
     hostName = mkOption {
       type = types.str;
       description = "Hostname for this machine";
@@ -43,62 +89,13 @@ in
     };
 
     bridges = mkOption {
-      type = types.listOf (types.submodule ({ config, ... }: {
-        options = {
-          name = mkOption {
-            type = types.str;
-            description = "Interface name";
-          };
-          
-          subnet = mkOption {
-            type = types.nullOr networkTypes.subnet;
-            default = null;
-            description = "Reference to a subnet configuration or null for an empty bridge";
-          };
-          
-          identifier = mkOption {
-            type = types.nullOr types.str;
-            default = null;
-            description = "Last octet of the interface IP";
-          };
+      type = types.listOf bridge;
+    };
 
-          address = mkOption {
-            type = types.nullOr types.str;
-            description = "Interface IP address";
-            default = if config.subnet != null && config.identifier != null
-                     then "${config.subnet.ipv4}.${config.identifier}"
-                     else null;
-          };
-
-          address6 = mkOption {
-            type = types.nullOr types.str;
-            description = "Interface IPv6 address";
-            default = if config.subnet != null && config.subnet.ipv6 != null && config.identifier != null then
-              if hasSuffix "::" config.subnet.ipv6
-                then "${config.subnet.ipv6}:${config.identifier}"
-                else "${config.subnet.ipv6}::${config.identifier}"
-              else null;
-          };
-
-          memberInterfaces = mkOption {
-            type = types.listOf types.str;
-            default = [];
-            description = "List of member interfaces to attach to this bridge";
-          };
-          
-          tapDevices = mkOption {
-            type = types.listOf types.str;
-            default = [];
-            description = "TAP interfaces to attach to this bridge";
-          };
-
-          isPrimary = mkOption {
-            type = types.bool;
-            default = false;
-            description = "Whether this is the primary interface";
-          };
-        };
-      }));
+    primaryBridge = mkOption {
+      type = types.nullOr bridge;
+      description = "The primary bridge (automatically determined from bridges with isPrimary = true)";
+      default = if primaryBridgeCount == 1 then builtins.head primaryBridges else null;
     };
   };
 
@@ -127,8 +124,8 @@ in
       systemd.network = {
         enable = true;
 
-        # Bridge devices and TAP devices
-        netdevs = mkMerge [
+        # Bridge devices
+        netdevs = mkMerge 
           (listToAttrs (map (bridge: {
             name = "10-${bridge.name}";
             value = {
@@ -137,19 +134,8 @@ in
                 Kind = "bridge";
               };
             };
-          }) cfg.bridges))
-          
-          (listToAttrs (map (tap: {
-            name = "90-${tap.name}";
-            value = {
-              netdevConfig = {
-                Name = tap.name;
-                Kind = "tap";
-              };
-            };
-          }) allTapDevices))
-        ];
-
+          }) cfg.bridges));
+        
         # Interfaces (ethernet, tap) attached to bridges
         networks = mkMerge [
           # Bridge member physical interfaces
@@ -197,20 +183,17 @@ in
               };
             };
           }) (builtins.filter (bridge: bridge.subnet == null) cfg.bridges)))
-          
-          # TAP interfaces
-          (listToAttrs (map (tap: {
-            name = "90-${tap.name}";
-            value = {
-              matchConfig.Name = tap.name;
-              networkConfig = {
-                Bridge = tap.bridge;
-                ConfigureWithoutCarrier = true;
-              };
-            };
-          }) allTapDevices))
         ];
       };
     })
+
+    {
+      assertions = [
+        {
+          assertion = primaryBridgeCount <= 1;
+          message = "Only one bridge can have isPrimary = true. Found ${toString primaryBridgeCount} primary bridges: ${lib.concatMapStringsSep ", " (b: b.name) primaryBridges}";
+        }
+      ];
+    }
   ];
 }
