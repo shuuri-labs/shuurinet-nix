@@ -102,7 +102,12 @@ in
 
     caddy-cloudflare.file = "${secretsAbsolutePath}/caddy-cloudflare.env.age";
 
-    cloudflare-credentials.file = "${secretsAbsolutePath}/cloudflare-credentials.age";
+    cloudflare-credentials = {
+      file = "${secretsAbsolutePath}/cloudflare-credentials.age";
+      owner = "cloudflare-dns";
+      group = "cloudflare-dns";
+      mode = "440";
+    };
   };
 
   common.secrets.sopsKeyPath = "${secretsAbsolutePath}/keys/sops-key.agekey.age";
@@ -224,6 +229,9 @@ in
     services = {
       mealie.enable = true;
     };
+    
+    # Override the DNS configuration for mealie to use the host's IP instead of relying on the fallback
+    reverseProxy.hosts.mealie.dns.targetIp = hostPrimaryIp;
   };
 
   # -------------------------------- Services --------------------------------

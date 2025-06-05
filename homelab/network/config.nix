@@ -123,16 +123,15 @@ in
         enable = true;
 
         # Bridge devices
-        netdevs = mkMerge 
-          (listToAttrs (map (bridge: {
-            name = "10-${bridge.name}";
-            value = {
-              netdevConfig = {
-                Name = bridge.name;
-                Kind = "bridge";
-              };
+        netdevs = listToAttrs (map (bridge: {
+          name = "10-${bridge.name}";
+          value = {
+            netdevConfig = {
+              Name = bridge.name;
+              Kind = "bridge";
             };
-          }) cfg.bridges));
+          };
+        }) cfg.bridges);
         
         # Interfaces (ethernet, tap) attached to bridges
         networks = mkMerge [

@@ -69,7 +69,7 @@ in
 
         cloudflare = {
           enable = true;
-          publicIp = cfg.networking.primaryBridge.address;
+          publicIp = cfg.network.primaryBridge.address;
         };
       };
     };
