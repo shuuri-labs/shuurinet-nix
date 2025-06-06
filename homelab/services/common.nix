@@ -71,22 +71,34 @@ in
         "Enable " service " dashboard entry"
       ]);
 
-      description = lib.mkOption {
-        type    = lib.types.str;
-        default = lib.mkDefault service;
-        description = "Description of the service for the dashboard.";
-      };
-
       icon = lib.mkOption {
         type    = lib.types.str;
-        default = lib.mkDefault "default";
+        default = lib.mkDefault "${service}.png";
         description = "Icon to use for the service on the dashboard.";
+      };
+
+      description = lib.mkOption {
+        type    = lib.types.str;
+        default = lib.mkDefault "";
+        description = "Description of the service for the dashboard.";
       };
 
       href = lib.mkOption {
         type    = lib.types.str;
         default = lib.mkDefault "https://${config.homelab.services.${service}.domain.final}";
         description = "URL for the service on the dashboard.";
+      };
+
+      siteMonitor = lib.mkOption {
+        type    = lib.types.str;
+        default = lib.mkDefault "https://${config.homelab.services.${service}.domain.final}:${toString config.homelab.services.${service}.port}";
+        description = "URL to monitor the service on the dashboard.";
+      };
+
+      widget = lib.mkOption {
+        type    = lib.types.attrs;
+        default = lib.mkDefault {};
+        description = "Widget to use for the service on the dashboard.";
       };
     };
   };

@@ -229,6 +229,7 @@ in
     
     services = {
       mealie.enable = true;
+      jellyfin.enable = true;
     };
   };
 

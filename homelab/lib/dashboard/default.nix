@@ -4,7 +4,7 @@ let
   homelab = config.homelab;
   dashboardService = "homepage-dashboard";
 
-  addProxy = import ../reverse-proxy/add-proxy.nix;
+  domain = "${config.networking.hostName}.${homelab.domain.base}";
   
   # Combine glances widgets with network interface widgets
   allGlancesWidgets = cfg.glances.widgets // 
@@ -13,9 +13,9 @@ let
       value = {
         widget = {
           type = "glances";
-          url = "${cfg.glances.address}:${toString cfg.glances.port}";
-          metric = "network";
-          interface = interface;
+          url = "http://${cfg.glances.address}:${toString cfg.glances.port}";
+          metric = "network:${interface}";
+          version = "4";
         };
       };
     }) cfg.glances.networkInterfaces));
@@ -47,7 +47,7 @@ in
     glances = {
       address = lib.mkOption {
         type = lib.types.str;
-        default = "127.0.0.1";
+        default = "localhost";
         description = "Address to run glances on";
       };
 
@@ -69,27 +69,30 @@ in
           CPU = {
             widget = {
               type = "glances";
-              url = "${cfg.glances.address}:${toString cfg.glances.port}";
+              url = "http://${cfg.glances.address}:${toString cfg.glances.port}";
               metric = "cpu";
+              version = "4";
             };
           };
 
           Memory = {
             widget = {
               type = "glances";
-              url = "${cfg.glances.address}:${toString cfg.glances.port}";
+              url = "http://${cfg.glances.address}:${toString cfg.glances.port}";
               metric = "memory";
+              version = "4";
+
             };
           };
 
           "Disk I/O" = {
             widget = {
               type = "glances";
-              url = "${cfg.glances.address}:${toString cfg.glances.port}";
-              metric = "disk";
-              disk = "sda"
+              url = "http://${cfg.glances.address}:${toString cfg.glances.port}";
+              metric = "disk:nvme0n1";
+              version = "4";
             };
-          }
+          };
         };
       };
     };
@@ -103,13 +106,77 @@ in
 
     services.${dashboardService} = {
       enable = true;
-      port = cfg.port;
+      listenPort = cfg.port;
+      allowedHosts = domain;
       
       settings = {
         title = "${config.networking.hostName} dashboard";
+
+        layout = [
+          {
+            Glances = {
+              header = false;
+              style = "row";
+              columns = 4;
+            };
+          }
+        ];
+
+        headerStyle = "clean";
+        statusStyle = "dot";
+        hideVersion = true;
       };
 
-      widgets = [ allGlancesWidgets ];
+      customCSS = ''
+        body, html {
+          font-family: SF Pro Display, Helvetica, Arial, sans-serif !important;
+        }
+        .font-medium {
+          font-weight: 700 !important;
+        }
+        .font-light {
+          font-weight: 500 !important;
+        }
+        .font-thin {
+          font-weight: 400 !important;
+        }
+        #information-widgets {
+          padding-left: 1.5rem;
+          padding-right: 1.5rem;
+        }
+        div#footer {
+          display: none;
+        }
+        .services-group.basis-full.flex-1.px-1.-my-1 {
+          padding-bottom: 3rem;
+        };
+      '';
+
+      services = [
+        {
+          "Glances" = lib.mapAttrsToList (name: config: {
+            "${name}" = config;
+          }) allGlancesWidgets;
+        }
+      ];
+    };
+
+    homelab.domainManagement.domains.${config.networking.hostName} = {
+      enable = true;
+
+      host = {
+        enable = true;
+        domain = domain;
+        backend = {
+          address = "localhost";
+          port = cfg.port;
+        };
+      };
+
+      dns = { 
+        enable = true;
+        comment = "Auto-managed by NixOS homelab for ${dashboardService}";
+      };
     };
 
     # addProxy {

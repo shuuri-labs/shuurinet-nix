@@ -55,10 +55,10 @@ in
     # homelab.reverseProxy.caddy.environmentFile = "/etc/environment";
 
     homelab = {
-      # dashboard = {
-      #   enable = true;
-      #   glances.networkInterfaces = [ "enp3s0" ];
-      # };
+      dashboard = {
+        enable = true;
+        glances.networkInterfaces = [ "enp3s0" ];
+      };
 
       domainManagement = {
         enable = true;
@@ -77,7 +77,7 @@ in
 
   imports = [
     ./lib/networking
-    # ./lib/dashboard
+    ./lib/dashboard
     ./lib/reverse-proxy
     ./lib/dns
     ./lib/domain-management

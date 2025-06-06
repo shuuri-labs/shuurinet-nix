@@ -12,7 +12,7 @@ let
     source ${cfg.credentialsFile}
     
     ZONE_ID="$CLOUDFLARE_ZONE_ID"
-    API_TOKEN="$CLOUDFLARE_API_KEY"  # This is actually an API Token
+    API_TOKEN="$CLOUDFLARE_API_KEY"
     
     RECORD_NAME="${record.name}"
     RECORD_TYPE="${record.type}"
