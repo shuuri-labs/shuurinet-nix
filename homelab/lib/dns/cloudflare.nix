@@ -96,13 +96,16 @@ let
   '';
 
   # Create systemd services for each DNS record
-  dnsRecordServices = lib.listToAttrs (map (record: {
+  dnsRecordServices = lib.listToAttrs (lib.mapAttrsToList (recordName: record: {
     name = "dns-record-${record.name}";
     value = {
       description = "Manage DNS record for ${record.name}";
       wantedBy = [ "multi-user.target" ];
       after = [ "network-online.target" ];
       wants = [ "network-online.target" ];
+      
+      # Restart when DNS record configuration changes
+      restartTriggers = [ (builtins.toJSON record) ];
       
       serviceConfig = {
         Type = "oneshot";
@@ -126,7 +129,7 @@ let
         StartLimitIntervalSec = 300;
       };
     };
-  }) dnsCfg.recordsList);
+  }) dnsCfg.records);
 
 in
 {
@@ -145,12 +148,6 @@ in
         Create an API Token at https://dash.cloudflare.com/profile/api-tokens
       '';
     };
-    
-    # publicIp = mkOption {
-    #   type = types.str;
-    #   default = dnsCfg.globalTargetIp;
-    #   description = "Public IP address to use for A records";
-    # };
   };
 
   config = mkIf (cfg.enable && dnsCfg.enable && dnsCfg.provider == "cloudflare") {
@@ -163,21 +160,7 @@ in
     
     users.groups.cloudflare-dns = {};
     
-    # Create systemd services for each DNS record
+    # Automatically create systemd services for each DNS record under homelab.dns.records
     systemd.services = dnsRecordServices;
-    
-    # Timer to periodically check and update DNS records
-    systemd.timers = lib.listToAttrs (map (record: {
-      name = "dns-record-${record.name}";
-      value = {
-        description = "Timer for DNS record ${record.name}";
-        wantedBy = [ "timers.target" ];
-        timerConfig = {
-          OnBootSec = "5min";
-          OnUnitActiveSec = "1h";
-          Persistent = true;
-        };
-      };
-    }) dnsCfg.recordsList);
   };
 } 

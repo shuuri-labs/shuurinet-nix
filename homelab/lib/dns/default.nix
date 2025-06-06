@@ -46,7 +46,6 @@ in
 {
   imports = [
     ./cloudflare.nix
-    ./auto-dns.nix
   ];
 
   options.homelab.dns = {
@@ -84,14 +83,6 @@ in
       type = types.bool;
       default = true;
       description = "Whether to automatically manage DNS records for reverse proxy domains";
-    };
-    
-    # Internal option populated by auto-dns.nix for DNS providers
-    recordsList = mkOption {
-      type = types.listOf dnsRecordType;
-      default = [];
-      internal = true;
-      description = "Internal list of DNS records converted from the records attribute set";
     };
   };
 

@@ -40,7 +40,7 @@
   };
 }
 
-# The credentials file (/etc/secrets/cloudflare-dns) should contain:
+# The credentials file should contain:
 # CLOUDFLARE_ZONE_ID=your_zone_id_here
 # CLOUDFLARE_EMAIL=your_email@example.com  
 # CLOUDFLARE_API_KEY=your_global_api_key_here 

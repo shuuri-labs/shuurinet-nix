@@ -77,10 +77,10 @@ in
   };
 
   imports = [
-    ./network
-    # ./dashboard
-    ./reverse-proxy
-    ./dns
+    ./lib/networking
+    # ./lib/dashboard
+    ./lib/reverse-proxy
+    ./lib/dns
     ./services
   ];
 }

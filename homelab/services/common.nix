@@ -1,7 +1,7 @@
 # service-options.nix
 { lib, config, homelab, service }:
 let
-  domainLib = import ../lib/domain.nix;
+  domainLib = import ../lib/domain/compute.nix;
   cfg = config.homelab.services.${service};
 in
 {
