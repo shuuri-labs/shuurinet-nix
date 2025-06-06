@@ -125,6 +125,9 @@ in
         headerStyle = "clean";
         statusStyle = "dot";
         hideVersion = true;
+        # background = "https://archives.bulbagarden.net/media/upload/b/b8/0977Dondozo.png";
+        # todo - use tailwind to resize the background image. check 'Background Image' here:
+        # https://gethomepage.dev/configs/settings/#description
       };
 
       customCSS = ''

@@ -188,6 +188,8 @@ in
 
   homelab = {
     enable = true;
+    
+    dashboard.glances.networkInterfaces = [ "enp3s0" ];
 
     network = {
       hostName = "missingno";
