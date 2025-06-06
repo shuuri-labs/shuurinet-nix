@@ -1,7 +1,7 @@
 # service-options.nix
 { lib, config, homelab, service }:
 let
-  domainLib = import ../lib/domain/compute.nix;
+  domainLib = import ../lib/domain-management/compute.nix;
   cfg = config.homelab.services.${service};
 in
 {
@@ -101,11 +101,11 @@ in
       };
     }
     
-    # Create host configuration directly
-    # see reverse-proxy/host-options.nix for more details on type
+    # Create domain configuration using the unified domain-management module
     (lib.mkIf cfg.enable {
-      homelab.reverseProxy.hosts.${service} = {
-        proxy = {
+      homelab.domainManagement.domains.${service} = {
+        enable = cfg.domain.enable;
+        host = {
           enable = cfg.domain.enable;
           domain = cfg.domain.final;
           backend = {
@@ -113,16 +113,10 @@ in
             port = cfg.port;
           };
         };
-      };
-      
-      # Create DNS record directly in the DNS module
-      homelab.dns.records.${service} = lib.mkIf cfg.domain.enable {
-        name = cfg.domain.final;
-        type = "A";
-        content = homelab.dns.globalTargetIp;
-        proxied = false;
-        ttl = 3600;
-        comment = "Auto-managed by homelab for ${service}";
+        dns = {
+          enable = cfg.domain.enable;
+          comment = "Auto-managed by NixOS homelab for ${service}";
+        };
       };
     })
   ];

@@ -49,15 +49,13 @@ in
       # Example: Override or extend the host configuration created by common.nix
       # This will merge with the configuration automatically created in common.nix
       # homelab.reverseProxy.hosts.${service} = {
-      #   proxy = {
       #     # The common config creates basic proxy settings, you can override:
       #     # extraConfig = ''
       #     #   # Custom Caddy directives for this service
       #     #   header / {
       #     #     X-Custom-Header "value"
-      #     #   }
       #     # '';
-      #   };
+      #     };
       #   dns = {
       #     # Override DNS settings:
       #     # targetIp = "10.0.0.100";  # Custom IP for this service

@@ -60,13 +60,12 @@ in
       #   glances.networkInterfaces = [ "enp3s0" ];
       # };
 
-      reverseProxy = {
+      domainManagement = {
         enable = true;
+        # Automatically enables dns and reverseProxy modules
       };
 
       dns = {
-        enable = true;
-
         globalTargetIp = cfg.network.primaryBridge.address;
 
         cloudflare = {
@@ -81,6 +80,7 @@ in
     # ./lib/dashboard
     ./lib/reverse-proxy
     ./lib/dns
+    ./lib/domain-management
     ./services
   ];
 }

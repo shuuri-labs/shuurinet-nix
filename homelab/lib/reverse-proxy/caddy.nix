@@ -6,10 +6,10 @@ let
   
   # Create virtual hosts for all enabled proxy hosts
   virtualHosts = lib.mapAttrs' (hostName: hostConfig: {
-    name = hostConfig.proxy.domain;
+    name = hostConfig.domain;
     value = {
       extraConfig = ''
-        reverse_proxy ${hostConfig.proxy.backend.address}:${toString hostConfig.proxy.backend.port}
+        reverse_proxy ${hostConfig.backend.address}:${toString hostConfig.backend.port}
 
         tls {
           ${cfg.caddy.tls}
