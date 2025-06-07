@@ -207,7 +207,7 @@ in
         # LAN
         {
           name = "br0";
-          memberInterfaces = [ "enp3s0" ];  
+          memberInterfaces = [ "enp2s0" ];  
           subnet = config.homelab.networks.subnets.bln-lan;
           identifier = hostAddress;
           isPrimary = !deploymentMode;
