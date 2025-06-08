@@ -321,17 +321,17 @@
         "systems": "systems_2"
       },
       "locked": {
-        "lastModified": 1748507062,
-        "narHash": "sha256-GrhZQjZD4vEgLn42V0wDMgUjP5qkAxb6UwGyuQI3Lkg=",
+        "lastModified": 1749371184,
+        "narHash": "sha256-UtWuVDB97Zmz7uLIFe0H7csJATlrGl5JYz/2/J6zfco=",
         "owner": "astro",
         "repo": "nix-openwrt-imagebuilder",
-        "rev": "dd1ab49cf3c8340adf7720e2071033bf64fc204d",
+        "rev": "50d759208a0b1ca4277befa30985b80e0fd4cbb1",
         "type": "github"
       },
       "original": {
         "owner": "astro",
         "repo": "nix-openwrt-imagebuilder",
-        "rev": "dd1ab49cf3c8340adf7720e2071033bf64fc204d",
+        "rev": "50d759208a0b1ca4277befa30985b80e0fd4cbb1",
         "type": "github"
       }
     },
@@ -420,11 +420,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1748529783,
-        "narHash": "sha256-S/k1lFp7FdUNMigbrOEYxiWMLQF5/zk7wcuufrqR5Lk=",
+        "lastModified": 1749405500,
+        "narHash": "sha256-w8y+GQg8TAhvhuy7NQh0DXzDc6dgRnbLkK8NSOOKsMw=",
         "owner": "shuuri-labs",
         "repo": "nix-virtualisation",
-        "rev": "73f5371fd38acde1c620b558a7cf018d75232447",
+        "rev": "91a6b9236e30eda3549f7fc9f57ad653252ed3c7",
         "type": "github"
       },
       "original": {
