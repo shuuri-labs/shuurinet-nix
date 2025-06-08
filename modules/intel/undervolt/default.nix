@@ -41,6 +41,7 @@ in
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
         Type = "oneshot";
+        User = "root";
         ExecStart = ''
           ${pkgs.writeShellScript "write-intel-undervolt-conf" ''
             echo "${mkUndervoltConfig config.intel.undervolt.settings}" > /etc/intel-undervolt.conf
