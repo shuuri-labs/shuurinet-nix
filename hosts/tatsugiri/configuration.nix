@@ -184,7 +184,7 @@ in
           smp        = 4;
           hostBridges    = [ "br0" "br1" ];
           pciHosts   = [ 
-            { address = "01:00.0"; vendorDeviceId = "8086:150e"; } 
+            { address = "01:00.0"; } 
             { address = "01:00.1"; }
             { address = "01:00.2"; }
             { address = "01:00.3"; }

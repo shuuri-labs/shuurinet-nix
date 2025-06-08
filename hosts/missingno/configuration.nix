@@ -164,8 +164,8 @@ in
           smp         = 8;
           hostBridges = [ "br0" "br1" ];
           pciHosts    = [ 
-            { address = "03:00.0"; /* vendorDeviceId = "8086:125c"; */ } 
-            { address = "04:00.0"; /* vendorDeviceId = "8086:125c"; */ }
+            { address = "03:00.0"; } 
+            { address = "04:00.0"; }
           ];
           vncPort   = 1;
         };
