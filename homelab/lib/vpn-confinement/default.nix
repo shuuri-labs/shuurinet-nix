@@ -5,9 +5,12 @@ let
   
   vpnConfinementTypes = import ./types.nix { inherit lib; };
   
-  cfg = config.mediaServer.vpnConfinement;
+  cfg = config.homelab.vpnConfinement;
 
-  mkForwardPorts = lib.flatten (
+  # Check if any service has VPN confinement enabled
+  anyServiceEnabled = lib.any (serviceConfig: serviceConfig.enable) (lib.attrValues cfg.services);
+
+  mkForwardPorts = services: lib.flatten (
     lib.mapAttrsToList (serviceName: serviceConfig: 
       let
         forwardPorts = serviceConfig.forwardPorts;
@@ -18,10 +21,10 @@ let
         ]) forwardPorts.both);
       in
         tcpMappings ++ udpMappings ++ bothMappings
-    ) cfg.services
+    ) services
   );
 
-  mkOpenPorts = lib.flatten (
+  mkOpenPorts = services: lib.flatten (
     lib.mapAttrsToList (serviceName: serviceConfig: 
       let
         openPorts = serviceConfig.openPorts;
@@ -30,20 +33,22 @@ let
         bothMappings = map (port: { port = port; protocol = "both"; }) openPorts.both;
       in
         tcpMappings ++ udpMappings ++ bothMappings
-    ) cfg.services
+    ) services
   );
 
   createConfinementServices = services:
     lib.mapAttrs' (serviceName: serviceConfig: {
-      name = "${name}.vpnConfinement";
+      name = serviceName;
       value = {
-        enable = serviceConfig.enable;
-        namespace = cfg.namespace;
+        vpnConfinement = {
+          enable = serviceConfig.enable;
+          vpnNamespace = cfg.namespace.name;
+        };
       };
-  }) cfg.services;
+  }) services;
 in
 {
-  options.homelab.lib.vpnConfinement = {
+  options.homelab.vpnConfinement = {
     enable = lib.mkEnableOption "Enable VPN confinement service";
 
     namespace = { 
@@ -66,7 +71,7 @@ in
     };
 
     services = lib.mkOption {
-      type = vpnConfinementTypes.serviceType;
+      type = types.attrsOf vpnConfinementTypes.serviceType;
       default = {};
       description = "Services to enable VPN confinement for";
     };
@@ -74,7 +79,7 @@ in
     hostSubnet = {
       ipv4 = lib.mkOption {
         type = types.str; 
-        default = "192.168.1";
+        default = "";
         description = "LAN subnet for host machine";
       };
 
@@ -86,22 +91,21 @@ in
     };
   };
 
-  config = lib.mkIf cfg.enable {
-    # Create VPN namespace
+  config = lib.mkIf (cfg.enable || anyServiceEnabled) {
     vpnNamespaces."${cfg.namespace.name}" = {
       enable = true;
       wireguardConfigFile = cfg.wgConfigFile;
-      
+
       namespaceAddress = cfg.namespace.address;
       accessibleFrom = [
         "127.0.0.1/32"
-        "${cfg.hostSubnet.ipv4}.0/24"
-        "${cfg.hostSubnet.ipv6}::/64"
+        "${ if cfg.hostSubnet.ipv4 != "" then "${cfg.hostSubnet.ipv4}.0/24" else ""}"
+        "${ if cfg.hostSubnet.ipv6 != "" then "${cfg.hostSubnet.ipv6}::/64" else ""}"
       ];
-      portMappings = mkForwardPorts;
-      openVPNPorts = mkOpenPorts;
+      portMappings = mkForwardPorts cfg.services;
+      openVPNPorts = mkOpenPorts cfg.services;
     };
 
-    systemd.services = createConfinementServices;
+    systemd.services = createConfinementServices cfg.services;
   };
 }

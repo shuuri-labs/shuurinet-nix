@@ -2,7 +2,7 @@
 { lib, config, homelab, service }:
 let
   domainLib = import ../lib/domain-management/compute.nix;
-  vpnConfinementTypes = import ../lib/vpn-confinement/types.nix;
+  vpnConfinementTypes = import ../lib/vpn-confinement/types.nix { inherit lib; };
 
   cfg = config.homelab.services.${service};
 in
@@ -130,8 +130,6 @@ in
 
   config = lib.mkMerge [
     {
-      users.users.${cfg.user}.extraGroups = cfg.extraGroups;
-
       # Set the computed domain value
       homelab.services.${service}.domain.final = domainLib.computeDomain {
         topLevel = cfg.domain.topLevel;
@@ -161,7 +159,7 @@ in
 
     # Create VPN confinement service
     (lib.mkIf (cfg.enable && cfg.vpnConfinement.enable) {
-      homelab.lib.vpnConfinement = { 
+      homelab.vpnConfinement = { 
         services.${service} = cfg.vpnConfinement // {
           enable = true;
         };

@@ -16,23 +16,24 @@ in
       description = "Port to run the ${service} service on";
     };
 
-    extraGroups = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      default = [ homelab.groups.mediaAccess ];
-      description = "Groups to add the ${service} user to";
+    domain = common.options.domain // {
+      topLevel = lib.mkOption {
+        type = lib.types.str;
+        default = "trans";
+      };
     };
 
-    vpnConfinement.enable = lib.mkOption {
-      type = lib.types.bool;
-      default = true;
-      description = "Enable VPN confinement for the ${service} service";
+    extraGroups = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ homelab.storage.accessGroups.downloads.name ];
+      description = "Groups to add the ${service} user to";
     };
 
     # --- ${service} Specific  ---
 
     downloadDir = lib.mkOption {
       type = lib.types.str;
-      default = homelab.directories.downlaods;
+      default = homelab.storage.directories.downloads;
       description = "Directory to store downloads in";
     };
 
@@ -51,6 +52,7 @@ in
 
   config = lib.mkMerge [
     common.config
+  
     
     (lib.mkIf cfg.enable {
       services.${service} = {
@@ -61,9 +63,9 @@ in
           download-dir = cfg.downloadDir;
           incomplete-dir-enabled = false;
 
-          rpc-bind-address = if   homelab.lib.vpnConfinement.enable 
-                             then homelab.lib.vpnConfinement.namespace.address 
-                             else homelab.network.primaryBridge.address;
+          rpc-bind-address = if   homelab.vpnConfinement.enable 
+                             then homelab.vpnConfinement.namespace.address 
+                             else "127.0.0.1";
           rpc-port = cfg.port; 
 
           "rpc-authentication-required" = false; # TODO enable and add pw secret
@@ -74,6 +76,9 @@ in
           "ratio-limit" = 2.0;
         };
       };
+
+      homelab.services.${service}.vpnConfinement.enable = true;
+      users.users.${service}.extraGroups = cfg.extraGroups;
     })
   ];
 }

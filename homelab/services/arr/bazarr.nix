@@ -16,7 +16,7 @@ in
 
     group = lib.mkOption {
       type = lib.types.str;
-      default = homelab.groups.mediaAccess;
+      default = homelab.storage.accessGroups.media.name;
       description = "Group to run the ${service} service as";
     };
   };
@@ -27,7 +27,7 @@ in
     (lib.mkIf cfg.enable {
       services.${service} = {
         enable = true;
-        port = cfg.port;
+        listenPort = cfg.port;
         group = cfg.group;
       };
     })

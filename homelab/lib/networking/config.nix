@@ -1,7 +1,7 @@
 { config, lib, ... }:
 let
   inherit (lib) mkOption mkEnableOption types mkIf mkMerge flatten optional hasSuffix listToAttrs;
-  inherit (import ./network-types.nix { inherit lib; }) networkTypes;
+  networkTypes = import ./types.nix { inherit lib; };
 
   cfg = config.homelab.network;
   

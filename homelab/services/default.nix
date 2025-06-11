@@ -3,5 +3,7 @@
   imports = [
     ./mealie
     ./jellyfin
+    ./transmission
+    ./media-server
   ];
 }

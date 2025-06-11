@@ -18,6 +18,13 @@ in
         The default http port is 8096.
       '';
     };
+
+    domain = common.options.domain // {
+      topLevel = lib.mkOption {
+        type = lib.types.str;
+        default = "jelly";
+      };
+    };
   };
 
   config = lib.mkMerge [

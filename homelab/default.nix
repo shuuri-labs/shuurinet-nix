@@ -76,11 +76,7 @@ in
   };
 
   imports = [
-    ./lib/networking
-    ./lib/dashboard
-    ./lib/reverse-proxy
-    ./lib/dns
-    ./lib/domain-management
+    ./lib
     ./services
   ];
 }

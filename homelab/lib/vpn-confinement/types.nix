@@ -1,8 +1,7 @@
 { lib }:
 let
   inherit (lib) types;
-in
-{
+  
   vpnPortsType = types.submodule {
     options = {
       tcp = lib.mkOption {
@@ -24,8 +23,11 @@ in
       };
     };
   };
-
-  serviceType = types.attrsOf (types.submodule ({ name, ... }: {
+in
+{
+  inherit vpnPortsType;
+  
+  serviceType = types.submodule ({ name, ... }: {
     options = {
       enable = lib.mkOption {
         type = types.bool;
@@ -58,5 +60,5 @@ in
         description = "Ports to open in VPN.";
       };
     };
-  }));
+  });
 }

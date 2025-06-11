@@ -1,7 +1,7 @@
 { config, lib, pkgs, ... }:
 {
   imports = [
-    ./networks.nix
+    ./homelab-networks.nix
     ./config.nix
   ];
 }
