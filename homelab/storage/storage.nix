@@ -7,6 +7,7 @@ in
     storage = {
       bulk = lib.mkOption {
         type = lib.types.str;
+        default = "/home/ashley/";
       };
 
       fast = lib.mkOption {

@@ -2,6 +2,8 @@
 { lib, config, homelab, service }:
 let
   domainLib = import ../lib/domain-management/compute.nix;
+  vpnConfinementTypes = import ../lib/vpn-confinement/types.nix;
+
   cfg = config.homelab.services.${service};
 in
 {
@@ -19,6 +21,18 @@ in
     port = lib.mkOption {
       type        = lib.types.int;
       description = "Port to run the ${service} service on";
+    };
+
+    user = lib.mkOption {
+      type = lib.types.str;
+      default = service;
+      description = "User to run the ${service} service as";
+    };
+
+    extraGroups = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [];
+      description = "Group the ${service} user should be added to";
     };
 
     domain = {
@@ -101,10 +115,23 @@ in
         description = "Widget to use for the service on the dashboard.";
       };
     };
+
+    vpnConfinement = lib.mkOption {
+      type = vpnConfinementTypes.serviceType;
+      default = {
+        enable = false;
+        forwardPorts = {
+          tcp = [ cfg.port ];
+        };
+      };
+      description = "VPN confinement configuration for the service";
+    }; 
   };
 
   config = lib.mkMerge [
     {
+      users.users.${cfg.user}.extraGroups = cfg.extraGroups;
+
       # Set the computed domain value
       homelab.services.${service}.domain.final = domainLib.computeDomain {
         topLevel = cfg.domain.topLevel;
@@ -128,6 +155,15 @@ in
         dns = {
           enable = cfg.domain.enable;
           comment = "Auto-managed by NixOS homelab for ${service}";
+        };
+      };
+    })
+
+    # Create VPN confinement service
+    (lib.mkIf (cfg.enable && cfg.vpnConfinement.enable) {
+      homelab.lib.vpnConfinement = { 
+        services.${service} = cfg.vpnConfinement // {
+          enable = true;
         };
       };
     })
