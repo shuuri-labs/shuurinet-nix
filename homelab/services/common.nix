@@ -156,11 +156,7 @@ in
         };
       };
 
-      homelab.vpnConfinement = { 
-        services.${service} = cfg.vpnConfinement // {
-          enable = cfg.vpnConfinement.enable;
-        };
-      };
+      homelab.vpnConfinement.services.${service} = cfg.vpnConfinement;
     })
   ];
 }

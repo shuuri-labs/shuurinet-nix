@@ -80,7 +80,6 @@ in
       # Overriding in options doesn't work so we set it here - perhaps because vpnConfinement 
       # is an imported submodule in common.nix?
       homelab.services.${service}.vpnConfinement.enable = true;
-
       users.users.${service}.extraGroups = cfg.extraGroups;
     })
   ];
