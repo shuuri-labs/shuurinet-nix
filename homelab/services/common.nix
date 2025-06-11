@@ -155,13 +155,10 @@ in
           comment = "Auto-managed by NixOS homelab for ${service}";
         };
       };
-    })
 
-    # Create VPN confinement service
-    (lib.mkIf (cfg.enable && cfg.vpnConfinement.enable) {
       homelab.vpnConfinement = { 
         services.${service} = cfg.vpnConfinement // {
-          enable = true;
+          enable = cfg.vpnConfinement.enable;
         };
       };
     })
