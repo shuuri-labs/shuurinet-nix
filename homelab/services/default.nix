@@ -6,5 +6,6 @@
     ./transmission
     ./media-server
     ./paperless
+    ./frigate
   ];
 }

@@ -230,7 +230,6 @@ in
     services = {
       mealie.enable = true;
       mediaServer.enable = true;
-      paperless.enable = true;
     };
   };
 

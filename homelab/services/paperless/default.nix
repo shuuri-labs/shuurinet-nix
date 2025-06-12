@@ -14,18 +14,6 @@ in
       description = "The file containing the password for the paperless web interface";
     };
 
-    hostMainStorageUser = lib.mkOption {
-      type = lib.types.str;
-      default = homelab.storage.mainStorageUserName;
-      description = "The main user for the host.";
-    };
-    
-    documentsAccessGroup = lib.mkOption {
-      type = lib.types.str;
-      default = homelab.storage.accessGroups.documents.name;
-      description = "The host group with access to the documents directory";
-    };
-
     paths = {
       dataDir = lib.mkOption {
         type = lib.types.str;
@@ -57,8 +45,8 @@ in
       systemd.services = dirUtils.createDirectoriesService {
         serviceName = service;
         directories = cfg.paths;
-        user = cfg.hostMainStorageUser;
-        group = cfg.documentsAccessGroup;
+        user = config.homelab.storage.mainStorageUserName;
+        group = config.homelab.storage.accessGroups.documents.name;
         before = [ "paperless.service" "paperless-scheduler.service" "paperless-task-queue.service" ];
       };
 
@@ -67,7 +55,7 @@ in
         user = cfg.user;
         port = cfg.port;
         
-        # passwordFile = cfg.passwordFile;
+        passwordFile = cfg.passwordFile;
         consumptionDir = cfg.paths.consumeDir;
 
         settings = {
@@ -79,7 +67,7 @@ in
         };
       };
 
-      users.users.${cfg.user}.extraGroups = [ cfg.documentsAccessGroup ];
+      users.users.${cfg.user}.extraGroups = [ config.homelab.storage.accessGroups.documents.name ];
     })
   ];
 }
