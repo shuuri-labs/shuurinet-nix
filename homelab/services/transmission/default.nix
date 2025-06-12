@@ -41,6 +41,9 @@ in
 
       services.${service} = {
         enable = true;
+        user = cfg.user;
+        group = cfg.group;
+        
         package = pkgs.transmission_4;
 
         settings = {

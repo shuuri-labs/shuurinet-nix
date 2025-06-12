@@ -20,6 +20,8 @@ in
 
       services.${service} = {
         enable = true;
+        user = cfg.user;
+        group = cfg.group;
       };
     })
   ];

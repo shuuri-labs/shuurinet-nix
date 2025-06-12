@@ -5,5 +5,6 @@
     ./jellyfin
     ./transmission
     ./media-server
+    ./paperless
   ];
 }

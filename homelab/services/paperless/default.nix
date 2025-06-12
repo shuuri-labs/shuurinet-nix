@@ -1,0 +1,85 @@
+{ config, lib, pkgs, ... }:
+let
+  service = "paperless";
+  cfg = config.homelab.services.${service};
+  homelab = config.homelab;
+
+  common = import ../common.nix { inherit lib config homelab service; };
+  dirUtils = import ../../lib/utils/directories.nix { inherit lib pkgs; };
+in
+{
+  options.homelab.services.${service} = common.options // {
+    passwordFile = lib.mkOption {
+      type = lib.types.str;
+      description = "The file containing the password for the paperless web interface";
+    };
+
+    hostMainStorageUser = lib.mkOption {
+      type = lib.types.str;
+      default = homelab.storage.mainStorageUserName;
+      description = "The main user for the host.";
+    };
+    
+    documentsAccessGroup = lib.mkOption {
+      type = lib.types.str;
+      default = homelab.storage.accessGroups.documents.name;
+      description = "The host group with access to the documents directory";
+    };
+
+    paths = {
+      dataDir = lib.mkOption {
+        type = lib.types.str;
+        description = "The directory for paperless data";
+        default = "${homelab.storage.directories.documents}/paperless";
+      };
+
+      consumeDir = lib.mkOption {
+        type = lib.types.str;
+        description = "The directory for paperless consume";
+        default = "${cfg.paths.dataDir}/consume";
+      };
+    };
+  };
+
+  config = lib.mkMerge [
+    common.config
+
+    (lib.mkIf cfg.enable {
+      homelab.services.${service} = {
+        port = lib.mkDefault 28981;
+        domain.topLevel = lib.mkDefault "paper";
+      };
+
+      environment.systemPackages = with pkgs; [
+        python312Packages.inotifyrecursive
+      ]; # paperless will fallback to a cpu-expensive method of dir watching if this package is not installed
+
+      systemd.services = dirUtils.createDirectoriesService {
+        serviceName = service;
+        directories = cfg.paths;
+        user = cfg.hostMainStorageUser;
+        group = cfg.documentsAccessGroup;
+        before = [ "paperless.service" "paperless-scheduler.service" "paperless-task-queue.service" ];
+      };
+
+      services.${service} = {
+        enable = true;
+        user = cfg.user;
+        port = cfg.port;
+        
+        # passwordFile = cfg.passwordFile;
+        consumptionDir = cfg.paths.consumeDir;
+
+        settings = {
+          PAPERLESS_OCR_LANGUAGE = "eng+deu";
+          PAPERLESS_ENABLE_HTTP_REMOTE_USER_API = true;
+          PAPERLESS_CONSUMER_IGNORE_PATTERN = [
+            ".DS_STORE/*"
+          ];
+        };
+      };
+
+      users.users.${cfg.user}.extraGroups = [ cfg.documentsAccessGroup ];
+    })
+  ];
+}

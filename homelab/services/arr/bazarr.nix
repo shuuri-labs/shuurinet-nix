@@ -21,6 +21,7 @@ in
       services.${service} = {
         enable = true;
         listenPort = cfg.port;
+        user = cfg.user;
         group = cfg.group;
       };
     })

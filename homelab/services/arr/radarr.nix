@@ -22,7 +22,9 @@ in
 
       services.${service} = {
         enable = true;
+        user = cfg.user;
         group = cfg.group;
+        
         settings = {
           server.port = cfg.port;
         };

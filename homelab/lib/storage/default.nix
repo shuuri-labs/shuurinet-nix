@@ -10,7 +10,7 @@ in
     paths = {
       bulkStorage = lib.mkOption {
         type = lib.types.str;
-        default = "/home/ashley/";
+        default = "/srv";
       };
 
       fastStorage = lib.mkOption {
