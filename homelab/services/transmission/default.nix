@@ -8,29 +8,6 @@ let
 in
 {
   options.homelab.services.${service} = common.options // {
-    # --- Common Overrides ---
-
-    port = lib.mkOption {
-      type = lib.types.int;
-      default = 9091;
-      description = "Port to run the ${service} service on";
-    };
-
-    domain = common.options.domain // {
-      topLevel = lib.mkOption {
-        type = lib.types.str;
-        default = "trans";
-      };
-    };
-
-    extraGroups = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      default = [ homelab.storage.accessGroups.downloads.name ];
-      description = "Groups to add the ${service} user to";
-    };
-
-    # --- ${service} Specific  ---
-
     downloadDir = lib.mkOption {
       type = lib.types.str;
       default = homelab.storage.directories.downloads;
@@ -52,9 +29,16 @@ in
 
   config = lib.mkMerge [
     common.config
-  
     
     (lib.mkIf cfg.enable {
+      homelab.services.${service} = {
+        port = lib.mkDefault 9091;
+        extraGroups = lib.mkDefault [ homelab.storage.accessGroups.downloads.name ];
+
+        domain.topLevel = lib.mkDefault "trans";
+        vpnConfinement.enable = lib.mkDefault false;
+      };
+
       services.${service} = {
         enable = true;
         package = pkgs.transmission_4;
@@ -77,9 +61,6 @@ in
         };
       };
 
-      # Overriding in options doesn't work so we set it here - perhaps because vpnConfinement 
-      # is an imported submodule in common.nix?
-      homelab.services.${service}.vpnConfinement.enable = true;
       users.users.${service}.extraGroups = cfg.extraGroups;
     })
   ];

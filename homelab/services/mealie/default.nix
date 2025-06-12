@@ -7,18 +7,17 @@ let
   common = import ../common.nix { inherit lib config homelab service; };
 in
 {
-  options.homelab.services.${service} = common.options // {
-    port = lib.mkOption {
-      type = lib.types.int;
-      default = 9001;
-      description = "Port to run the ${service} service on";
-    };
-  };
+  options.homelab.services.${service} = common.options;
 
   config = lib.mkMerge [
     common.config
     
     (lib.mkIf cfg.enable {
+      homelab.services.${service} = {
+        port = lib.mkDefault 9001;
+        domain.topLevel = lib.mkDefault "mealie";
+      };
+
       services.${service} = {
         enable = true;
         port = cfg.port;

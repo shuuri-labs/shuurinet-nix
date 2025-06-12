@@ -12,6 +12,24 @@ in
       "Enable " service " service"
     ]);
 
+    user = lib.mkOption {
+      type = lib.types.str;
+      default = service;
+      description = "User to run the ${service} service as";
+    };
+
+    group = lib.mkOption {
+      type = lib.types.str;
+      default = service;
+      description = "Group to the ${service} user should be in";
+    };
+
+    extraGroups = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [];
+      description = "Groups the ${service} user should be added to";
+    };
+
     address = lib.mkOption {
       type        = lib.types.str;
       default     = "127.0.0.1";
@@ -21,18 +39,6 @@ in
     port = lib.mkOption {
       type        = lib.types.int;
       description = "Port to run the ${service} service on";
-    };
-
-    user = lib.mkOption {
-      type = lib.types.str;
-      default = service;
-      description = "User to run the ${service} service as";
-    };
-
-    extraGroups = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      default = [];
-      description = "Group the ${service} user should be added to";
     };
 
     domain = {

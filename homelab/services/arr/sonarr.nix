@@ -7,36 +7,18 @@ let
   common = import ../common.nix { inherit lib config homelab service; };
 in
 {
-  options.homelab.services.${service} = common.options // {
-    # --- Common Overrides ---
-    
-    port = lib.mkOption {
-      type = lib.types.int;
-      default = 8989;
-      description = "Port to run the ${service} service on";
-    };
-
-    extraGroups = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      default = [ 
-        homelab.storage.accessGroups.downloads.name 
-      ];
-      description = "Additional groups for ${service} user";
-    };
-
-    # --- ${service} Specific ---
-
-    group = lib.mkOption {
-      type = lib.types.str;
-      default = homelab.storage.accessGroups.media.name;
-      description = "Primary group for ${service} user";
-    };
-  };
+  options.homelab.services.${service} = common.options;
 
   config = lib.mkMerge [
     common.config
     
     (lib.mkIf cfg.enable {
+      homelab.services.${service} = {
+        port = lib.mkDefault 8989;
+        group = lib.mkDefault homelab.storage.accessGroups.media.name;
+        extraGroups = lib.mkDefault [ homelab.storage.accessGroups.downloads.name ];
+      };
+
       nixpkgs.config.permittedInsecurePackages = [
         "aspnetcore-runtime-6.0.36"
         "aspnetcore-runtime-wrapped-6.0.36"
