@@ -2,15 +2,12 @@
 let
   cfg = config.homelab.idp;
   cfgKanidm = cfg.kanidm;
-
   homelab = config.homelab;
 
   idp = "kanidm";
 
-  certs = (import ../lib/utils/mkInternalSslCerts.nix { inherit pkgs lib; })
-    .mkCertFor idp cfg.${idp}.domain;
-
-  mkUsers = 
+  certs = (import ../utils/mkInternalSslCerts.nix { inherit pkgs lib; })
+    .mkCertFor idp cfg.domain;
 in
 {
   options.homelab.idp.${idp} = {
@@ -36,12 +33,6 @@ in
       };
     };
 
-    port = lib.mkOption {
-      type = lib.types.int;
-      default = 8443;
-      description = "Port to listen on";
-    };
-
     ldapBindPort = lib.mkOption {
       type = lib.types.int;
       default = 636;
@@ -52,7 +43,7 @@ in
   config = lib.mkIf cfg.enable {
     homelab = {
       idp = {
-        port = cfg.port;
+        port = 8443;
       };
 
       domainManagement.domains.auth = {
@@ -69,6 +60,10 @@ in
         };
       };
     };
+
+    security.pki.certificateFiles = [
+      "${certs.ca}"
+    ];
 
     environment.systemPackages = [
       pkgs.kanidmWithSecretProvisioning_1_5
@@ -90,17 +85,14 @@ in
 
       provision = { 
         enable = true;
-        adminPasswordFile = cfg.adminPasswordFile;
-        idmAdminPasswordFile = cfg.idmAdminPasswordFile;
+        adminPasswordFile = cfgKanidm.adminPasswordFile;
+        idmAdminPasswordFile = cfgKanidm.idmAdminPasswordFile;
 
-        persons = users: lib.mapAttrs' (name: userConfig: {
-          name = name;
-          value = {
-            displayName = userConfig.name;
-            present = userConfig.enable;
-            mailAddresses = [ userConfig.email ];
-          };
-        }) cfg.users;
+        persons = lib.mapAttrs (name: config: {
+          displayName = config.name;
+          present = config.enable;
+          mailAddresses = [ config.email ];
+        }) cfg.services;
 
         groups = lib.mapAttrs' (serviceName: serviceConfig: 
           lib.nameValuePair "${serviceName}-access" {
@@ -112,16 +104,16 @@ in
         systems.oauth2 = lib.mapAttrs' (serviceName: serviceConfig: {
           name = serviceName;
           value = {
-          displayName = serviceConfig.name;
-          present = serviceConfig.enable;
-          public = true;
-          enableLocalhostRedirects = true;
-          
-          originUrl = serviceConfig.originUrls;
-          originLanding = serviceConfig.originLanding;
-          
-          scopeMaps = {
-            "${serviceName}-access" = serviceConfig.oidcScopes;
+            displayName = serviceConfig.name;
+            present = serviceConfig.enable;
+            public = serviceConfig.public;
+            enableLocalhostRedirects = serviceConfig.localhostRedirects;
+            
+            originUrl = serviceConfig.originUrls;
+            originLanding = serviceConfig.originLanding;
+            
+            scopeMaps = {
+              "${serviceName}-access" = serviceConfig.oidcScopes;
             };
           } // serviceConfig.extraAttributes;
         }) cfg.services;

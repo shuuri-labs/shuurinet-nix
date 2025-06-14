@@ -108,6 +108,12 @@ in
       group = "cloudflare-dns";
       mode = "440";
     };
+
+    kanidm-admin-password = {
+      file = "${secretsAbsolutePath}/kanidm-admin-password.age";
+      owner = "kanidm";
+      group = "kanidm";
+    };
   };
 
   common.secrets.sopsKeyPath = "${secretsAbsolutePath}/keys/sops-key.agekey.age";
@@ -229,6 +235,14 @@ in
     
     services = {
       mealie.enable = true;
+    };
+
+    idp = {
+      enable = true;
+      kanidm = {
+        adminPasswordFile = config.age.secrets.kanidm-admin-password.path;
+        idmAdminPasswordFile = config.age.secrets.kanidm-admin-password.path;
+      };
     };
   };
 

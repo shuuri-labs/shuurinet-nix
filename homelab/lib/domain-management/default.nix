@@ -90,6 +90,7 @@ in
           address = domain.host.backend.address;
           port = domain.host.backend.port;
         };
+        extraConfig = domain.host.extraConfig;
       }
     ) (filterAttrs (name: domain: domain.enable && domain.host.enable) cfg.domains);
   };

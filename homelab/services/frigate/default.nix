@@ -2,13 +2,14 @@
 
 let
   service = "frigate";
-  cfg = config.services.${service};
+  cfg = config.homelab.services.${service};
   homelab = config.homelab;
 
   common = import ../common.nix { inherit lib config homelab service; };
+  dirUtils = import ../../lib/utils/directories.nix { inherit lib; };
 in
 {
-  options.services.${service} = common.options // {
+  options.homelab.services.${service} = common.options // {
     password = lib.mkOption {
       type = lib.types.str;
       description = "Password for the Frigate web UI";
@@ -68,11 +69,17 @@ in
       # -- Create the ${service} user and group
 
       users = {
-        "${cfg.user}" = {
-          isSystemUser = true;
-          uid = 580;
-          group = cfg.group;
-          extraGroups = if cfg.intelAcceleration.enable then cfg.intelAcceleration.groups else [];
+        users = {
+          ${cfg.user} = {
+            isSystemUser = true;
+            uid = 580;
+            group = cfg.group;
+            extraGroups = if cfg.intelAcceleration.enable then cfg.intelAcceleration.groups else [];
+          };
+
+          ${config.homelab.storage.mainStorageUserName} = {
+            extraGroups = [ cfg.group ];
+          };
         };
         
         groups = {
@@ -80,10 +87,6 @@ in
             name = cfg.group;
             gid = 580;
           };
-        };
-
-        users.${config.homelab.storage.mainStorageUserName} = {
-          extraGroups = [ cfg.group ];
         };
       };
 

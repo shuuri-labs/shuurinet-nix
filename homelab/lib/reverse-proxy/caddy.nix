@@ -9,15 +9,16 @@ let
     name = hostConfig.domain;
     value = {
       extraConfig = ''
-        reverse_proxy ${hostConfig.backend.address}:${toString hostConfig.backend.port}
+        reverse_proxy ${hostConfig.backend.address}:${toString hostConfig.backend.port} {
+          ${hostConfig.extraConfig}
+        }
 
         tls {
           ${cfg.caddy.tls}
         }
-        ${hostConfig.extraConfig}
       '';
     };
-  }) cfg.enabledProxyHosts;
+  });
 in
 {
   options.homelab.reverseProxy.caddy = {
@@ -47,7 +48,7 @@ in
         hash = "sha256-Gsuo+ripJSgKSYOM9/yl6Kt/6BFCA6BuTDvPdteinAI=";
       };
       environmentFile = cfg.caddy.environmentFile;
-      virtualHosts = virtualHosts;
+      virtualHosts = virtualHosts cfg.enabledProxyHosts;
     };
   };
 }

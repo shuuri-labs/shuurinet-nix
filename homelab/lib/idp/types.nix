@@ -54,6 +54,18 @@ in
         description = "The origin landing page of the service";
       };
 
+      public = mkOption {
+        type = types.bool;
+        default = true;
+        description = "Whether the service is public";
+      };
+
+      localhostRedirects = mkOption {
+        type = types.bool;
+        default = true;
+        description = "Whether to allow localhost redirects";
+      };
+
       extraAttributes = mkOption {
         type = types.attrs;
         default = {};

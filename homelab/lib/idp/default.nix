@@ -3,7 +3,7 @@ let
   cfg = config.homelab.idp;
   homelab = config.homelab;
 
-  domainLib = import ../lib/utils/domain-management/compute.nix;
+  domainLib = import ../domain-management/compute.nix;
   idpTypes = import ./types.nix { inherit lib; };
 in
 {
@@ -19,9 +19,15 @@ in
       description = "Port for the IDP service";
     };
 
+    address = lib.mkOption {
+      type = lib.types.str;
+      default = "https://127.0.0.1";
+      description = "Address for the IDP service";
+    };
+
     domain = lib.mkOption {
       type = lib.types.str;
-      default = domainLib.computeDomain { topLevel = "auth"; sub = homelab.domain.sub; base = homelab.domain.topLevel; };
+      default = domainLib.computeDomain { topLevel = "auth"; sub = homelab.domain.sub; base = homelab.domain.base; };
       description = "Base domain name for auth";
     };
     
@@ -30,6 +36,9 @@ in
       description = "Users to add to the IDP service";
       default = {
         "ashley" = {
+          enable = true;
+          name = "Ashley";
+          email = "ashley@shuuri.net";
         };
       };
     };
@@ -37,10 +46,7 @@ in
     services = lib.mkOption {
       type = lib.types.attrsOf idpTypes.serviceType;
       description = "Services to add to the IDP service";
-      default = {
-        "kanidm" = {
-        };
-      };
+      default = {};
     };
   };
 
@@ -52,7 +58,7 @@ in
         enable = true;
         domain = cfg.domain;
         backend = {
-          address = "localhost";
+          address = cfg.address;
           port = cfg.port;
         };
       };
