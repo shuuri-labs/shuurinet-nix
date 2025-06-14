@@ -16,6 +16,12 @@ in
         description = "Domain name for the reverse proxy";
       };
 
+      extraConfig = mkOption {
+        type = types.str;
+        default = "";
+        description = "Extra configuration for the reverse proxy";
+      };
+
       backend = {
         address = mkOption {
           type = types.str;

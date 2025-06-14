@@ -10,5 +10,6 @@
     ./dns
     ./domain-management
     ./vpn-confinement
+    ./idp
   ];
 }

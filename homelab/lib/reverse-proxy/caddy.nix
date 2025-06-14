@@ -14,7 +14,7 @@ let
         tls {
           ${cfg.caddy.tls}
         }
-        ${cfg.caddy.extraConfig}
+        ${hostConfig.extraConfig}
       '';
     };
   }) cfg.enabledProxyHosts;

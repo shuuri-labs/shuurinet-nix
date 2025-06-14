@@ -115,7 +115,6 @@ in
       ];
 
       # -- Create the container
-
       virtualisation.oci-containers = {
         containers.frigate = {
           user = cfg.user;
