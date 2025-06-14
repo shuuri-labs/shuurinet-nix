@@ -3,23 +3,21 @@
 let
   service = "frigate";
   cfg = config.services.${service};
-
   homelab = config.homelab;
 
   common = import ../common.nix { inherit lib config homelab service; };
-  copyConfigService = import ../../lib/utils/copy-config.nix { inherit lib pkgs; };
 in
 {
   options.services.${service} = common.options // {
-    configFile = lib.mkOption {
-      type = lib.types.str;
-      description = "Content of the Frigate configuration file";
-    };
-
     password = lib.mkOption {
       type = lib.types.str;
       description = "Password for the Frigate web UI";
-      default = "changeme";
+      default = "changeme"; # TODO: read from (secrets) file
+    };
+
+    configFile = lib.mkOption {
+      type = lib.types.str;
+      description = "Path to the Frigate configuration file";
     };
 
     directories = {
@@ -35,9 +33,24 @@ in
       };
     };
 
-    nvrMediaAccessGroup = lib.mkOption {
-      type = lib.types.str;
-      default = "nvrMediaAccess";
+    intelAcceleration = {
+      enable = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = "Enable Intel GPU acceleration";
+      };
+
+      devices = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ "/dev/dri/renderD128" "/dev/dri/card1" ];
+        description = "List of devices to use for Intel GPU acceleration";
+      };
+
+      groups = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ "video" "render" ];
+        description = "List of groups to add the Frigate user to for GPU access";
+      };
     };
   };
 
@@ -45,61 +58,80 @@ in
     common.config
 
     (lib.mkIf cfg.enable {
+      # -- Override default service options
+
       homelab.services.${service} = {
         port = lib.mkDefault 8971;
         domain.topLevel = lib.mkDefault "nvr";
       };
 
+      # -- Create the ${service} user and group
+
       users = {
+        "${cfg.user}" = {
+          isSystemUser = true;
+          uid = 580;
+          group = cfg.group;
+          extraGroups = if cfg.intelAcceleration.enable then cfg.intelAcceleration.groups else [];
+        };
+        
         groups = {
-          ${cfg.nvrMediaAccessGroup} = {
-            name = cfg.nvrMediaAccessGroup;
-            gid = 530;
+          ${cfg.group} = {
+            name = cfg.group;
+            gid = 580;
           };
         };
 
         users.${config.homelab.storage.mainStorageUserName} = {
-          extraGroups = [ cfg.nvrMediaAccessGroup ];
+          extraGroups = [ cfg.group ];
         };
       };
 
-      systemd.services = lib.mkMerge [
-        (dirUtils.createDirectoriesService {
-          serviceName = service;
-          directories = {
-            recordingsDir = cfg.recordingsDir;
-            configDir = cfg.configDir;
-          };
-          user = "root";
-          group = "root";
-          before = [ "podman-frigate.service" ];
-        })
+      # -- Create the directories
 
-        (copyConfigService {
-          serviceName = "frigate";
-          src = pkgs.writeText "frigate-config.yaml" cfg.configFile;
-          dest = "${cfg.directories.config}/config.yaml";
-          owner = "root";
-          group = "root";
-          mode = "0755";
-          wantedBy = [ "multi-user.target" ];
-          after = [ "local-fs.target" ];
-          description = "Copy Frigate config file";
-        })
+      systemd.services = dirUtils.createDirectoriesService {
+        serviceName = service;
+        directories = {
+          recordingsDir = cfg.directories.recordings;
+          configDir = cfg.directories.config;
+        };
+        user = cfg.user;
+        group = cfg.group;
+        before = [ "podman-frigate.service" ];
+      };
+
+      # -- Bind mount the config file
+
+      fileSystems."${cfg.directories.config}/config.yaml" = {
+        device = cfg.configFile;
+        fsType = "none";
+        options = [ "bind" ];
+        depends = [ "/" ];
+      };
+
+      # Set permissions on the config file (user and group r/w)
+      systemd.tmpfiles.rules = [
+        "Z ${cfg.configFile} 0660 ${cfg.user} ${cfg.group} - -"
       ];
 
-      # TODO: run as user (rootless)
+      # -- Create the container
+
       virtualisation.oci-containers = {
         containers.frigate = {
+          user = cfg.user;
+
           image = "ghcr.io/blakeblackshear/frigate:stable";
+
           environment = {
             FRIGATE_RTSP_PASSWORD = cfg.password;
             TZ = config.time.timeZone;
           };
+
           volumes = [
             "${cfg.directories.config}:/config"
             "${cfg.directories.recordings}:/media/frigate"
           ];
+
           ports = [
             "127.0.0.1:${toString cfg.port}:8971"
             "127.0.0.1:5001:5000" # Internal unauthenticated access. For host-local API access only
@@ -107,11 +139,12 @@ in
             "127.0.0.1:8555:8555/tcp" # WebRTC over tcp
             "127.0.0.1:8555:8555/udp" # WebRTC over udp
           ];
+
           extraOptions = [
-            "--device=/dev/dri/renderD128:/dev/dri/renderD128"
-            "--device=/dev/dri/card0:/dev/dri/card1"
             "--shm-size=400m"
             "--tmpfs=/tmp/cache:rw,size=1000000000"
+          ] ++ lib.optionals cfg.intelAcceleration.enable [
+            "--device=${toString cfg.intelAcceleration.devices}"
           ];
           autoStart = true;
         };

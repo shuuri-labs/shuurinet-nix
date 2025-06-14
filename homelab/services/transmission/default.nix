@@ -36,7 +36,7 @@ in
         extraGroups = lib.mkDefault [ homelab.storage.accessGroups.downloads.name ];
 
         domain.topLevel = lib.mkDefault "trans";
-        vpnConfinement.enable = lib.mkDefault false;
+        vpnConfinement.enable = lib.mkDefault true;
       };
 
       services.${service} = {

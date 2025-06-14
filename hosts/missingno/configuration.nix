@@ -229,7 +229,6 @@ in
     
     services = {
       mealie.enable = true;
-      mediaServer.enable = true;
     };
   };
 
