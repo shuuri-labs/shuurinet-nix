@@ -21,19 +21,7 @@ in
       description = "Path to the file containing the IDM admin password";
     };
 
-    persons = lib.mkOption {
-      type = lib.types.attrsOf lib.types.attrs;
-      description = "Persons to add to the IDM service";
-      default = {
-        "ashley" = {
-          displayName = "Ashley";
-          present = true;
-          mailAddresses = [ "ashley@shuuri.net" ];
-        };
-      };
-    };
-
-    ldapBindPort = lib.mkOption {
+    ldapPort = lib.mkOption {
       type = lib.types.int;
       default = 636;
       description = "LDAP bind port";
@@ -61,6 +49,7 @@ in
       };
     };
 
+    # TODO: create certs module to do this automatically
     security.pki.certificateFiles = [
       "${certs.ca}"
     ];
@@ -77,7 +66,7 @@ in
       serverSettings = {
         tls_chain = certs.cert;
         tls_key = certs.key;
-        ldapbindaddress = "127.0.0.1:${toString cfgKanidm.ldapBindPort}";
+        ldapbindaddress = "127.0.0.1:${toString cfgKanidm.ldapPort}";
         domain = cfg.domain;
         origin = "https://${cfg.domain}";
         trust_x_forward_for = true;

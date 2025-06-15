@@ -25,11 +25,7 @@ in
 
   serviceType = types.submodule {
     options = {
-      enable = mkOption {
-        type = types.bool;
-        default = true;
-        description = "Whether to create this service";
-      };
+      enable = mkEnableOption "Enable IDP for this service";
 
       name = mkOption {
         type = types.str;

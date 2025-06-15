@@ -3,6 +3,7 @@
 let
   domainLib = import ../lib/domain-management/compute.nix;
   vpnConfinementTypes = import ../lib/vpn-confinement/types.nix { inherit lib; };
+  idpTypes = import ../lib/idp/types.nix { inherit lib; };
 
   cfg = config.homelab.services.${service};
 in
@@ -131,7 +132,16 @@ in
         };
       };
       description = "VPN confinement configuration for the service";
-    }; 
+    };
+
+    idp = lib.mkOption {
+      type = idpTypes.serviceType;
+      default = {
+        name = service;
+        originLanding = "https://${config.homelab.services.${service}.domain.final}";
+      };
+      description = "IDP configuration for the service";
+    };
   };
 
   config = lib.mkMerge [
@@ -163,6 +173,7 @@ in
       };
 
       homelab.vpnConfinement.services.${service} = cfg.vpnConfinement;
+      homelab.idp.services.${service} = cfg.idp;
     })
   ];
 }
