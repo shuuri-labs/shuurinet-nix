@@ -3,10 +3,6 @@
 let
   domainLib = import ../lib/domain-management/compute.nix;
 
-  domainTypes = import ../lib/domain-management/types.nix { inherit lib; };
-  vpnConfinementTypes = import ../lib/vpn-confinement/types.nix { inherit lib; };
-  idpTypes = import ../lib/idp/types.nix { inherit lib; };
-
   cfg = config.homelab.services.${service};
 in
 {

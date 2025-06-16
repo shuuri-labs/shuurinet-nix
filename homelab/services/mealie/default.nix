@@ -17,9 +17,6 @@ in
         port = lib.mkDefault 9001;
       };
 
-      homelab.domainManagement.domains.${service}.host.extraConfig = 
-        "forwarded-allow-ips=${cfg.address}";
-
       homelab.idp.services.${service} = {
         enable = true;
         originUrls = [
@@ -36,6 +33,7 @@ in
           OIDC_AUTH_ENABLED = "True";
           OIDC_SIGNUP_ENABLED = "True";
           OIDC_AUTO_REDIRECT = "True";
+          # TODO: need to set config url on service type somehow
           OIDC_CONFIGURATION_URL = "https://${config.homelab.idp.domain}/oauth2/openid/${service}/.well-known/openid-configuration";
           OIDC_CLIENT_ID = config.homelab.idp.services.${service}.oidc.clientId;
           OIDC_CLIENT_SECRET = "";

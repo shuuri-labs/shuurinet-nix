@@ -34,7 +34,7 @@ in
       
       members = mkOption {
         type = types.listOf types.str;
-        default = [ "ashley" ];
+        default = [ "ashley" ]; # TODO: members should also be dynamically defaulted
         description = "The members of the service";
       };
 
@@ -53,7 +53,7 @@ in
       oidc = {
         configurationUrl = mkOption {
           type = types.str;
-          default = "";
+          default = ""; # TODO: set this dynamically
           description = "The OIDC configuration URL of the service";
         };
 
@@ -65,7 +65,7 @@ in
 
         clientSecret = mkOption {
           type = types.str;
-          default = "";
+          default = ""; # TODO: set this dynamically (?)
           description = "The OIDC client secret of the service";
         };
 

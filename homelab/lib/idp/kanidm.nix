@@ -9,6 +9,7 @@ let
   certs = (import ../utils/mkInternalSslCerts.nix { inherit pkgs lib; })
     .mkCertFor idp cfg.domain;
 
+  enabledUsers = lib.filterAttrs (userName: userConfig: userConfig.enable) cfg.users;
   enabledServices = lib.filterAttrs (serviceName: serviceConfig: serviceConfig.enable) cfg.services;
 in
 {
@@ -84,7 +85,7 @@ in
           displayName = config.name;
           present = config.enable;
           mailAddresses = [ config.email ];
-        }) cfg.users;
+        }) enabledUsers;
 
         groups = lib.mapAttrs' (serviceName: serviceConfig: 
           lib.nameValuePair "${serviceName}-access" {
