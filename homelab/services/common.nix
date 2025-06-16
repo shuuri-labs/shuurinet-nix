@@ -2,6 +2,8 @@
 { lib, config, homelab, service }:
 let
   domainLib = import ../lib/domain-management/compute.nix;
+
+  domainTypes = import ../lib/domain-management/types.nix { inherit lib; };
   vpnConfinementTypes = import ../lib/vpn-confinement/types.nix { inherit lib; };
   idpTypes = import ../lib/idp/types.nix { inherit lib; };
 
@@ -42,15 +44,7 @@ in
       description = "Port to run the ${service} service on";
     };
 
-    domain = {
-      enable = lib.mkOption {
-        type = lib.types.bool;
-        default = true;
-        description = builtins.concatStringsSep "" [
-          "Enable " service " reverse-proxy domain"
-        ];
-      };
-
+    fqdn = {
       topLevel = lib.mkOption {
         type    = lib.types.str;
         default = service;
@@ -122,58 +116,45 @@ in
         description = "Widget to use for the service on the dashboard.";
       };
     };
-
-    vpnConfinement = lib.mkOption {
-      type = vpnConfinementTypes.serviceType;
-      default = {
-        enable = false;
-        forwardPorts = {
-          tcp = [ cfg.port ];
-        };
-      };
-      description = "VPN confinement configuration for the service";
-    };
-
-    idp = lib.mkOption {
-      type = idpTypes.serviceType;
-      default = {
-        name = service;
-        originLanding = "https://${config.homelab.services.${service}.domain.final}";
-      };
-      description = "IDP configuration for the service";
-    };
   };
 
   config = lib.mkMerge [
     {
       # Set the computed domain value
-      homelab.services.${service}.domain.final = domainLib.computeDomain {
-        topLevel = cfg.domain.topLevel;
-        sub = cfg.domain.sub;
-        base = cfg.domain.base;
+      homelab.services.${service}.fqdn.final = domainLib.computeDomain {
+        topLevel = cfg.fqdn.topLevel;
+        sub = cfg.fqdn.sub;
+        base = cfg.fqdn.base;
       };
     }
     
     # Create domain configuration using the unified domain-management module
     (lib.mkIf cfg.enable {
       homelab.domainManagement.domains.${service} = {
-        enable = cfg.domain.enable;
         host = {
-          enable = cfg.domain.enable;
-          domain = cfg.domain.final;
+          domain = cfg.fqdn.final;
           backend = {
             address = cfg.address;
             port = cfg.port;
           };
         };
         dns = {
-          enable = cfg.domain.enable;
           comment = "Auto-managed by NixOS homelab for ${service}";
         };
       };
 
-      homelab.vpnConfinement.services.${service} = cfg.vpnConfinement;
-      homelab.idp.services.${service} = cfg.idp;
+      homelab.idp.services.${service} = {
+        name = service;
+        originLanding = "https://${cfg.fqdn.final}";
+      };
+
+      homelab.vpnConfinement.services.${service} = {
+        name = service;
+
+        forwardPorts = {
+          tcp = [ cfg.port ];
+        };
+      };
     })
   ];
 }

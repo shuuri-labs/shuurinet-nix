@@ -15,7 +15,7 @@ in
     (lib.mkIf cfg.enable {
       homelab.services.${service} = {
         port = lib.mkDefault 8096;
-        domain.topLevel = lib.mkDefault "jelly";
+        fqdn.topLevel = lib.mkDefault "jelly";
       };
 
       services.${service} = {

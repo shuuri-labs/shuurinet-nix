@@ -1,6 +1,6 @@
 { lib }:
 let
-  inherit (lib) mkOption types;
+  inherit (lib) mkOption types mkEnableOption;
 in
 {
   userType = types.submodule {
@@ -23,7 +23,7 @@ in
     };
   };
 
-  serviceType = types.submodule {
+  serviceType = types.submodule ({ config, ... }: {
     options = {
       enable = mkEnableOption "Enable IDP for this service";
 
@@ -34,13 +34,13 @@ in
       
       members = mkOption {
         type = types.listOf types.str;
-        default = [];
+        default = [ "ashley" ];
         description = "The members of the service";
       };
 
       originUrls = mkOption {
-        type = types.listOf types.str;
-        default = [];
+        type = types.nullOr (types.listOf types.str);
+        default = null;
         description = "The origin URLs of the service";
       };
 
@@ -48,6 +48,36 @@ in
         type = types.str;
         default = "";
         description = "The origin landing page of the service";
+      };
+
+      oidc = {
+        configurationUrl = mkOption {
+          type = types.str;
+          default = "";
+          description = "The OIDC configuration URL of the service";
+        };
+
+        clientId = mkOption {
+          type = types.str;
+          default = config.name;
+          description = "The OIDC client ID of the service";
+        };
+
+        clientSecret = mkOption {
+          type = types.str;
+          default = "";
+          description = "The OIDC client secret of the service";
+        };
+
+        scopes = mkOption {
+          type = types.listOf types.str;
+          default = [
+            "openid"
+            "email"
+            "profile"
+          ];
+          description = "The OIDC scopes of the service";
+        };
       };
 
       public = mkOption {
@@ -67,17 +97,6 @@ in
         default = {};
         description = "Extra attributes to add to the service";
       };
-
-      oidcScopes = mkOption {
-        type = types.listOf types.attrs;
-        default = [
-          "openid"
-          "email"
-          "profile"
-          "offline_access"
-        ];
-        description = "The OIDC roles of the service";
-      };
     };
-  };
+  });
 } 

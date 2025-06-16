@@ -35,7 +35,7 @@ in
     (lib.mkIf cfg.enable {
       homelab.services.${service} = {
         port = lib.mkDefault 28981;
-        domain.topLevel = lib.mkDefault "paper";
+        fqdn.topLevel = lib.mkDefault "paper";
       };
 
       environment.systemPackages = with pkgs; [

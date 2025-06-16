@@ -63,7 +63,7 @@ in
 
       homelab.services.${service} = {
         port = lib.mkDefault 8971;
-        domain.topLevel = lib.mkDefault "nvr";
+        fqdn.topLevel = lib.mkDefault "nvr";
       };
 
       # -- Create the ${service} user and group

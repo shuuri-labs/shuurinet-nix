@@ -3,30 +3,7 @@ let
   cfg = config.homelab.domainManagement;
   
   inherit (lib) mkOption mkEnableOption types mkIf mkMerge mapAttrs' nameValuePair filterAttrs;
-  inherit (import ../dns/types.nix { inherit lib; }) dnsRecordType;
-  inherit (import ../reverse-proxy/types.nix { inherit lib; }) hostType;
-  
-  # Domain definition type that combines DNS and reverse proxy configuration
-  domainType = types.submodule ({ name, config, ... }: {
-    options = {
-      enable = mkOption {
-        type = types.bool;
-        default = true;
-        description = "Whether to enable reverse proxy and DNS records for this domain";
-      };
-
-      host = mkOption {
-        type = hostType;
-        description = "Host configuration for the domain";
-      };
-
-      dns = mkOption {
-        type = dnsRecordType;
-        description = "DNS configuration for the domain";
-      };
-    };
-  });
-
+  inherit (import ./types.nix { inherit lib; }) domainType;
 in
 {
   options.homelab.domainManagement = {

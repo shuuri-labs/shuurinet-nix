@@ -8,6 +8,8 @@ let
 
   certs = (import ../utils/mkInternalSslCerts.nix { inherit pkgs lib; })
     .mkCertFor idp cfg.domain;
+
+  enabledServices = lib.filterAttrs (serviceName: serviceConfig: serviceConfig.enable) cfg.services;
 in
 {
   options.homelab.idp.${idp} = {
@@ -32,6 +34,7 @@ in
     homelab = {
       idp = {
         port = 8443;
+        provider = idp;
       };
 
       domainManagement.domains.auth = {
@@ -57,7 +60,7 @@ in
     environment.systemPackages = [
       pkgs.kanidmWithSecretProvisioning_1_5
     ];
-
+    
     services.${idp} = {
       package = pkgs.kanidmWithSecretProvisioning_1_5;
 
@@ -81,20 +84,20 @@ in
           displayName = config.name;
           present = config.enable;
           mailAddresses = [ config.email ];
-        }) cfg.services;
+        }) cfg.users;
 
         groups = lib.mapAttrs' (serviceName: serviceConfig: 
           lib.nameValuePair "${serviceName}-access" {
-            present = serviceConfig.enable;
+            present = true;
             members = serviceConfig.members;
           }
-        ) cfg.services;
+        ) enabledServices;
 
         systems.oauth2 = lib.mapAttrs' (serviceName: serviceConfig: {
           name = serviceName;
           value = {
             displayName = serviceConfig.name;
-            present = serviceConfig.enable;
+            present = true;
             public = serviceConfig.public;
             enableLocalhostRedirects = serviceConfig.localhostRedirects;
             
@@ -102,10 +105,10 @@ in
             originLanding = serviceConfig.originLanding;
             
             scopeMaps = {
-              "${serviceName}-access" = serviceConfig.oidcScopes;
+              "${serviceName}-access" = serviceConfig.oidc.scopes;
             };
           } // serviceConfig.extraAttributes;
-        }) cfg.services;
+        }) enabledServices;
       };
     };
   };

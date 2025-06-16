@@ -15,24 +15,32 @@ in
     (lib.mkIf cfg.enable {
       homelab.services.${service} = {
         port = lib.mkDefault 9001;
+      };
 
-        idp = {
-          enable = true;
+      homelab.domainManagement.domains.${service}.host.extraConfig = 
+        "forwarded-allow-ips=${cfg.address}";
 
-          originUrls = [
-            "https://${cfg.domain.final}/login"
-            "https://${cfg.domain.final}/login?direct=1"
-          ];
-        };
-
-        domain.host.extraConfig = ''
-          forwarded-allow-ips=${cfg.address}
-        '';
+      homelab.idp.services.${service} = {
+        enable = true;
+        originUrls = [
+          "https://${cfg.fqdn.final}/login"
+          "https://${cfg.fqdn.final}/login?direct=1"
+        ];
       };
 
       services.${service} = {
         enable = true;
         port = cfg.port;
+
+        settings = {
+          OIDC_AUTH_ENABLED = "True";
+          OIDC_SIGNUP_ENABLED = "True";
+          OIDC_AUTO_REDIRECT = "True";
+          OIDC_CONFIGURATION_URL = "https://${config.homelab.idp.domain}/oauth2/openid/${service}/.well-known/openid-configuration";
+          OIDC_CLIENT_ID = config.homelab.idp.services.${service}.oidc.clientId;
+          OIDC_CLIENT_SECRET = "";
+          OIDC_PROVIDER_NAME = config.homelab.idp.provider;
+        };
       };
     })
   ];

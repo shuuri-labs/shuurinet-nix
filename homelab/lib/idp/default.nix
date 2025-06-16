@@ -14,6 +14,11 @@ in
   options.homelab.idp = {
     enable = lib.mkEnableOption "idp";
 
+    provider = lib.mkOption {
+      type = lib.types.str;
+      description = "The IDP provider to use";
+    };
+
     port = lib.mkOption {
       type = lib.types.int;
       description = "Port for the IDP service";
@@ -29,6 +34,11 @@ in
       type = lib.types.str;
       default = domainLib.computeDomain { topLevel = "auth"; sub = homelab.domain.sub; base = homelab.domain.base; };
       description = "Base domain name for auth";
+    };
+
+    oidcConfigurationUrl = lib.mkOption {
+      type = lib.types.str;
+      description = "OIDC configuration URL for the IDP service";
     };
     
     users = lib.mkOption {

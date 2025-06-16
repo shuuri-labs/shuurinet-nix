@@ -35,9 +35,10 @@ in
         port = lib.mkDefault 9091;
         extraGroups = lib.mkDefault [ homelab.storage.accessGroups.downloads.name ];
 
-        domain.topLevel = lib.mkDefault "trans";
-        vpnConfinement.enable = lib.mkDefault true;
+        fqdn.topLevel = lib.mkDefault "trans";
       };
+
+      homelab.vpnConfinement.services.${service}.enable = lib.mkDefault true;
 
       services.${service} = {
         enable = true;
