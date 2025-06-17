@@ -19,7 +19,7 @@ in
       dataDir = lib.mkOption {
         type = lib.types.str;
         description = "The directory for paperless data";
-        default = "${homelab.storage.directories.documents}/paperless";
+        default = "${homelab.system.storage.directories.documents}/paperless";
       };
 
       consumeDir = lib.mkOption {
@@ -46,8 +46,8 @@ in
       systemd.services = dirUtils.createDirectoriesService {
         serviceName = service;
         directories = cfg.paths;
-        user = config.homelab.storage.mainStorageUserName;
-        group = config.homelab.storage.accessGroups.documents.name;
+        user = config.homelab.system.storage.mainStorageUserName;
+        group = config.homelab.system.storage.accessGroups.documents.name;
         before = [ "paperless.service" "paperless-scheduler.service" "paperless-task-queue.service" ];
       };
 
@@ -68,7 +68,7 @@ in
         };
       };
 
-      users.users.${cfg.user}.extraGroups = [ config.homelab.storage.accessGroups.documents.name ];
+      users.users.${cfg.user}.extraGroups = [ config.homelab.system.storage.accessGroups.documents.name ];
     })
   ];
 }

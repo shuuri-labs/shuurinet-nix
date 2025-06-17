@@ -11,7 +11,7 @@ in
   options.homelab.services.${service} = common.options // {
     downloadDir = lib.mkOption {
       type = lib.types.str;
-      default = homelab.storage.directories.downloads;
+      default = homelab.system.storage.directories.downloads;
       description = "Directory to store downloads in";
     };
 
@@ -34,12 +34,12 @@ in
     (lib.mkIf cfg.enable {
       homelab.services.${service} = {
         port = lib.mkDefault 9091;
-        extraGroups = lib.mkDefault [ homelab.storage.accessGroups.downloads.name ];
+        extraGroups = lib.mkDefault [ homelab.system.storage.accessGroups.downloads.name ];
 
         fqdn.topLevel = lib.mkDefault "trans";
       };
 
-      homelab.vpnConfinement.services.${service}.enable = lib.mkDefault true;
+      # homelab.lib.vpnConfinement.services.${service}.enable = lib.mkDefault true;
 
       services.${service} = {
         enable = true;
@@ -52,8 +52,8 @@ in
           download-dir = cfg.downloadDir;
           incomplete-dir-enabled = false;
 
-          rpc-bind-address = if   homelab.vpnConfinement.enable 
-                             then homelab.vpnConfinement.namespace.address 
+          rpc-bind-address = if   homelab.lib.vpnConfinement.enable 
+                             then homelab.lib.vpnConfinement.namespace.address 
                              else "127.0.0.1";
           rpc-port = cfg.port; 
 

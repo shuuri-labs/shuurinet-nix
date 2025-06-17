@@ -8,8 +8,7 @@ let
   mkHostPath = hostName: ./hosts/${hostName}/configuration.nix;
 
   commonModules = [
-    ./modules/post-deployment-bootstrap
-    ./modules/common
+    ./homelab
     inputs.vscode-server.nixosModules.default
     inputs.agenix.nixosModules.default
     inputs.home-manager.nixosModules.home-manager

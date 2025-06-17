@@ -3,7 +3,7 @@ let
   inherit (lib) mkOption mkEnableOption types mkIf mkMerge flatten optional hasSuffix listToAttrs;
   networkTypes = import ./types.nix { inherit lib; };
 
-  cfg = config.homelab.network;
+  cfg = config.homelab.system.network;
   
   primaryBridges = builtins.filter (bridge: bridge.isPrimary) cfg.bridges;
   primaryBridgeCount = builtins.length primaryBridges;
@@ -60,7 +60,7 @@ let
   });
 in
 {
-  options.homelab.network = {
+  options.homelab.system.network = {
     hostName = mkOption {
       type = types.str;
       description = "Hostname for this machine";
@@ -114,7 +114,7 @@ in
 
     (mkIf cfg.staticIpConfig.enable {
       # Mark bridge and member interfaces as unmanaged for NetworkManager
-      homelab.network.networkManager.unmanaged =  
+      networking.networkmanager.unmanaged =  
         (map (bridge: bridge.name) cfg.bridges)
         ++
         (flatten (map (bridge: bridge.memberInterfaces) cfg.bridges));

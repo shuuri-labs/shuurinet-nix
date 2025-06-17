@@ -5,12 +5,9 @@
 { config, pkgs, inputs, lib, ... }:
 
 let
-  # hostCfgVars         = config.host.vars;
   secretsAbsolutePath = "/home/ashley/shuurinet-nix/secrets"; 
 
   hostAddress = "151";
-  hostPrimaryIp = "${config.homelab.networks.subnets.bln-lan.ipv4}.${hostAddress}";
-
   deploymentMode = false;
 in
 {
@@ -19,81 +16,14 @@ in
     ./disk-config.nix
   ];
 
-  # -------------------------------- HOST VARIABLES --------------------------------
-  # See /options-host
-  
-  # host.vars = {
-  #   network = {
-  #     hostName = "missingno";
-  #     staticIpConfig.enable = true;
-  #     bridges = [
-  #       # Management
-  #       {
-  #         name = "br2";
-  #         # memberInterfaces = [ "enp2s0" ];  
-  #         subnet = config.homelab.networks.subnets.bln-mngmt;
-  #         identifier = hostAddress;
-  #         isPrimary = deploymentMode; 
-  #       }
-
-  #       # LAN
-  #       {
-  #         name = "br0";
-  #         memberInterfaces = [ "enp3s0" ];  
-  #         subnet = config.homelab.networks.subnets.bln-lan;
-  #         identifier = hostAddress;
-  #         isPrimary = !deploymentMode;
-  #       }
-
-  #       # Apps
-  #       {
-  #         name = "br1";
-  #       }
-  #     ];
-  #   };
-
-  #   storage = {
-  #     paths = {
-  #       bulkStorage = "/home/ashley";
-  #     };
-  #   };
-  # };
-
-  deployment.bootstrap.gitClone.host = config.homelab.network.hostName;
-
   # -------------------------------- SYSTEM CONFIGURATION --------------------------------
-
-  boot.kernelParams = [
-    "pcie_aspm=force"
-    "pcie_aspm.policy=powersave"
-  ];
-
-  # Use the Linux kernel from nixpkgs-unstable for latest i226 driver
-  boot.kernelPackages = inputs.nixpkgs-unstable.legacyPackages.${pkgs.system}.linuxPackages_latest;
 
   environment.systemPackages = with pkgs; [
     python3
   ];
 
-  time.timeZone = "Europe/Berlin";
-
-  # Bootloader
-  host.uefi-boot.enable = true;
-
   # users.users.ashley.hashedPasswordFile = config.age.secrets.castform-main-user-password.path;
   users.users.ashley.password = "temporary123";
-
-  swapDevices = [{
-    device = "/swapfile";
-    size = 16 * 1024; # 16GB
-  }];
-
-  # -------------------------------- HARDWARE CONFIGURATION --------------------------------
-
-  # Intel-specific & Power Saving
-  intel.graphics.enable = true;
-  intel.undervolt.enable = true;
-  powersave.enable = true; 
 
   # -------------------------------- SECRETS --------------------------------
 
@@ -116,20 +46,6 @@ in
     };
   };
 
-  common.secrets.sopsKeyPath = "${secretsAbsolutePath}/keys/sops-key.agekey.age";
-
-  # -------------------------------- DISK CONFIGURATION --------------------------------
-
-  diskCare = {
-    enableTrim = true;
-    disksToSmartMonitor = [
-      { device = "/dev/disk/by-id/nvme-nvme.1e4b-313132343035303730313731363531-5445414d20544d3846504b30303154-00000001"; } # boot drive
-    ];
-  };
-
-  # -------------------------------- MONITORING & DASHBOARD --------------------------------
-
-  # homepage-dashboard.enable = true; # configured in ./homepage-config.nix
 
   # -------------------------------- Virtualisation & VMs --------------------------------
 
@@ -192,60 +108,82 @@ in
 
   homelab = {
     enable = true;
-    
-    dashboard.glances.networkInterfaces = [ "enp3s0" ];
 
-    network = {
-      hostName = "missingno";
-      staticIpConfig.enable = true;
-      bridges = [
-        # Management
-        {
-          name = "br2";
-          # memberInterfaces = [ "enp2s0" ];  
-          subnet = config.homelab.networks.subnets.bln-mngmt;
-          identifier = hostAddress;
-          isPrimary = deploymentMode; 
-        }
+    common.secrets.sopsKeyPath = "${secretsAbsolutePath}/keys/sops-key.age";
 
-        # LAN
-        {
-          name = "br0";
-          memberInterfaces = [ "enp2s0" ];  
-          subnet = config.homelab.networks.subnets.bln-lan;
-          identifier = hostAddress;
-          isPrimary = !deploymentMode;
-        }
-
-        # Apps
-        {
-          name = "br1";
-        }
-      ];
-    };
-
-    dns = {
-      cloudflare.credentialsFile = config.age.secrets.cloudflare-credentials.path;
-      # globalTargetIp = "192.168.11.151";
-    };
-
-    reverseProxy = {
-      caddy.environmentFile = config.age.secrets.caddy-cloudflare.path;
-    };
-    
-    services = {
-      mealie.enable = true;
-    };
-
-    idp = {
-      enable = true;
-      kanidm = {
-        adminPasswordFile = config.age.secrets.kanidm-admin-password.path;
-        idmAdminPasswordFile = config.age.secrets.kanidm-admin-password.path;
+    system = {
+      uefi.boot.enable = true;
+      disk.care = {
+        trim.enable = true;
+        smartd.disks = [
+          { device = "/dev/disk/by-id/nvme-nvme.1e4b-313132343035303730313731363531-5445414d20544d3846504b30303154-00000001"; } # boot drive
+        ];
+      };
+      
+      network = {
+        hostName = "missingno";
+        staticIpConfig.enable = true;
+        bridges = [
+          # Management
+          {
+            name = "br2";
+            # memberInterfaces = [ "enp2s0" ];  
+            subnet = config.homelab.system.networks.subnets.bln-mngmt;
+            identifier = hostAddress;
+            isPrimary = deploymentMode; 
+          }
+          # LAN
+          {
+            name = "br0";
+            memberInterfaces = [ "enp2s0" ];  
+            subnet = config.homelab.system.networks.subnets.bln-lan;
+            identifier = hostAddress;
+            isPrimary = !deploymentMode;
+          }
+          # Apps
+          {
+            name = "br1";
+          }
+        ];
       };
     };
-  };
 
-  # -------------------------------- Services --------------------------------
-  
+    lib = {
+      intel = {
+        graphics.enable = true;
+        undervolt.enable = true;
+      };
+
+      powersave.enable = true;
+      
+      dns = {
+        cloudflare.credentialsFile = config.age.secrets.cloudflare-credentials.path;
+      };
+
+      reverseProxy = {
+        caddy.environmentFile = config.age.secrets.caddy-cloudflare.path;
+      };
+
+      idp = {
+        enable = true;
+        kanidm = {
+          adminPasswordFile = config.age.secrets.kanidm-admin-password.path;
+          idmAdminPasswordFile = config.age.secrets.kanidm-admin-password.path;
+        };
+      };
+
+      dashboard = {
+        glances.networkInterfaces = [ "enp2s0" ];
+      };
+    };
+
+    services = {
+      mealie.enable = true;
+      mediaServer.enable = true;
+      paperless = {
+        enable = true;
+        passwordFile = config.age.secrets.kanidm-admin-password.path;
+      };
+    };
+  };  
 }

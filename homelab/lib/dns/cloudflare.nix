@@ -1,7 +1,8 @@
 { config, lib, pkgs, ... }:
 let
-  cfg = config.homelab.dns.cloudflare;
-  dnsCfg = config.homelab.dns;
+  cfg = config.homelab.lib.dns.cloudflare;
+  dnsCfg = config.homelab.lib.dns;
+  
   inherit (lib) mkOption mkEnableOption types mkIf mkMerge escapeShellArg;
   
   # Script to manage a single DNS record
@@ -133,7 +134,7 @@ let
 
 in
 {
-  options.homelab.dns.cloudflare = {
+  options.homelab.lib.dns.cloudflare = {
     enable = mkEnableOption "Cloudflare DNS management";
     
     credentialsFile = mkOption {

@@ -1,9 +1,8 @@
 { config, lib, pkgs, ... }:
 let 
-  cfg = config.homelab.idp;
   homelab = config.homelab;
-
-  domainLib = import ../domain-management/compute.nix;
+  cfg = homelab.lib.idp;
+  
   idpTypes = import ./types.nix { inherit lib; };
 in
 {
@@ -11,7 +10,7 @@ in
     ./kanidm.nix
   ];
 
-  options.homelab.idp = {
+  options.homelab.lib.idp = {
     enable = lib.mkEnableOption "idp";
 
     provider = lib.mkOption {
@@ -32,7 +31,7 @@ in
 
     domain = lib.mkOption {
       type = lib.types.str;
-      default = domainLib.computeFQDN { topLevel = "auth"; sub = homelab.domain.sub; base = homelab.domain.base; };
+      default = "auth.${homelab.domain.base}";
       description = "Base domain name for auth";
     };
     
@@ -64,7 +63,7 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    homelab.domainManagement.domains.auth = {
+    homelab.lib.domainManagement.domains.auth = {
       enable = true;
 
       host = {

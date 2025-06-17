@@ -15,7 +15,7 @@ in
     (lib.mkIf cfg.enable {
       homelab.services.${service} = {
         port = lib.mkDefault 6767;
-        group = lib.mkDefault homelab.storage.accessGroups.media.name;
+        group = lib.mkDefault homelab.system.storage.accessGroups.media.name;
       };
 
       services.${service} = {

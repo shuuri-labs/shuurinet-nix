@@ -1,8 +1,8 @@
 { config, lib, pkgs, ... }:
 let
-  cfg = config.homelab.idp;
-  cfgKanidm = cfg.kanidm;
   homelab = config.homelab;
+  cfg = homelab.lib.idp;
+  cfgKanidm = cfg.kanidm;
 
   certs = (import ../utils/mkInternalSslCerts.nix { inherit pkgs lib; })
     .mkCertFor idp cfg.domain;
@@ -23,7 +23,7 @@ let
   ) enabledServices;
 in
 {
-  options.homelab.idp.${idp} = {
+  options.homelab.lib.idp.${idp} = {
     adminPasswordFile = lib.mkOption {
       type = lib.types.str;
       description = "Path to the file containing the admin password";
@@ -42,7 +42,7 @@ in
   };
   
   config = lib.mkIf cfg.enable {
-    homelab = {
+    homelab.lib = {
       idp = {
         port = 8443;
         provider = idp;

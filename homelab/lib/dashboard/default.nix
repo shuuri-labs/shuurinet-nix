@@ -1,7 +1,7 @@
 { config, lib, pkgs, ... }:
 let
-  cfg = config.homelab.dashboard;
   homelab = config.homelab;
+  cfg = homelab.lib.dashboard;
   dashboardService = "homepage-dashboard";
 
   domain = "${config.networking.hostName}.${homelab.domain.base}";
@@ -21,7 +21,7 @@ let
     }) cfg.glances.networkInterfaces));
 in
 {
-  options.homelab.dashboard = {
+  options.homelab.lib.dashboard = {
     enable = lib.mkEnableOption "Enable dashboard";
 
     port = lib.mkOption {
@@ -164,7 +164,7 @@ in
       ];
     };
 
-    homelab.domainManagement.domains.${config.networking.hostName} = {
+    homelab.lib.domainManagement.domains.${config.networking.hostName} = {
       enable = true;
 
       host = {

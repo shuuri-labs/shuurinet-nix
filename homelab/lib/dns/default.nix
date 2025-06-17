@@ -1,6 +1,6 @@
 { config, lib, pkgs, ... }:
 let
-  cfg = config.homelab.dns;
+  cfg = config.homelab.lib.dns;
   inherit (lib) mkOption mkEnableOption types mkIf mkMerge;
   inherit (import ./types.nix { inherit lib; }) dnsRecordType;
 in
@@ -9,7 +9,7 @@ in
     ./cloudflare.nix
   ];
 
-  options.homelab.dns = {
+  options.homelab.lib.dns = {
     enable = mkEnableOption "DNS management";
     
     provider = mkOption {
@@ -45,7 +45,7 @@ in
     # The actual implementation is delegated to provider-specific modules
     assertions = [
       {
-        assertion = cfg.provider == "cloudflare" -> config.homelab.dns.cloudflare.enable;
+        assertion = cfg.provider == "cloudflare" -> cfg.cloudflare.enable;
         message = "Cloudflare DNS provider is selected but not configured";
       }
     ];

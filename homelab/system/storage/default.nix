@@ -3,10 +3,10 @@
 with lib;
 
 let
-  cfg = config.homelab.storage;
+  cfg = config.homelab.system.storage;
 in
 {
-  options.homelab.storage = {
+  options.homelab.system.storage = {
     paths = {
       bulkStorage = lib.mkOption {
         type = lib.types.str;
@@ -80,7 +80,7 @@ in
   };
 
   config = {
-     homelab.storage.accessGroups = {
+     homelab.system.storage.accessGroups = {
       media = {
         name = "mediaDirAccess";
         gid = 501;

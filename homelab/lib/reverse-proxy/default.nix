@@ -2,11 +2,11 @@
 
 with lib;
 let
-  cfg = config.homelab.reverseProxy;
+  cfg = config.homelab.lib.reverseProxy;
   inherit (import ./types.nix { inherit lib; }) hostType;
 in
 {
-  options.homelab.reverseProxy = {
+  options.homelab.lib.reverseProxy = {
     enable = mkEnableOption "Enable reverse proxy";
 
     hosts = mkOption {
@@ -36,7 +36,7 @@ in
   config = mkIf cfg.enable {
     networking.firewall.allowedTCPPorts = [ 80 443 ];
     
-    homelab.reverseProxy.enabledProxyHosts = lib.filterAttrs (name: host: 
+    homelab.lib.reverseProxy.enabledProxyHosts = lib.filterAttrs (name: host: 
       host.enable
     ) cfg.hosts;
   };

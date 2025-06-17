@@ -126,29 +126,31 @@ in
     
     # Create domain configuration using the unified domain-management module
     (lib.mkIf cfg.enable {
-      homelab.domainManagement.domains.${service} = {
-        host = {
-          domain = cfg.fqdn.final;
-          backend = {
-            address = cfg.address;
-            port = cfg.port;
+      homelab.lib = { 
+        domainManagement.domains.${service} = {
+          host = {
+            domain = cfg.fqdn.final;
+            backend = {
+              address = cfg.address;
+              port = cfg.port;
+            };
+          };
+          dns = {
+            comment = "Auto-managed by NixOS homelab for ${service}";
           };
         };
-        dns = {
-          comment = "Auto-managed by NixOS homelab for ${service}";
+
+        idp.services.inputs.${service} = {
+          name = service;
+          originLanding = "https://${cfg.fqdn.final}";
         };
-      };
 
-      homelab.idp.services.inputs.${service} = {
-        name = service;
-        originLanding = "https://${cfg.fqdn.final}";
-      };
+        vpnConfinement.services.${service} = {
+          name = service;
 
-      homelab.vpnConfinement.services.${service} = {
-        name = service;
-
-        forwardPorts = {
-          tcp = [ cfg.port ];
+          forwardPorts = {
+            tcp = [ cfg.port ];
+          };
         };
       };
     })

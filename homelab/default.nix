@@ -13,15 +13,7 @@ in
         type = lib.types.bool;
         default = true;
         description = "Whether the system is physical or a VM";
-      };
-
-      timeZone = lib.mkOption {
-        default = "Europe/Berlin";
-        type = lib.types.str;
-        description = ''
-          Time zone to be used for the homelab services
-        '';
-      };
+      }; # TODO: implement
     };
 
     domain = {
@@ -40,42 +32,30 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    # boot.kernelParams = lib.mkIf cfg.systewm.isPhysical [
-    #   "pcie_aspm=force"
-    #   "pcie_aspm.policy=powersave"
-    # ]; 
-
-    # time.timeZone = cfg.system.timeZone;
-
-    # swapDevices = [{
-    #   device = "/swapfile";
-    #   size = 16 * 1024; # 16GB
-    # }];
-
-    # homelab.reverseProxy.caddy.environmentFile = "/etc/environment";
-
     homelab = {
-      dashboard = {
-        enable = true;
-        glances.networkInterfaces = [ "enp3s0" ];
-      };
-
-      domainManagement = {
-        enable = true;
-        # Automatically enables dns and reverseProxy modules
-      };
-
-      dns = {
-        globalTargetIp = cfg.network.primaryBridge.address;
-
-        cloudflare = {
+      lib = {
+        dashboard = {
           enable = true;
+        };
+
+        domainManagement = {
+          enable = true;
+        };
+
+        dns = {
+          globalTargetIp = cfg.system.network.primaryBridge.address;
+
+          cloudflare = {
+            enable = true;
+          };
         };
       };
     };
   };
 
   imports = [
+    ./system
+    ./common
     ./lib
     ./services
   ];

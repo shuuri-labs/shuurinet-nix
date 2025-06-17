@@ -16,13 +16,13 @@ in
 
     group = mkOption {
       type = types.str;
-      default = homelab.storage.accessGroups.media.name;
+      default = homelab.system.storage.accessGroups.media.name;
       description = "The group name for media directories.";
     };
 
     path = mkOption {
       type = types.str;
-      default = homelab.storage.directories.media;
+      default = homelab.system.storage.directories.media;
       description = "Base directory for media files.";
     };
 
@@ -48,7 +48,7 @@ in
 
     hostMainStorageUser = mkOption {
       type = types.str;
-      default = homelab.storage.mainStorageUserName;
+      default = homelab.system.storage.mainStorageUserName;
       description = "The main user for the host.";
     };
   };

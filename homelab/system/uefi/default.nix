@@ -2,10 +2,10 @@
 
 let
   inherit (lib) mkOption types;
-  cfg = config.homelab.uefi.boot;
+  cfg = config.homelab.system.uefi.boot;
 in
 {
-  options.homelab.uefi.boot = {
+  options.homelab.system.uefi.boot = {
     enable = mkOption {
       type = types.bool;
       default = true;

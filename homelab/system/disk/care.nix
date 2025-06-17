@@ -1,10 +1,10 @@
 { config, lib, pkgs, ... }:
 
 let
-  cfg = config.homelab.lib.diskCare;
+  cfg = config.homelab.system.disk.care;
 in
 {
-  options.homelab.lib.diskCare = {
+  options.homelab.system.disk.care = {
     trim.enable = lib.mkOption {
       type = lib.types.bool;
       default = true;

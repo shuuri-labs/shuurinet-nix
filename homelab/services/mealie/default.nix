@@ -4,7 +4,7 @@ let
 
   homelab = config.homelab;
   cfg = homelab.services.${service};
-  oidc = homelab.idp.services.outputs.${service}.oidc;
+  oidc = homelab.lib.idp.services.outputs.${service}.oidc;
 
   common = import ../common.nix { inherit lib config homelab service; };
 in
@@ -15,16 +15,20 @@ in
     common.config
     
     (lib.mkIf cfg.enable {
-      homelab.services.${service} = {
-        port = lib.mkDefault 9001;
-      };
+      homelab = { 
+        services.${service} = {
+          port = lib.mkDefault 9001;
+        };
 
-      homelab.idp.services.inputs.${service} = {
-        enable = true;
-        originUrls = [
-          "https://${cfg.fqdn.final}/login"
-          "https://${cfg.fqdn.final}/login?direct=1"
-        ];
+        lib = {
+          idp.services.inputs.${service} = {
+            enable = true;
+            originUrls = [
+              "https://${cfg.fqdn.final}/login"
+              "https://${cfg.fqdn.final}/login?direct=1"
+            ];
+          };
+        };
       };
 
       services.${service} = {
@@ -39,7 +43,7 @@ in
           OIDC_CONFIGURATION_URL = oidc.configurationUrl;
           OIDC_CLIENT_ID = oidc.clientId;
           OIDC_CLIENT_SECRET = "";
-          OIDC_PROVIDER_NAME = homelab.idp.provider;
+          OIDC_PROVIDER_NAME = homelab.lib.idp.provider;
           OIDC_SCOPES = lib.concatStringsSep " " oidc.scopes;
         };
       };

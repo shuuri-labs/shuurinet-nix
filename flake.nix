@@ -102,15 +102,15 @@
           missingno = mkNixosHost "missingno" [
             # ./modules/monitoring
             # ./modules/homepage-dashboard
-            ./modules/hdd-spindown
-            ./modules/intel
-            ./modules/power-saving
-            ./modules/disk-care
-            ./modules/iperf
-            ./modules/uefi-boot
-            ./modules/openwrt/configs/auto-deploy.nix
-            ./modules/netbird/router
-            ./homelab
+            # ./modules/hdd-spindown
+            # ./modules/intel
+            # ./modules/power-saving
+            # ./modules/disk-care
+            # ./modules/iperf
+            # ./modules/uefi-boot
+            # ./modules/openwrt/configs/auto-deploy.nix
+            # ./modules/netbird/router
+            # ./homelab
             inputs.vpn-confinement.nixosModules.default
             inputs.virtualisation.nixosModules.default
           ] "x86_64-linux";

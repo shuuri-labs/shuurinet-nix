@@ -1,12 +1,13 @@
 { config, lib, pkgs, ... }:
 let
-  cfg = config.homelab.domainManagement;
+  homelab = config.homelab;
+  cfg = homelab.lib.domainManagement;
   
   inherit (lib) mkOption mkEnableOption types mkIf mkMerge mapAttrs' nameValuePair filterAttrs;
   inherit (import ./types.nix { inherit lib; }) domainType;
 in
 {
-  options.homelab.domainManagement = {
+  options.homelab.lib.domainManagement = {
     enable = mkEnableOption "Unified domain management (DNS + Reverse Proxy)";
     
     domains = mkOption {
@@ -40,17 +41,17 @@ in
 
   config = mkIf cfg.enable {
     # Enable required modules
-    homelab.dns.enable = mkIf (builtins.any (domain: domain.enable && domain.dns.enable) (builtins.attrValues cfg.domains)) true;
-    homelab.reverseProxy.enable = mkIf (builtins.any (domain: domain.enable && domain.host.enable) (builtins.attrValues cfg.domains)) true;
+    homelab.lib.dns.enable = mkIf (builtins.any (domain: domain.enable && domain.dns.enable) (builtins.attrValues cfg.domains)) true;
+    homelab.lib.reverseProxy.enable = mkIf (builtins.any (domain: domain.enable && domain.host.enable) (builtins.attrValues cfg.domains)) true;
 
     # Generate DNS records from domains
-    homelab.dns.records = mapAttrs' (domainName: domain: 
+    homelab.lib.dns.records = mapAttrs' (domainName: domain: 
       nameValuePair domainName {
         name = domain.host.domain;
         type = domain.dns.type;
         content = 
           if domain.dns.content != null then domain.dns.content
-          else if config.homelab.dns.globalTargetIp != null then config.homelab.dns.globalTargetIp
+          else if homelab.lib.dns.globalTargetIp != null then homelab.lib.dns.globalTargetIp
           else throw "No targetIp specified for domain '${domainName}' and no globalTargetIp configured";
         proxied = domain.dns.proxied;
         ttl = domain.dns.ttl;
@@ -59,7 +60,7 @@ in
     ) (filterAttrs (name: domain: domain.enable && domain.dns.enable) cfg.domains);
 
     # Generate reverse proxy hosts from domains
-    homelab.reverseProxy.hosts = mapAttrs' (domainName: domain:
+    homelab.lib.reverseProxy.hosts = mapAttrs' (domainName: domain:
       nameValuePair domainName {
         enable = domain.host.enable;
         domain = domain.host.domain;

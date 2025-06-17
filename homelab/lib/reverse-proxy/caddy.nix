@@ -2,7 +2,7 @@
 
 with lib;
 let
-  cfg = config.homelab.reverseProxy;
+  cfg = config.homelab.lib.reverseProxy;
   
   # Create virtual hosts for all enabled proxy hosts
   virtualHosts = lib.mapAttrs' (hostName: hostConfig: {
@@ -21,7 +21,7 @@ let
   });
 in
 {
-  options.homelab.reverseProxy.caddy = {
+  options.homelab.lib.reverseProxy.caddy = {
     environmentFile = mkOption {
       type = types.str;
       description = "Path to environment file for Caddy";

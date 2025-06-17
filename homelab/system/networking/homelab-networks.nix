@@ -5,7 +5,7 @@ let
   networkTypes = import ./types.nix { inherit lib; };
 in
 {
-  options.homelab.networks = {
+  options.homelab.system.networks = {
     subnets = mkOption {
       type = types.attrsOf networkTypes.subnet;
       default = {}; 
@@ -14,7 +14,7 @@ in
   };
 
   config = {
-    homelab.networks.subnets = {
+    homelab.system.networks.subnets = {
       "bln-lan" = {
         ipv4 = "192.168.11";
         ipv6 = "fd8f:2e0e:4eed";

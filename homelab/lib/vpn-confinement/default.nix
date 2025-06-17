@@ -5,7 +5,7 @@ let
   
   vpnConfinementTypes = import ./types.nix { inherit lib; };
   
-  cfg = config.homelab.vpnConfinement;
+  cfg = config.homelab.lib.vpnConfinement;
 
   # Check if any service has VPN confinement enabled
   anyServiceEnabled = lib.any (serviceConfig: serviceConfig.enable) (lib.attrValues cfg.services);
@@ -48,7 +48,7 @@ let
   }) services;
 in
 {
-  options.homelab.vpnConfinement = {
+  options.homelab.lib.vpnConfinement = {
     enable = lib.mkEnableOption "Enable VPN confinement service";
 
     namespace = { 

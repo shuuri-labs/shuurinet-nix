@@ -1,6 +1,6 @@
 { config, lib, ... }:
 let
-  cfg = config.monitoring;
+  cfg = config.homelab.lib.monitoring;
 in
 {
   imports = [
@@ -10,7 +10,7 @@ in
     ./uptime-kuma.nix
   ];
 
-  options.monitoring = {
+  options.homelab.lib.monitoring = {
     enable = lib.mkOption {
       type = lib.types.bool;
       default = true;
@@ -19,9 +19,9 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    monitoring.prometheus.enable = true;
-    monitoring.grafana.enable = true;
-    monitoring.loki.enable = true;
-    # monitoring.uptime-kuma.enable = true;
+    homelab.lib.monitoring.prometheus.enable = true;
+    homelab.lib.monitoring.grafana.enable = true;
+    homelab.lib.monitoring.loki.enable = true;
+    # homelab.monitoring.uptime-kuma.enable = true;
   };
 }
