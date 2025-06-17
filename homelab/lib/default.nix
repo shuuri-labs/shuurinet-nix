@@ -14,6 +14,8 @@
     ./power-saving
     ./remote-access
     ./smb
+    ./uefi
+    ./deployment
     ./zfs
   ];
 }

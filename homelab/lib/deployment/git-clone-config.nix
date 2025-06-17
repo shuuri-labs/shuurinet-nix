@@ -49,7 +49,7 @@ let
 in
 {
   options.homelab.lib.deployment.bootstrap.git = {
-    enabled = lib.mkOption {
+    enable = lib.mkOption {
       type = lib.types.bool;
       default = true;
       description = "Enable git clone of nix config";
@@ -75,6 +75,7 @@ in
     
     host = lib.mkOption {
       type = lib.types.str;
+      default = config.networking.hostName;
       description = "Host name";
     };
 
@@ -85,7 +86,7 @@ in
     };
   };
 
-  config = lib.mkIf cfg.enabled {
+  config = lib.mkIf cfg.enable {
     systemd.services.git-clone-config = {
       description = "Git clone nix config";
       wantedBy = [ "multi-user.target" ];

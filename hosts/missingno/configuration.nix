@@ -112,7 +112,6 @@ in
     common.secrets.sopsKeyPath = "${secretsAbsolutePath}/keys/sops-key.age";
 
     system = {
-      uefi.boot.enable = true;
       disk.care = {
         trim.enable = true;
         smartd.disks = [
@@ -149,12 +148,14 @@ in
     };
 
     lib = {
+      uefi.boot.enable = true;
+      powersave.enable = true;
+      deployment.bootstrap.git.enable = true;
+
       intel = {
         graphics.enable = true;
         undervolt.enable = true;
       };
-
-      powersave.enable = true;
       
       dns = {
         cloudflare.credentialsFile = config.age.secrets.cloudflare-credentials.path;

@@ -4,6 +4,5 @@
     ./disk
     ./networking
     ./storage
-    ./uefi
   ];
 }

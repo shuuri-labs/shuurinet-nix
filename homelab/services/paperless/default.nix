@@ -34,9 +34,39 @@ in
     common.config
 
     (lib.mkIf cfg.enable {
-      homelab.services.${service} = {
-        port = lib.mkDefault 28981;
-        fqdn.topLevel = lib.mkDefault "paper";
+
+      age.secrets.paperless-ngx-client-secret = {
+        file = "/home/ashley/shuurinet-nix/secrets/kanidm-netbird-client-secret.age";
+        owner = "kanidm";
+        group = "kanidm";
+      };
+
+      homelab = {
+        services.${service} = {
+          port = lib.mkDefault 28981;
+          fqdn.topLevel = lib.mkDefault "paper";
+        };
+
+        lib = {
+          idp.services.inputs.${service} = {
+            enable = true;
+            originUrls = [
+              "https://${cfg.fqdn.final}/accounts/oidc/${homelab.lib.idp.provider}/login/callback/"
+            ];
+            public = false;
+            extraAttributes = {
+              allowInsecureClientDisablePkce = true;
+              basicSecretFile = config.age.secrets.paperless-ngx-client-secret.path;
+            };
+            oidc.scopes = [
+              "openid"
+              "profile"
+              "email"
+              "groups"
+              "offline_access"
+            ];
+          };
+        };
       };
 
       environment.systemPackages = with pkgs; [
@@ -65,6 +95,23 @@ in
           PAPERLESS_CONSUMER_IGNORE_PATTERN = [
             ".DS_STORE/*"
           ];
+          PAPERLESS_URL = "https://${cfg.fqdn.final}";
+          PAPERLESS_SOCIALACCOUNT_PROVIDERS = builtins.toJSON {
+            "openid_connect" = {
+              APPS = [
+                { 
+                  provider_id = homelab.lib.idp.provider; 
+                  name = homelab.lib.idp.provider; 
+                  client_id = service; 
+                  secret = "STKCu9aeeZ/nAlA0UvYHPmAbFefUw82KMQ/sw5nukfk="; 
+                  settings = { 
+                    server_url = "https://${homelab.lib.idp.domain}/oauth2/openid/${service}"; 
+                    }; 
+                }
+              ];
+            };
+          };
+          PAPERLESS_APPS = "allauth.socialaccount.providers.openid_connect";
         };
       };
 
