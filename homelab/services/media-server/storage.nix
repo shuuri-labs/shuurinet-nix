@@ -3,8 +3,8 @@
 with lib;
 
 let
-  cfg = config.homelab.services.mediaServer.storage;
   homelab = config.homelab;
+  cfg = homelab.services.mediaServer.storage;
 in
 {
   options.homelab.services.mediaServer.storage = {

@@ -1,8 +1,10 @@
 { config, lib, pkgs, ... }:
 let
   service = "mealie";
-  cfg = config.homelab.services.${service};
+
   homelab = config.homelab;
+  cfg = homelab.services.${service};
+  oidc = homelab.idp.services.outputs.${service}.oidc;
 
   common = import ../common.nix { inherit lib config homelab service; };
 in
@@ -17,7 +19,7 @@ in
         port = lib.mkDefault 9001;
       };
 
-      homelab.idp.services.${service} = {
+      homelab.idp.services.inputs.${service} = {
         enable = true;
         originUrls = [
           "https://${cfg.fqdn.final}/login"
@@ -34,10 +36,11 @@ in
           OIDC_SIGNUP_ENABLED = "True";
           OIDC_AUTO_REDIRECT = "True";
           # TODO: need to set config url on service type somehow
-          OIDC_CONFIGURATION_URL = "https://${config.homelab.idp.domain}/oauth2/openid/${service}/.well-known/openid-configuration";
-          OIDC_CLIENT_ID = config.homelab.idp.services.${service}.oidc.clientId;
+          OIDC_CONFIGURATION_URL = oidc.configurationUrl;
+          OIDC_CLIENT_ID = oidc.clientId;
           OIDC_CLIENT_SECRET = "";
-          OIDC_PROVIDER_NAME = config.homelab.idp.provider;
+          OIDC_PROVIDER_NAME = homelab.idp.provider;
+          OIDC_SCOPES = lib.concatStringsSep " " oidc.scopes;
         };
       };
     })

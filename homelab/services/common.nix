@@ -1,9 +1,9 @@
 # service-options.nix
 { lib, config, homelab, service }:
 let
-  domainLib = import ../lib/domain-management/compute.nix;
+  cfg = homelab.services.${service};
 
-  cfg = config.homelab.services.${service};
+  domainLib = import ../lib/domain-management/compute.nix;
 in
 {
   options = {
@@ -96,13 +96,13 @@ in
 
       href = lib.mkOption {
         type    = lib.types.str;
-        default = lib.mkDefault "https://${config.homelab.services.${service}.domain.final}";
+        default = lib.mkDefault "https://${homelab.services.${service}.fqdn.final}";
         description = "URL for the service on the dashboard.";
       };
 
       siteMonitor = lib.mkOption {
         type    = lib.types.str;
-        default = lib.mkDefault "https://${config.homelab.services.${service}.domain.final}:${toString config.homelab.services.${service}.port}";
+        default = lib.mkDefault "https://${homelab.services.${service}.fqdn.final}:${toString homelab.services.${service}.port}";
         description = "URL to monitor the service on the dashboard.";
       };
 
@@ -117,7 +117,7 @@ in
   config = lib.mkMerge [
     {
       # Set the computed domain value
-      homelab.services.${service}.fqdn.final = domainLib.computeDomain {
+      homelab.services.${service}.fqdn.final = domainLib.computeFQDN {
         topLevel = cfg.fqdn.topLevel;
         sub = cfg.fqdn.sub;
         base = cfg.fqdn.base;
@@ -139,7 +139,7 @@ in
         };
       };
 
-      homelab.idp.services.${service} = {
+      homelab.idp.services.inputs.${service} = {
         name = service;
         originLanding = "https://${cfg.fqdn.final}";
       };

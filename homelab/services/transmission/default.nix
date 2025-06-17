@@ -1,8 +1,9 @@
 { config, lib, pkgs, ... }:
 let
   service = "transmission";
-  cfg = config.homelab.services.${service};
+
   homelab = config.homelab;
+  cfg = homelab.services.${service};
 
   common = import ../common.nix { inherit lib config homelab service; };
 in

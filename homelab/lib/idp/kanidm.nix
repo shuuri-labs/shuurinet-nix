@@ -4,13 +4,23 @@ let
   cfgKanidm = cfg.kanidm;
   homelab = config.homelab;
 
-  idp = "kanidm";
-
   certs = (import ../utils/mkInternalSslCerts.nix { inherit pkgs lib; })
     .mkCertFor idp cfg.domain;
 
+  idp = "kanidm";
+
   enabledUsers = lib.filterAttrs (userName: userConfig: userConfig.enable) cfg.users;
-  enabledServices = lib.filterAttrs (serviceName: serviceConfig: serviceConfig.enable) cfg.services;
+  enabledServices = lib.filterAttrs (serviceName: serviceConfig: serviceConfig.enable) cfg.services.inputs;
+
+  # OIDC configuration URL is IDP implementation-specific, so we need to compute and set it here
+  # For now I can't come up with a better solution than 2 attribute sets - inputs and outputs. Infinite recursion otherwise
+  completeServices = lib.mapAttrs (serviceName: serviceConfig:
+    serviceConfig // {
+      oidc = serviceConfig.oidc // {
+        configurationUrl = "https://${cfg.domain}/oauth2/openid/${serviceName}/.well-known/openid-configuration";
+      };
+    }
+  ) enabledServices;
 in
 {
   options.homelab.idp.${idp} = {
@@ -36,6 +46,7 @@ in
       idp = {
         port = 8443;
         provider = idp;
+        services.outputs = completeServices;
       };
 
       domainManagement.domains.auth = {
@@ -81,7 +92,7 @@ in
         adminPasswordFile = cfgKanidm.adminPasswordFile;
         idmAdminPasswordFile = cfgKanidm.idmAdminPasswordFile;
 
-        persons = lib.mapAttrs (name: config: {
+        persons = lib.mapAttrs (name: config: { 
           displayName = config.name;
           present = config.enable;
           mailAddresses = [ config.email ];
@@ -92,7 +103,7 @@ in
             present = true;
             members = serviceConfig.members;
           }
-        ) enabledServices;
+        ) completeServices;
 
         systems.oauth2 = lib.mapAttrs' (serviceName: serviceConfig: {
           name = serviceName;
@@ -109,7 +120,7 @@ in
               "${serviceName}-access" = serviceConfig.oidc.scopes;
             };
           } // serviceConfig.extraAttributes;
-        }) enabledServices;
+        }) completeServices;
       };
     };
   };
@@ -121,7 +132,7 @@ in
 # set the instance name that shows up in the UI. can't see a nix option for this (currently, 12/05/2025):
 # sudo kanidm system domain set-displayname --url https://127.0.0.1:8443  "shuurinet London"
 
-# users (even those defined in provision.persons) need to be enrolled manually:
+# users (even those defined in provision.persons, but besides the admin user) need to be enrolled manually:
 # sudo kanidmd recover-account <username> --url https://127.0.0.1:8443
 # sudo kanidm login -D <username> --url https://127.0.0.1:8443
 

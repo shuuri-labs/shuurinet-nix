@@ -32,13 +32,8 @@ in
 
     domain = lib.mkOption {
       type = lib.types.str;
-      default = domainLib.computeDomain { topLevel = "auth"; sub = homelab.domain.sub; base = homelab.domain.base; };
+      default = domainLib.computeFQDN { topLevel = "auth"; sub = homelab.domain.sub; base = homelab.domain.base; };
       description = "Base domain name for auth";
-    };
-
-    oidcConfigurationUrl = lib.mkOption {
-      type = lib.types.str;
-      description = "OIDC configuration URL for the IDP service";
     };
     
     users = lib.mkOption {
@@ -53,10 +48,18 @@ in
       };
     };
 
-    services = lib.mkOption {
-      type = lib.types.attrsOf idpTypes.serviceType;
-      description = "Services to add to the IDP service";
-      default = {};
+    services = {
+      inputs = lib.mkOption {
+        type = lib.types.attrsOf idpTypes.serviceType;
+        description = "Services to add to the IDP service (inputs)";
+        default = {};
+      };
+
+      outputs = lib.mkOption {
+        type = lib.types.attrsOf idpTypes.serviceType;
+        description = "Computed complete services with oidc defaults set by the IDP implementation";
+        default = {};
+      };
     };
   };
 
