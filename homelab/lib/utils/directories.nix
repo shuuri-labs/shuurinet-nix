@@ -17,8 +17,8 @@ rec {
     # Create shell commands for each directory
     createDirCommands = map (dir: ''
       ${pkgs.coreutils}/bin/mkdir -p "${dir}"
-      ${pkgs.coreutils}/bin/chown ${user}:${group} "${dir}"
-      ${pkgs.coreutils}/bin/chmod ${permissions} "${dir}"
+      ${pkgs.coreutils}/bin/chown -R ${user}:${group} "${dir}"
+      ${pkgs.coreutils}/bin/chmod -R ${permissions} "${dir}"
     '') dirList;
   in
   pkgs.writeShellScript "create-directories" ''

@@ -176,6 +176,10 @@ in
       dashboard = {
         glances.networkInterfaces = [ "enp2s0" ];
       };
+
+      monitoring = {
+        enable = true;
+      };
     };
 
     services = {

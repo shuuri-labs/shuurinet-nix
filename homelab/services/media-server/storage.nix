@@ -4,7 +4,9 @@ with lib;
 
 let
   homelab = config.homelab;
-  cfg = homelab.services.mediaServer.storage;
+  cfg     = config.homelab.services.mediaServer.storage;
+
+  directoriesUtils = import ../../lib/utils/directories.nix { inherit lib pkgs; };
 in
 {
   options.homelab.services.mediaServer.storage = {
@@ -54,25 +56,11 @@ in
   };
 
   config = mkIf cfg.enable {
-    systemd.services.media-server-permissions = {
-      description = "Set media server directory permissions";
-      wantedBy = [ "multi-user.target" ];
-      after = [ "systemd-users-groups.service" ];
-      serviceConfig = {
-        Type = "oneshot";
-        RemainAfterExit = true;
-        ExecStart = pkgs.writeShellScript "set-media-permissions" ''
-          # Create directories if they don't exist
-          ${builtins.concatStringsSep "\n" (lib.mapAttrsToList 
-            (name: path: ''
-              ${pkgs.coreutils}/bin/mkdir -p ${path}
-              ${pkgs.coreutils}/bin/chown -R ${cfg.hostMainStorageUser}:${cfg.group} ${path}
-              ${pkgs.coreutils}/bin/chmod -R u=rwX,g=rwX,o=rX ${path}
-            '')
-            cfg.directories
-          )}
-        '';
-      };
+    systemd.services = directoriesUtils.createDirectoriesService {
+      serviceName = "media-server";
+      directories = cfg.directories;
+      user = cfg.hostMainStorageUser;
+      group = cfg.group;
     };
   };
 }
