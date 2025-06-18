@@ -112,21 +112,23 @@ in
         description = "Widget to use for the service on the dashboard.";
       };
     };
+
+    idp = {
+      enable = lib.mkEnableOption (builtins.concatStringsSep "" [
+        "Enable " service " IDP"
+      ]);
+    };
   };
 
-  config = lib.mkMerge [
-    {
-      # Set the computed domain value
-      homelab.services.${service}.fqdn.final = domainLib.computeFQDN {
+  config = lib.mkIf cfg.enable {
+    homelab = {
+      services.${service}.fqdn.final = domainLib.computeFQDN {
         topLevel = cfg.fqdn.topLevel;
         sub = cfg.fqdn.sub;
         base = cfg.fqdn.base;
       };
-    }
-    
-    # Create domain configuration using the unified domain-management module
-    (lib.mkIf cfg.enable {
-      homelab.lib = { 
+
+      lib = { 
         domainManagement.domains.${service} = {
           host = {
             domain = cfg.fqdn.final;
@@ -135,6 +137,7 @@ in
               port = cfg.port;
             };
           };
+
           dns = {
             comment = "Auto-managed by NixOS homelab for ${service}";
           };
@@ -153,6 +156,6 @@ in
           };
         };
       };
-    })
-  ];
+    };
+  };
 }

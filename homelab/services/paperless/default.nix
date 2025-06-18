@@ -3,10 +3,12 @@ let
   service = "paperless";
 
   homelab = config.homelab;
-  cfg = homelab.services.${service};
+  cfg     = config.homelab.services.${service};
+  storage = config.homelab.system.storage;
 
-  common = import ../common.nix { inherit lib config homelab service; };
+  common   = import ../common.nix { inherit lib config homelab service; };
   dirUtils = import ../../lib/utils/directories.nix { inherit lib pkgs; };
+  idp      = import ./idp.nix { inherit config lib pkgs service; };
 in
 {
   options.homelab.services.${service} = common.options // {
@@ -32,40 +34,14 @@ in
 
   config = lib.mkMerge [
     common.config
-
+    idp.config
+    
     (lib.mkIf cfg.enable {
-
-      age.secrets.paperless-ngx-client-secret = {
-        file = "/home/ashley/shuurinet-nix/secrets/kanidm-netbird-client-secret.age";
-        owner = "kanidm";
-        group = "kanidm";
-      };
-
       homelab = {
         services.${service} = {
           port = lib.mkDefault 28981;
           fqdn.topLevel = lib.mkDefault "paper";
-        };
-
-        lib = {
-          idp.services.inputs.${service} = {
-            enable = true;
-            originUrls = [
-              "https://${cfg.fqdn.final}/accounts/oidc/${homelab.lib.idp.provider}/login/callback/"
-            ];
-            public = false;
-            extraAttributes = {
-              allowInsecureClientDisablePkce = true;
-              basicSecretFile = config.age.secrets.paperless-ngx-client-secret.path;
-            };
-            oidc.scopes = [
-              "openid"
-              "profile"
-              "email"
-              "groups"
-              "offline_access"
-            ];
-          };
+          idp.enable = lib.mkDefault true;
         };
       };
 
@@ -76,8 +52,8 @@ in
       systemd.services = dirUtils.createDirectoriesService {
         serviceName = service;
         directories = cfg.paths;
-        user = config.homelab.system.storage.mainStorageUserName;
-        group = config.homelab.system.storage.accessGroups.documents.name;
+        user = storage.mainStorageUserName;
+        group = storage.accessGroups.documents.name;
         before = [ "paperless.service" "paperless-scheduler.service" "paperless-task-queue.service" ];
       };
 
@@ -96,26 +72,10 @@ in
             ".DS_STORE/*"
           ];
           PAPERLESS_URL = "https://${cfg.fqdn.final}";
-          PAPERLESS_SOCIALACCOUNT_PROVIDERS = builtins.toJSON {
-            "openid_connect" = {
-              APPS = [
-                { 
-                  provider_id = homelab.lib.idp.provider; 
-                  name = homelab.lib.idp.provider; 
-                  client_id = service; 
-                  secret = "STKCu9aeeZ/nAlA0UvYHPmAbFefUw82KMQ/sw5nukfk="; 
-                  settings = { 
-                    server_url = "https://${homelab.lib.idp.domain}/oauth2/openid/${service}"; 
-                    }; 
-                }
-              ];
-            };
-          };
-          PAPERLESS_APPS = "allauth.socialaccount.providers.openid_connect";
         };
       };
 
-      users.users.${cfg.user}.extraGroups = [ config.homelab.system.storage.accessGroups.documents.name ];
+      users.users.${cfg.user}.extraGroups = [ storage.accessGroups.documents.name ];
     })
   ];
 }

@@ -12,12 +12,14 @@ let
   enabledUsers = lib.filterAttrs (userName: userConfig: userConfig.enable) cfg.users;
   enabledServices = lib.filterAttrs (serviceName: serviceConfig: serviceConfig.enable) cfg.services.inputs;
 
+  baseOidcServerUrl = "https://${cfg.domain}/oauth2/openid/";
   # OIDC configuration URL is IDP implementation-specific, so we need to compute and set it here
   # For now I can't come up with a better solution than 2 attribute sets - inputs and outputs. Infinite recursion otherwise
   completeServices = lib.mapAttrs (serviceName: serviceConfig:
     serviceConfig // {
       oidc = serviceConfig.oidc // {
-        configurationUrl = "https://${cfg.domain}/oauth2/openid/${serviceName}/.well-known/openid-configuration";
+        serverUrl = "${baseOidcServerUrl}${serviceName}";
+        configurationUrl = "${baseOidcServerUrl}${serviceName}/.well-known/openid-configuration";
       };
     }
   ) enabledServices;

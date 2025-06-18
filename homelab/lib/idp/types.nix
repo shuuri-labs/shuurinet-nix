@@ -51,6 +51,12 @@ in
       };
 
       oidc = {
+        serverUrl = mkOption {
+          type = types.str;
+          default = ""; # TODO: set this dynamically
+          description = "The OIDC server URL of the service";
+        };
+
         configurationUrl = mkOption {
           type = types.str;
           default = ""; # TODO: set this dynamically

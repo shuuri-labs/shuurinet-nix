@@ -3,49 +3,29 @@ let
   service = "mealie";
 
   homelab = config.homelab;
-  cfg = homelab.services.${service};
-  oidc = homelab.lib.idp.services.outputs.${service}.oidc;
+  cfg    = homelab.services.${service};
 
   common = import ../common.nix { inherit lib config homelab service; };
+  idp    = import ./idp.nix { inherit config lib pkgs service; };
 in
 {
   options.homelab.services.${service} = common.options;
 
   config = lib.mkMerge [
     common.config
-    
+    idp.config 
+
     (lib.mkIf cfg.enable {
       homelab = { 
         services.${service} = {
           port = lib.mkDefault 9001;
-        };
-
-        lib = {
-          idp.services.inputs.${service} = {
-            enable = true;
-            originUrls = [
-              "https://${cfg.fqdn.final}/login"
-              "https://${cfg.fqdn.final}/login?direct=1"
-            ];
-          };
+          idp.enable = lib.mkDefault true;
         };
       };
 
       services.${service} = {
         enable = true;
         port = cfg.port;
-
-        settings = {
-          OIDC_AUTH_ENABLED = "True";
-          OIDC_SIGNUP_ENABLED = "True";
-          OIDC_AUTO_REDIRECT = "True";
-          # TODO: need to set config url on service type somehow
-          OIDC_CONFIGURATION_URL = oidc.configurationUrl;
-          OIDC_CLIENT_ID = oidc.clientId;
-          OIDC_CLIENT_SECRET = "";
-          OIDC_PROVIDER_NAME = homelab.lib.idp.provider;
-          OIDC_SCOPES = lib.concatStringsSep " " oidc.scopes;
-        };
       };
     })
   ];
