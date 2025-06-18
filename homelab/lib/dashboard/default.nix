@@ -4,6 +4,8 @@ let
   cfg = homelab.lib.dashboard;
   dashboardService = "homepage-dashboard";
 
+  domainLib = import ../domain-management/compute.nix;
+
   domain = "${config.networking.hostName}.${homelab.domain.base}";
   
   # Combine glances widgets with network interface widgets

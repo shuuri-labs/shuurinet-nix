@@ -3,6 +3,7 @@
 let
   monitoring = config.homelab.lib.monitoring;
   cfg = monitoring.grafana;
+  domainLib = import ../domain-management/compute.nix;
 in
 
 {
@@ -17,7 +18,11 @@ in
 
     domain = lib.mkOption {
       type = lib.types.str;
-      default = "grafana.shuurinet-homelab";
+      default = domainLib.computeFQDN {
+        topLevel = "grafana";
+        sub = config.homelab.domain.sub;
+        base = config.homelab.domain.base;
+      };
     };
 
     lokiUid = lib.mkOption {
@@ -38,6 +43,25 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    homelab.lib.domainManagement.domains.grafana = {
+      enable = true;
+
+      host = {
+        enable = true;
+        domain = cfg.domain;
+        backend = {
+          address = "localhost";
+          port = cfg.port;
+        };
+      };
+
+      dns = { 
+        enable = true;
+        comment = "Auto-managed by NixOS homelab for grafana";
+      };
+    };
+
+
     services.grafana = {
       enable = true;
 
@@ -45,7 +69,7 @@ in
         security.admin_password = cfg.adminPassword;
 
         server = {
-          http_addr = "0.0.0.0";
+          http_addr = "127.0.0.1";
           http_port = cfg.port;
           domain = cfg.domain;
         };
