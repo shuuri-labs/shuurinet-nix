@@ -29,23 +29,23 @@ in
 
     services.${service} = {
       settings = {
-          PAPERLESS_SOCIALACCOUNT_PROVIDERS = builtins.toJSON {
-            "openid_connect" = {
-              APPS = [
-                { 
-                  provider_id = homelab.lib.idp.provider; 
-                  name = homelab.lib.idp.provider; 
-                  client_id = service; 
-                  secret = "STKCu9aeeZ/nAlA0UvYHPmAbFefUw82KMQ/sw5nukfk="; # TODO: extract
-                  settings = { 
-                    server_url = homelab.lib.idp.services.outputs.${service}.oidc.serverUrl;
-                  }; 
-                }
-              ];
-            };
+        PAPERLESS_SOCIALACCOUNT_PROVIDERS = builtins.toJSON {
+          "openid_connect" = {
+            APPS = [
+              { 
+                provider_id = homelab.lib.idp.provider; 
+                name = homelab.lib.idp.provider; 
+                client_id = service; 
+                secret = "STKCu9aeeZ/nAlA0UvYHPmAbFefUw82KMQ/sw5nukfk="; # TODO: extract
+                settings = { 
+                  server_url = homelab.lib.idp.services.outputs.${service}.oidc.serverUrl;
+                }; 
+              }
+            ];
           };
-          PAPERLESS_APPS = "allauth.socialaccount.providers.openid_connect";
         };
+        PAPERLESS_APPS = "allauth.socialaccount.providers.openid_connect";
+      };
     };
   };
 }
