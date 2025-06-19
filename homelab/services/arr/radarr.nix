@@ -20,6 +20,8 @@ in
         extraGroups = lib.mkDefault [ homelab.system.storage.accessGroups.downloads.name ];
       };
 
+      homelab.lib.dashboard.entries.${service}.section = "Media";
+
       services.${service} = {
         enable = true;
         user = cfg.user;

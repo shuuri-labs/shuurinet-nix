@@ -19,6 +19,15 @@ in
         fqdn.topLevel = lib.mkDefault "jelly";
       };
 
+      homelab.lib.dashboard.entries.${service} = {
+        section = "Media";
+        widget = {
+          type = "jellyfin";
+          url = "http://${cfg.address}:${toString cfg.port}";
+          key = "{{HOMEPAGE_VAR_JELLYFIN_API_KEY}}";
+        };
+      };
+
       services.${service} = {
         enable = true;
         user = cfg.user;

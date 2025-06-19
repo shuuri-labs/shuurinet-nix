@@ -5,6 +5,8 @@ let
 
   dashboardService = "homepage-dashboard";
   domain = "${config.networking.hostName}.${homelab.domain.base}";
+
+  inherit (import ./types.nix { inherit lib; }) entryType;
 in
 {
   imports = [
@@ -24,6 +26,12 @@ in
       description = "Port to run the dashboard on";
     };
 
+    environmentFile = lib.mkOption {
+      type = lib.types.str;
+      default = "";
+      description = "Environment file to use for the dashboard";
+    };
+
     categories = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [
@@ -33,6 +41,12 @@ in
       ];
       description = "Categories to include in the dashboard";
     };
+
+    entries = lib.mkOption {
+      type = lib.types.attrsOf entryType;
+      default = {};
+      description = "Entries to include in the dashboard";
+    };  
   };
 
   config = lib.mkIf cfg.enable {
@@ -40,6 +54,7 @@ in
       enable = cfg.enable;
       listenPort = cfg.port;
       allowedHosts = domain;
+      environmentFile = cfg.environmentFile;
       
       settings = {
         title = "${config.networking.hostName} dashboard";
@@ -52,7 +67,12 @@ in
               columns = 4;
             };
           }
-        ];
+        ] ++ (map (category: {
+          ${category} = {
+            style = "row";
+            columns = 2;
+          };
+        }) cfg.categories);
 
         headerStyle = "clean";
         statusStyle = "dot";
@@ -95,7 +115,25 @@ in
             }) cfg.glances.widgets
           );
         }
-      ];
+      ] ++ (map (category:
+        let
+          entriesInCategory = lib.filterAttrs (name: entry: 
+            entry.enable && entry.section == category
+          ) cfg.entries;
+        in
+        {
+          ${category} = lib.mapAttrsToList (name: entry: {
+            ${name} = {
+              icon = entry.icon;
+              href = entry.href;
+              siteMonitor = entry.siteMonitor;
+              description = entry.description;
+            } // (lib.optionalAttrs (entry.widget != {}) {
+              widget = entry.widget;
+            });
+          }) entriesInCategory;
+        }
+      ) cfg.categories);
     };
 
     homelab.lib.domainManagement.domains.${config.networking.hostName} = {

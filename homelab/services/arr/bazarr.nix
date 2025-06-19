@@ -18,6 +18,8 @@ in
         group = lib.mkDefault homelab.system.storage.accessGroups.media.name;
       };
 
+      homelab.lib.dashboard.entries.${service}.section = "Media";
+
       services.${service} = {
         enable = true;
         listenPort = cfg.port;

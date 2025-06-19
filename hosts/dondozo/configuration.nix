@@ -165,6 +165,7 @@ in
 
       dashboard = {
         enable = true;
+        environmentFile = config.age.secrets.dondozo-homepage-vars.path;
 
         glances = {
           networkInterfaces = [ "enp1s0f1np1" ];

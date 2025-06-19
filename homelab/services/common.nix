@@ -78,38 +78,10 @@ in
     };
 
     dashboard = {
-      enable = lib.mkEnableOption (builtins.concatStringsSep "" [
-        "Enable " service " dashboard entry"
-      ]);
-
-      icon = lib.mkOption {
-        type    = lib.types.str;
-        default = lib.mkDefault "${service}.png";
-        description = "Icon to use for the service on the dashboard.";
-      };
-
-      description = lib.mkOption {
-        type    = lib.types.str;
-        default = lib.mkDefault "";
-        description = "Description of the service for the dashboard.";
-      };
-
-      href = lib.mkOption {
-        type    = lib.types.str;
-        default = lib.mkDefault "https://${homelab.services.${service}.fqdn.final}";
-        description = "URL for the service on the dashboard.";
-      };
-
-      siteMonitor = lib.mkOption {
-        type    = lib.types.str;
-        default = lib.mkDefault "https://${homelab.services.${service}.fqdn.final}:${toString homelab.services.${service}.port}";
-        description = "URL to monitor the service on the dashboard.";
-      };
-
-      widget = lib.mkOption {
-        type    = lib.types.attrs;
-        default = lib.mkDefault {};
-        description = "Widget to use for the service on the dashboard.";
+      enable = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Enable dashboard entry for ${service}";
       };
     };
 
@@ -141,6 +113,14 @@ in
           dns = {
             comment = "Auto-managed by NixOS homelab for ${service}";
           };
+        };
+
+        dashboard.entries.${service} = {
+          enable = cfg.dashboard.enable;
+          section = lib.mkDefault "Services";
+          icon = lib.mkDefault "${service}.png";
+          href = lib.mkDefault "https://${homelab.services.${service}.fqdn.final}";
+          siteMonitor = lib.mkDefault "https://${homelab.services.${service}.fqdn.final}";
         };
 
         idp.services.inputs.${service} = {

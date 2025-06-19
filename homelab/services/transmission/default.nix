@@ -3,6 +3,7 @@ let
   service = "transmission";
 
   homelab = config.homelab;
+  system = config.homelab.system;
   storage = config.homelab.system.storage;
   cfg     = homelab.services.${service};
 
@@ -56,6 +57,14 @@ in
             enable = lib.mkDefault true;
             openPorts = {
               both = [ cfg.peerPort ];
+            };
+          };
+
+          dashboard.entries.${service} = {
+            href = "http://${system.network.primaryBridge.address}:${toString cfg.port}";
+            widget = {
+              type = "transmission";
+              url = "http://${address}:${toString cfg.port}";
             };
           };
 
