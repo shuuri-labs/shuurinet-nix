@@ -65,20 +65,20 @@
       flake = {
         nixosConfigurations = {
           dondozo = mkNixosHost "dondozo" [
-            ./modules/homepage-dashboard
-            ./modules/zfs
-            ./modules/hdd-spindown
-            ./modules/intel
-            ./modules/power-saving
-            ./modules/media-server
-            ./modules/smb-provisioner
-            ./modules/disk-care
-            ./modules/iperf
-            ./modules/uefi-boot
-            ./modules/monitoring
-            ./modules/paperless-ngx
-            ./modules/remote-access
-            ./modules/caddy
+            # ./modules/homepage-dashboard
+            # ./modules/zfs
+            # ./modules/hdd-spindown
+            # ./modules/intel
+            # ./modules/power-saving
+            # ./modules/media-server
+            # ./modules/smb-provisioner
+            # ./modules/disk-care
+            # ./modules/iperf
+            # ./modules/uefi-boot
+            # ./modules/monitoring
+            # ./modules/paperless-ngx
+            # ./modules/remote-access
+            # ./modules/caddy
             inputs.vpn-confinement.nixosModules.default
             inputs.virtualisation.nixosModules.default
           ] "x86_64-linux";

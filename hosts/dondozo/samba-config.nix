@@ -6,7 +6,7 @@ in
 {
   homelab.lib.smb.provisioner = {
     hostName = config.networking.hostName;
-    hostIp = "${hostMainIp}/32";
+    hostIp = "${network.primaryBridge.address}/32";
     users = [
       { name = "ashley"; 
         passwordFile = config.age.secrets.ashley-samba-user-pw.path; 

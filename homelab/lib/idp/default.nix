@@ -4,6 +4,7 @@ let
   cfg = homelab.lib.idp;
   
   idpTypes = import ./types.nix { inherit lib; };
+  domainLib = import ../domain-management/compute.nix;
 in
 {
   imports = [
@@ -31,7 +32,11 @@ in
 
     domain = lib.mkOption {
       type = lib.types.str;
-      default = "auth.${homelab.domain.base}";
+      default = domainLib.computeFQDN {
+        topLevel = "auth";
+        sub = homelab.domain.sub;
+        base = homelab.domain.base;
+      };
       description = "Base domain name for auth";
     };
     

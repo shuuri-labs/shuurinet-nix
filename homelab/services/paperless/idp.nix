@@ -4,7 +4,7 @@ let
   cfg     = config.homelab.services.${service};
 in
 {
-  config = lib.mkIf (cfg.enable && cfg.idp.enable) {
+  config = lib.mkIf (cfg.enable && cfg.idp.enable && homelab.lib.idp.enable) {
     age.secrets.paperless-ngx-client-secret = {
       file = "/home/ashley/shuurinet-nix/secrets/kanidm-netbird-client-secret.age";
       owner = "kanidm";

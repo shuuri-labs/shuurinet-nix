@@ -6,6 +6,10 @@ let
   storage = config.homelab.system.storage;
   cfg     = homelab.services.${service};
 
+  address = if homelab.lib.vpnConfinement.services.${service}.enable 
+            then homelab.lib.vpnConfinement.namespace.address 
+            else "127.0.0.1";
+
   common = import ../common.nix { inherit lib config homelab service; };
 in
 {
@@ -27,21 +31,37 @@ in
       default = "transmission";
       description = "Password to access the ${service} web UI";
     };
+
+    peerPort = lib.mkOption {
+      type = lib.types.int;
+      default = 56544;
+      description = "Port to use for peer connections";
+    };
   };
 
   config = lib.mkMerge [
     common.config
     
     (lib.mkIf cfg.enable {
-      homelab.services.${service} = {
-        port = lib.mkDefault 9091;
-        extraGroups = lib.mkDefault [ storage.accessGroups.downloads.name ];
+      homelab = {
+        services.${service} = {
+          port = lib.mkDefault 9091;
+          extraGroups = lib.mkDefault [ storage.accessGroups.downloads.name ];
 
-        fqdn.topLevel = lib.mkDefault "trans";
+          fqdn.topLevel = lib.mkDefault "trans";
+        };
+
+        lib = {
+          vpnConfinement.services.${service} = {
+            enable = lib.mkDefault true;
+            openPorts = {
+              both = [ cfg.peerPort ];
+            };
+          };
+
+          domainManagement.domains.${service}.host.backend.address = lib.mkForce address;
+        };
       };
-
-      homelab.lib.vpnConfinement.services.${service}.enable = lib.mkDefault true;
-
       services.${service} = {
         enable = true;
         user = cfg.user;
@@ -53,14 +73,14 @@ in
           download-dir = cfg.downloadDir;
           incomplete-dir-enabled = false;
 
-          rpc-bind-address = if   homelab.lib.vpnConfinement.enable 
-                             then homelab.lib.vpnConfinement.namespace.address 
-                             else "127.0.0.1";
+          rpc-bind-address = address;
           rpc-port = cfg.port; 
+          peer-port = cfg.peerPort;
 
           "rpc-authentication-required" = false; # TODO enable and add pw secret
           "rpc-username" = cfg.rpcUsername;
           "rpc-password" = cfg.rpcPassword;
+          rpc-whitelist-enabled = false;
 
           "ratio-limit-enabled" = true;
           "ratio-limit" = 2.0;
@@ -68,6 +88,7 @@ in
       };
 
       users.users.${service}.extraGroups = cfg.extraGroups;
+      networking.firewall.allowedTCPPorts = [ cfg.port cfg.peerPort ];
     })
   ];
 }

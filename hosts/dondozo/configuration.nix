@@ -30,6 +30,8 @@ in
   # users.users.ashley.hashedPasswordFile = config.age.secrets.castform-main-user-password.path;
   users.users.ashley.password = "temporary123";
 
+  networking.firewall.allowedTCPPorts = [ 8096 9091 ]; # allow jellyfin & transmission (for now)
+
   # -------------------------------- SECRETS --------------------------------
 
   age.secrets = {
@@ -177,7 +179,13 @@ in
       };
 
       smb.provisioner.enable = true;
-      vpnConfinment.wgConfigFile = config.age.secrets.mullvad-wireguard-config.path;
+      vpnConfinement = {
+        wgConfigFile = config.age.secrets.mullvad-wireguard-config.path;
+        hostSubnet = {
+          ipv4 = system.networks.subnets.bln-lan.ipv4;
+          ipv6 = system.networks.subnets.bln-lan.ipv6;
+        };
+      };
     };
 
     services = {

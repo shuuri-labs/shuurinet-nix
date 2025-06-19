@@ -5,7 +5,7 @@ let
   oidc    = config.homelab.lib.idp.services.outputs.${service}.oidc;
 in
 {
-  config = lib.mkIf (cfg.enable && cfg.idp.enable) {
+  config = lib.mkIf (cfg.enable && cfg.idp.enable && homelab.lib.idp.enable) {
     homelab = { 
       lib = {
         idp.services.inputs.${service} = {
