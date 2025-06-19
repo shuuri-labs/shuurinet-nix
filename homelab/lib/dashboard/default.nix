@@ -1,113 +1,43 @@
 { config, lib, pkgs, ... }:
 let
   homelab = config.homelab;
-  cfg = homelab.lib.dashboard;
+  cfg      = homelab.lib.dashboard;
+
   dashboardService = "homepage-dashboard";
-
-  domainLib = import ../domain-management/compute.nix;
-
   domain = "${config.networking.hostName}.${homelab.domain.base}";
-  
-  # Combine glances widgets with network interface widgets
-  allGlancesWidgets = cfg.glances.widgets // 
-    (lib.listToAttrs (map (interface: {
-      name = "Network ${interface}";
-      value = {
-        widget = {
-          type = "glances";
-          url = "http://${cfg.glances.address}:${toString cfg.glances.port}";
-          metric = "network:${interface}";
-          version = "4";
-        };
-      };
-    }) cfg.glances.networkInterfaces));
 in
 {
+  imports = [
+    ./glances.nix
+  ];
+
   options.homelab.lib.dashboard = {
-    enable = lib.mkEnableOption "Enable dashboard";
+    enable = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Enable dashboard";
+    };
 
     port = lib.mkOption {
       type = lib.types.int;
       default = 8082;
       description = "Port to run the dashboard on";
-    };  
-
-    sections = lib.mkOption {
-      type = lib.types.listOf lib.types.attrs;
-      default = [];
-      description = "Sections to include in the dashboard";
-      example = [
-        {
-          Monitoring = { style = "row"; columns = 2; };
-        }
-        {
-          Media = { style = "row"; columns = 2; };
-        }
-      ];
     };
 
-    glances = {
-      address = lib.mkOption {
-        type = lib.types.str;
-        default = "localhost";
-        description = "Address to run glances on";
-      };
-
-      port = lib.mkOption {
-        type = lib.types.int;
-        default = 61208;
-        description = "Port to run glances on";
-      };
-
-      networkInterfaces = lib.mkOption {
-        type = lib.types.listOf lib.types.str;
-        default = [];
-        description = "Network interfaces to monitor";
-      };
-
-      widgets = lib.mkOption {
-        type = lib.types.attrs;
-        default = {
-          CPU = {
-            widget = {
-              type = "glances";
-              url = "http://${cfg.glances.address}:${toString cfg.glances.port}";
-              metric = "cpu";
-              version = "4";
-            };
-          };
-
-          Memory = {
-            widget = {
-              type = "glances";
-              url = "http://${cfg.glances.address}:${toString cfg.glances.port}";
-              metric = "memory";
-              version = "4";
-
-            };
-          };
-
-          "Disk I/O" = {
-            widget = {
-              type = "glances";
-              url = "http://${cfg.glances.address}:${toString cfg.glances.port}";
-              metric = "disk:nvme0n1";
-              version = "4";
-            };
-          };
-        };
-      };
+    categories = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [
+        "Monitoring" 
+        "Media" 
+        "Services"
+      ];
+      description = "Categories to include in the dashboard";
     };
   };
 
   config = lib.mkIf cfg.enable {
-    services.glances = {
-      enable = true;
-      port = cfg.glances.port;
-    };
-
     services.${dashboardService} = {
-      enable = true;
+      enable = cfg.enable;
       listenPort = cfg.port;
       allowedHosts = domain;
       
@@ -116,7 +46,7 @@ in
 
         layout = [
           {
-            Glances = {
+            Glances = lib.mkIf cfg.glances.enable {
               header = false;
               style = "row";
               columns = 4;
@@ -159,9 +89,11 @@ in
 
       services = [
         {
-          "Glances" = lib.mapAttrsToList (name: config: {
-            "${name}" = config;
-          }) allGlancesWidgets;
+          "Glances" = lib.mkIf cfg.glances.enable (
+            lib.mapAttrsToList (name: config: {
+              "${name}" = config;
+            }) cfg.glances.widgets
+          );
         }
       ];
     };
@@ -183,11 +115,5 @@ in
         comment = "Auto-managed by NixOS homelab for ${dashboardService}";
       };
     };
-
-    # addProxy {
-    #   address = "127.0.0.1";
-    #   port = cfg.port;
-    #   domain = "${config.networking.hostName}.${homelab.domain.base}";
-    # };
   };
 }

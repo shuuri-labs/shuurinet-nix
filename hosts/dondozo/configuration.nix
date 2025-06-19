@@ -1,7 +1,3 @@
-# Edit this configuration file to define what should be installed on
-# your system.  Help is available in the configuration.nix(5) man page
-# and in the NixOS manual (accessible by running 'nixos-help').
-
 { config, pkgs, inputs, lib, ... }:
 
 let
@@ -168,7 +164,17 @@ in
       };
 
       dashboard = {
-        glances.networkInterfaces = [ "enp1s0f1np1" ];
+        enable = true;
+
+        glances = {
+          networkInterfaces = [ "enp1s0f1np1" ];
+          disks = [
+            { name = "Boot"; metric = "sdb"; }
+            { name = "Data"; metric = "nvme0n1"; }
+            { name = "Editing"; metric = "nvme1n1"; }
+            { name = "Rust"; metric = "sda"; }
+          ];
+        };
       };
 
       monitoring = {
