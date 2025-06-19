@@ -3,7 +3,8 @@ let
   service = "transmission";
 
   homelab = config.homelab;
-  cfg = homelab.services.${service};
+  storage = config.homelab.system.storage;
+  cfg     = homelab.services.${service};
 
   common = import ../common.nix { inherit lib config homelab service; };
 in
@@ -11,7 +12,7 @@ in
   options.homelab.services.${service} = common.options // {
     downloadDir = lib.mkOption {
       type = lib.types.str;
-      default = homelab.system.storage.directories.downloads;
+      default = storage.directories.downloads;
       description = "Directory to store downloads in";
     };
 
@@ -34,12 +35,12 @@ in
     (lib.mkIf cfg.enable {
       homelab.services.${service} = {
         port = lib.mkDefault 9091;
-        extraGroups = lib.mkDefault [ homelab.system.storage.accessGroups.downloads.name ];
+        extraGroups = lib.mkDefault [ storage.accessGroups.downloads.name ];
 
         fqdn.topLevel = lib.mkDefault "trans";
       };
 
-      # homelab.lib.vpnConfinement.services.${service}.enable = lib.mkDefault true;
+      homelab.lib.vpnConfinement.services.${service}.enable = lib.mkDefault true;
 
       services.${service} = {
         enable = true;

@@ -4,6 +4,7 @@ with lib;
 
 let
   homelab = config.homelab;
+  storage = config.homelab.system.storage;
   cfg     = config.homelab.services.mediaServer.storage;
 
   directoriesUtils = import ../../lib/utils/directories.nix { inherit lib pkgs; };
@@ -18,13 +19,13 @@ in
 
     group = mkOption {
       type = types.str;
-      default = homelab.system.storage.accessGroups.media.name;
+      default = storage.accessGroups.media.name;
       description = "The group name for media directories.";
     };
 
     path = mkOption {
       type = types.str;
-      default = homelab.system.storage.directories.media;
+      default = storage.directories.media;
       description = "Base directory for media files.";
     };
 
@@ -50,7 +51,7 @@ in
 
     hostMainStorageUser = mkOption {
       type = types.str;
-      default = homelab.system.storage.mainStorageUserName;
+      default = storage.mainStorageUserName;
       description = "The main user for the host.";
     };
   };

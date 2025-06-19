@@ -2,75 +2,40 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running 'nixos-help').
 
-{ config, pkgs, ... }:
+{ config, pkgs, inputs, lib, ... }:
 
 let
-  hostCfgVars = config.host.vars;
   secretsAbsolutePath = "/home/ashley/shuurinet-nix/secrets"; 
 
-  hostIdentifier = "10";
-  hostMainIp = "${config.homelab.networks.subnets.bln-lan.ipv4}.${hostIdentifier}";
+  system = config.homelab.system;
+
+  hostname = "dondozo";
+  hostAddress = "10";
 in
 {
-  imports = [
+    imports = [
     ./hardware-configuration.nix
     ./disk-config.nix
-    (import ./homepage-config.nix { inherit config hostMainIp; })
-    (import ./samba-config.nix { inherit config hostMainIp; })
+    # (import ./homepage-config.nix { inherit config; })
+    (import ./samba-config.nix { inherit config hostname; })
   ];
-
-  # -------------------------------- HOST VARIABLES --------------------------------
-  # See /options-host
-
-  host.vars = {
-    network = {
-      hostName = "dondozo";
-      staticIpConfig.enable = true;
-      networkManager.unmanaged = [ "eno2" ];
-      
-      bridges = [
-        {
-          name = "br0";
-          memberInterfaces = [ "enp1s0f1np1" "eno1" ];  
-          subnet = config.homelab.networks.subnets.bln-lan;
-          identifier = hostIdentifier;
-          isPrimary = true;
-        }
-      ];
-    };
-
-    storage = {
-      paths = {
-        bulkStorage = "/shuurinet-rust";
-        fastStorage = "/shuurinet-nvme-data";
-        editingStorage = "/shuurinet-nvme-editing";
-      };
-    };
-  };
-
-  deployment.bootstrap.gitClone.host = hostCfgVars.network.hostName;
 
   # -------------------------------- SYSTEM CONFIGURATION --------------------------------
 
-  time.timeZone = "Europe/Berlin";
-
-  # Bootloader
-  host.uefi-boot.enable = true;
-
-  users.users.ashley.hashedPasswordFile = config.age.secrets.castform-main-user-password.path;
-
+  boot.kernelParams = [ "i915.disable_display=1" ]; # Fix 'EDID block 0 is all zeroes' log spam
   environment.systemPackages = with pkgs; [
     openseachest # seagate disk utils
   ];
 
-  boot.kernelParams = [ "i915.disable_display=1" ]; # Fix 'EDID block 0 is all zeroes' log spam
-  
+  # users.users.ashley.hashedPasswordFile = config.age.secrets.castform-main-user-password.path;
+  users.users.ashley.password = "temporary123";
+
   # -------------------------------- SECRETS --------------------------------
 
   age.secrets = {
     # System
     castform-main-user-password.file = "${secretsAbsolutePath}/castform-main-user-password.age";
-    sops-key.file = "${secretsAbsolutePath}/keys/sops-key.agekey.age";
+    sops-key.file = "${secretsAbsolutePath}/keys/sops-key.age";
 
     # Samba Users
     ashley-samba-user-pw.file = "${secretsAbsolutePath}/samba-ashley-password.age";
@@ -87,131 +52,143 @@ in
       mode = "440";
     };
     paperless-password.file = "${secretsAbsolutePath}/paperless-password.age";
-    
-    cloudflare-api-token = {
-      file = "${secretsAbsolutePath}/cloudflare-api-token.age";
-      # owner = "ddclient";
-      # group = "ddclient";
-      # mode = "440";
-    };
-
-    dondozo-wg-public-key.file = "${secretsAbsolutePath}/dondozo-wg-public-key.age";
-    dondozo-wg-private-key.file = "${secretsAbsolutePath}/dondozo-wg-private-key.age";
-
-    rotom-laptop-wg-public-key.file = "${secretsAbsolutePath}/rotom-laptop-wg-public-key.age";
-    rotom-laptop-wg-private-key.file = "${secretsAbsolutePath}/rotom-laptop-wg-private-key.age";
-
-    # caddy-cloudflare = {
-    #   file = "${secretsAbsolutePath}/caddy-cloudflare.age";
-    #   owner = "caddy";
-    #   group = "caddy";
-    #   mode = "440";
-    # };
-  };
-
-  common.secrets.sopsKeyPath = "${secretsAbsolutePath}/keys/sops-key.agekey.age";
-
-  # -------------------------------- DISK CONFIGURATION --------------------------------
-
-  zfs = {
-    pools = {
-      rust = {
-        name = "shuurinet-rust";
-        autotrim = false;
-      };
-    
-      nvmeData = {
-        name = "shuurinet-nvme-data";
-        autotrim = true;
-      };
-
-      nvmeEditing = {
-        name = "shuurinet-nvme-editing";
-        autotrim = true;
-      };
-    };
-    network.hostId = "45072e28";
-  };
-
-  diskCare = {
-    enableTrim = true;
-    disksToSmartMonitor = [
-      { device = "/dev/disk/by-id/ata-CT1000MX500SSD1_2410E89DFB65"; } # boot drive 
-      { device = "/dev/disk/by-id/nvme-SHPP41-2000GM_ADC8N569313409716"; } # nvme 1
-      { device = "/dev/disk/by-id/nvme-SHPP41-2000GM_ADC8N569313409716"; } # nvme 1
-      { device = "/dev/disk/by-id/nvme-SHPP41-2000GM_ADC8N569313409716"; } # nvme 1
-      { device = "/dev/disk/by-id/nvme-SHPP41-2000GM_ADC8N56931450976D"; } # nvme 2
-      { device = "/dev/disk/by-id/ata-ST16000NM000D-3PC101_ZVTAVSGR"; } # HDD 1
-      { device = "/dev/disk/by-id/ata-ST16000NM000D-3PC101_ZVTBH31T"; } # HDD 2
-    ];
-  };
-
- # -------------------------------- MONITORING & DASHBOARD --------------------------------
-
-  homepage-dashboard.enable = true; # configured in ./homepage-config.nix
-
-  monitoring = {
-    enable = true;
-    grafana.adminPassword = "$__file{${config.age.secrets.grafana-admin-password.path}}";
-    prometheus.job_name = "dondozo";
-    loki.hostname = "dondozo";
-  };
-
-  # -------------------------------- HARDWARE FEATURES --------------------------------
-
-  # Intel-specific & Power Saving
-  intel.graphics.enable = true;
-  powersave.enable = true; 
-
-  # -------------------------------- FILE SERVER --------------------------------
-
-  # Samba - configured in ./samba-config.nix
-  sambaProvisioner.enable = true;
-
-  # -------------------------------- HOSTED SERVICES --------------------------------
-
-  # Media Server
-  mediaServer.enable = true;
-  mediaServer.vpnConfinement.wireguardConfigFile = config.age.secrets.mullvad-wireguard-config.path; 
-  mediaServer.vpnConfinement.lanSubnet = config.homelab.networks.subnets.bln-lan.ipv4;
-  mediaServer.vpnConfinement.lanSubnet6 = config.homelab.networks.subnets.bln-lan.ipv6;
-
-  mediaServer.storage.path = hostCfgVars.storage.directories.media;
-  mediaServer.storage.group = hostCfgVars.storage.accessGroups.media.name;
-  mediaServer.storage.hostMainStorageUser = "ashley";
-
-  mediaServer.services.downloadDir = hostCfgVars.storage.directories.downloads; 
-  mediaServer.services.downloadDirAccessGroup = hostCfgVars.storage.accessGroups.downloads.name;
-  mediaServer.services.mediaDirAccessGroup = hostCfgVars.storage.accessGroups.media.name;
-
-  # paperless-ngx
-  paperless-ngx = {
-    enable = true;
-    passwordFile = config.age.secrets.paperless-password.path;
-    documentsDir = config.host.vars.storage.directories.documents;
-    documentsAccessGroup = config.host.vars.storage.accessGroups.documents.name;
-    hostMainStorageUser = "ashley";
-  };
-
-  # -------------------------------- VIRTUALISATION --------------------------------
   
-  virtualisation = {
-    intel.enable = true;
+    caddy-cloudflare.file = "${secretsAbsolutePath}/caddy-cloudflare.env.age";
+
+    cloudflare-credentials = {
+      file = "${secretsAbsolutePath}/cloudflare-credentials.age";
+      owner = "cloudflare-dns";
+      group = "cloudflare-dns";
+      mode = "440";
+    };
+
+    kanidm-admin-password = {
+      file = "${secretsAbsolutePath}/kanidm-admin-password.age";
+      owner = "kanidm";
+      group = "kanidm";
+    };
   };
 
-  # -------------------------------- REMOTE ACCESS --------------------------------
 
-  # caddy = {
-  #   enable = true;
-  #   environmentFile = config.age.secrets.caddy-cloudflare.path;
-  #   defaultSite = "bln";
+  # -------------------------------- Virtualisation & VMs --------------------------------
 
-  #   virtualHosts = {
-  #     "kodi.apps.remote" = {
-  #       name = "kodi";
-  #       destinationAddress = "http://127.0.0.1:8096";
-  #       destinationPort = 8096;  # Adjust this port to match your Kodi web interface port
-  #     };
-  #   };
-  # };
+  virtualisation = {
+    intel.enable = true;  
+  };
+
+  homelab = {
+    enable = true;
+
+    domain = {
+      sub = "bln";
+    };
+
+    system = {
+      disk.care = {
+        trim.enable = true;
+        smartd.disks = [
+          { device = "/dev/disk/by-id/ata-CT1000MX500SSD1_2410E89DFB65"; } # boot drive 
+          { device = "/dev/disk/by-id/nvme-SHPP41-2000GM_ADC8N569313409716"; } # nvme 1
+          { device = "/dev/disk/by-id/nvme-SHPP41-2000GM_ADC8N569313409716"; } # nvme 1
+          { device = "/dev/disk/by-id/nvme-SHPP41-2000GM_ADC8N569313409716"; } # nvme 1
+          { device = "/dev/disk/by-id/nvme-SHPP41-2000GM_ADC8N56931450976D"; } # nvme 2
+          { device = "/dev/disk/by-id/ata-ST16000NM000D-3PC101_ZVTAVSGR"; } # HDD 1
+          { device = "/dev/disk/by-id/ata-ST16000NM000D-3PC101_ZVTBH31T"; } # HDD 2   
+        ];
+      };
+
+      storage = {
+        paths = {
+          bulkStorage = "/shuurinet-rust";
+          fastStorage = "/shuurinet-nvme-data";
+          editingStorage = "/shuurinet-nvme-editing";
+        };
+      };
+      
+      network = {
+        hostName = hostname;
+        staticIpConfig.enable = true;
+        bridges = [
+          {
+            name = "br0";
+            memberInterfaces = [ "enp1s0f1np1" "eno1" ];  
+            subnet = system.networks.subnets.bln-lan;
+            identifier = hostAddress;
+            isPrimary = true;
+          }
+        ];
+      };
+    };
+
+    lib = {
+      zfs = {
+        pools = {
+          rust = {
+            name = "shuurinet-rust";
+            autotrim = false;
+          };
+        
+          nvmeData = {
+            name = "shuurinet-nvme-data";
+            autotrim = true;
+          };
+
+          nvmeEditing = {
+            name = "shuurinet-nvme-editing";
+            autotrim = true;
+          };
+        };
+        network.hostId = "45072e28";
+      };
+
+      uefi.boot.enable = true;
+      powersave.enable = true;
+      deployment.bootstrap.git.enable = true;
+
+      intel = {
+        graphics.enable = true;
+      };
+      
+      dns = {
+        cloudflare.credentialsFile = config.age.secrets.cloudflare-credentials.path;
+      };
+
+      reverseProxy = {
+        caddy.environmentFile = config.age.secrets.caddy-cloudflare.path;
+      };
+
+      idp = {
+        enable = true;
+        kanidm = {
+          adminPasswordFile = config.age.secrets.kanidm-admin-password.path;
+          idmAdminPasswordFile = config.age.secrets.kanidm-admin-password.path;
+        };
+      };
+
+      dashboard = {
+        glances.networkInterfaces = [ "enp1s0f1np1" ];
+      };
+
+      monitoring = {
+        enable = true;
+        grafana.adminPassword = "$__file{${config.age.secrets.grafana-admin-password.path}}";
+        prometheus.job_name = hostname;
+        loki.hostname = hostname;
+      };
+
+      smb.provisioner.enable = true;
+      vpnConfinment.wgConfigFile = config.age.secrets.mullvad-wireguard-config.path;
+    };
+
+    services = {
+      mealie.enable = true;
+
+      mediaServer.enable = true; 
+
+      paperless = {
+        enable = true;
+        passwordFile = config.age.secrets.paperless-password.path;
+      };
+    };
+  };  
 }

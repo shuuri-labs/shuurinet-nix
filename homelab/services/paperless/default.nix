@@ -14,6 +14,7 @@ in
   options.homelab.services.${service} = common.options // {
     passwordFile = lib.mkOption {
       type = lib.types.str;
+      default = "";
       description = "The file containing the password for the paperless web interface";
     };
 
@@ -21,7 +22,7 @@ in
       dataDir = lib.mkOption {
         type = lib.types.str;
         description = "The directory for paperless data";
-        default = "${homelab.system.storage.directories.documents}/paperless";
+        default = "${storage.directories.documents}/paperless";
       };
 
       consumeDir = lib.mkOption {
@@ -62,7 +63,7 @@ in
         user = cfg.user;
         port = cfg.port;
         
-        passwordFile = cfg.passwordFile;
+        passwordFile = if cfg.passwordFile != "" then cfg.passwordFile else null;
         consumptionDir = cfg.paths.consumeDir;
 
         settings = {

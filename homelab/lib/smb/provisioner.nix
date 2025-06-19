@@ -4,14 +4,8 @@ let
   cfg = config.homelab.lib.smb.provisioner;
 in {
   options.homelab.lib.smb.provisioner = {
-    enable = lib.mkOption {
-      type = lib.types.bool;
-      default = false;
-      description = ''
-        Enable provisioning of Samba users from a list of
-        user/password secrets (e.g., from agenix).
-      '';
-    };
+    enable = lib.mkEnableOption 
+    "Enable provisioning of Samba users from a list of user/password secrets (e.g., from agenix).";
 
     hostName = lib.mkOption {
       type = lib.types.str;
