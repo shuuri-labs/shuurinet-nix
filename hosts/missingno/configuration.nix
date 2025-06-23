@@ -53,20 +53,21 @@ in
     intel.enable = true;
     
     qemu.manager = {
+      # to delete an image, delete the overlay in "/var/lib/vm/images/base" and restart the image manager service
       images = {
-        # "openwrt" = {
-        #   enable = true;
-        #   # openwrt imagebuilder input is pinned to a specific revision to prevent updates upon flake update/rebuild -
-        #   # to update the image, see flake.nix openwrt-imagebuilder input
-        #   source = inputs.self.packages.${pkgs.system}.berlin-vm-router-img;
-        #   sourceFormat = "raw";
-        #   compressedFormat = "gz";
-        #   # source = "file:///var/lib/vm/images/openwrt-full.qcow2";
-        #   # sourceFormat = "qcow2";
-        #   # sourceSha256 = "1c2n1qms0prj6chcn7gb169m0fc2692q2nwmah8hv70dla643g7g";
-        # };
+        "openwrt" = {
+          enable = true;
+          # openwrt imagebuilder input is pinned to a specific revision to prevent updates upon flake update/rebuild -
+          # to update the image, see flake.nix openwrt-imagebuilder input
+          source = inputs.self.packages.${pkgs.system}.berlin-vm-router-img;
+          sourceFormat = "raw";
+          compressedFormat = "gz";
+          # source = "file:///var/lib/vm/images/openwrt-full.qcow2";
+          # sourceFormat = "qcow2";
+          # sourceSha256 = "1c2n1qms0prj6chcn7gb169m0fc2692q2nwmah8hv70dla643g7g";
+        };
         
-        "haos" = {
+        "haos-15.2" = {
           enable = true;
           source = "https://github.com/home-assistant/operating-system/releases/download/15.2/haos_ova-15.2.qcow2.xz";
           sourceFormat = "qcow2";
@@ -75,26 +76,27 @@ in
         };
       };
 
-  #     # To 'factory reset VM, delete overlay in "/var/lib/vm/images" and restart service
-  #     # VM service names are the names of the service attribute sets below, e.g. "openwrt" or "home-assistant"
+       # To 'factory reset VM, delete in "/var/lib/vm/images" and restart service
+       # VM service names are the names of the service attribute sets below + the image name, e.g. "openwrt-openwrt" or "home-assistant-haos-15.2"
       services = {
-      #   "openwrt" = {
-      #     enable      = true;
-      #     baseImage   = "openwrt";
-      #     uefi        = true;
-      #     memory      = 1024;
-      #     smp         = 8;
-      #     hostBridges = [ "br0" "br1" ];
-      #     pciHosts    = [ 
-      #       { address = "03:00.0"; } 
-      #       { address = "04:00.0"; }
-      #     ];
-      #     vncPort   = 1;
-      #   };
+        "openwrt" = {
+          enable      = true;
+          baseImage   = "openwrt";
+          uefi        = true;
+          memory      = 1024;
+          smp         = 8;
+          hostBridges = [ "br0" "br1" ];
+          pciHosts    = [ 
+            { address = "03:00.0"; } 
+            { address = "04:00.0"; }
+          ];
+          # portForwards = [ { hostPort = 2022; vmPort = 22; } ];
+          vncPort   = 1;
+        };
 
         "home-assistant" = {
           enable      = true;
-          baseImage   = "haos";
+          baseImage   = "haos-15.2";
           uefi        = true;
           memory      = 3072;
           smp         = 2;
@@ -184,11 +186,11 @@ in
 
     services = {
       mealie.enable = true;
-      mediaServer.enable = true;
-      paperless = {
-        enable = true;
-        passwordFile = config.age.secrets.kanidm-admin-password.path;
-      };
+      # mediaServer.enable = true;
+      # paperless = {
+      #   enable = true;
+      #   passwordFile = config.age.secrets.kanidm-admin-password.path;
+      # };
     };
   };  
 }
