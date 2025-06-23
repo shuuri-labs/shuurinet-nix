@@ -1,8 +1,6 @@
 { lib, config, pkgs, ... }:
 let
   cfg = config.homelab;
-
-  hostDomain = "${config.networking.hostName}.${cfg.domain.base}";
 in
 {
   options.homelab = {
@@ -27,6 +25,12 @@ in
         type = lib.types.str;
         default = "shuuri.net";
         description = "Base domain name to be used to access the homelab services via Caddy reverse proxy";
+      };
+
+      fqdn = lib.mkOption {
+        type = lib.types.str;
+        default = "${config.networking.hostName}.${cfg.domain.base}";
+        description = "Fully qualified domain name for this host (ignores subdomain)";
       };
     };
   };

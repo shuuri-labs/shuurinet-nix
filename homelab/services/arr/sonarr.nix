@@ -19,7 +19,10 @@ in
         extraGroups = lib.mkDefault [ homelab.system.storage.accessGroups.downloads.name ];
       };
 
-      homelab.lib.dashboard.entries.${service}.section = "Media";
+      homelab.lib.dashboard.entries.${service} = {
+        section = "Media";
+        description = "TV media management";
+      };
 
       nixpkgs.config.permittedInsecurePackages = [
         "aspnetcore-runtime-6.0.36"

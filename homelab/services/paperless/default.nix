@@ -44,6 +44,12 @@ in
           fqdn.topLevel = lib.mkDefault "paper";
           idp.enable = lib.mkDefault true;
         };
+
+        lib = {
+          dashboard.entries.${service} = {
+            description = "Document management";
+          };
+        };
       };
 
       environment.systemPackages = with pkgs; [

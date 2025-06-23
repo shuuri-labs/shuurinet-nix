@@ -18,7 +18,11 @@ in
         group = lib.mkDefault homelab.system.storage.accessGroups.media.name;
       };
 
-      homelab.lib.dashboard.entries.${service}.section = "Media";
+      homelab.lib.dashboard.entries.${service} = {
+        section = "Media";
+        icon = "bazarr.png";
+        description = "Subtitle management";
+      };
 
       services.${service} = {
         enable = true;

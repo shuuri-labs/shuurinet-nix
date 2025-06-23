@@ -18,6 +18,10 @@ in
         group = lib.mkDefault homelab.storage.accessGroups.media.name;
       };
 
+      homelab.lib.dashboard.entries.${service} = {
+        description = "Media source management";
+      };
+
       services.${service} = {
         enable = true;
         settings = {

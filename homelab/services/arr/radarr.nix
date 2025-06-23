@@ -20,7 +20,10 @@ in
         extraGroups = lib.mkDefault [ homelab.system.storage.accessGroups.downloads.name ];
       };
 
-      homelab.lib.dashboard.entries.${service}.section = "Media";
+      homelab.lib.dashboard.entries.${service} = {
+        section = "Media";
+        description = "Movie media management";
+      };
 
       services.${service} = {
         enable = true;

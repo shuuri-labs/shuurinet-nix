@@ -21,6 +21,12 @@ in
           port = lib.mkDefault 9001;
           idp.enable = lib.mkDefault true;
         };
+
+        lib = {
+          dashboard.entries.${service} = {
+            description = "Meal planning & recipe management";
+          };
+        };
       };
 
       services.${service} = {

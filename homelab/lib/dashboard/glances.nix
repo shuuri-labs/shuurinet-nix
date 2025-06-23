@@ -5,12 +5,12 @@ let
   url = "http://localhost:${toString cfg.port}";
 
   diskWidgets = lib.listToAttrs (map (disk: {
-    name = "Disk I/O ${disk.name}";
+    name = "Storage - ${disk.name}";
     value = {
       widget = {
         type = "glances";
         url = url;
-        metric = "disk:${disk.metric}";
+        metric = "fs:${disk.mountPoint}";
         chart = false;
         version = "4";
       };
@@ -89,9 +89,9 @@ in
             type = lib.types.str;
             description = "Display name for the disk";
           };
-          metric = lib.mkOption {
+          mountPoint = lib.mkOption {
             type = lib.types.str;
-            description = "Metric name for the disk in glances (e.g. sda, nvme0n1)";
+            description = "Mount point for the disk (e.g. /, /home, /mnt/data)";
           };
         };
       });

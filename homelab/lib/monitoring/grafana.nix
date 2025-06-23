@@ -61,6 +61,13 @@ in
       };
     };
 
+    homelab.lib.dashboard.entries.grafana = {
+      section = "Monitoring";
+      icon = "grafana.png";
+      href = "https://${cfg.domain}";
+      siteMonitor = "https://${cfg.domain}";
+      description = "Monitoring & statistics dashboard";
+    };
 
     services.grafana = {
       enable = true;

@@ -14,6 +14,7 @@ in
     ./disk-config.nix
     # (import ./homepage-config.nix { inherit config; })
     (import ./samba-config.nix { inherit config hostname; })
+    (import ./power-monitoring.nix { inherit config; })
   ];
 
   # -------------------------------- SYSTEM CONFIGURATION --------------------------------
@@ -26,7 +27,7 @@ in
   # users.users.ashley.hashedPasswordFile = config.age.secrets.castform-main-user-password.path;
   users.users.ashley.password = "temporary123";
 
-  networking.firewall.allowedTCPPorts = [ 8096 9091 ]; # allow jellyfin & transmission (for now)
+  networking.firewall.allowedTCPPorts = [ 9091 ]; # allow transmission (for now)
 
   # -------------------------------- SECRETS --------------------------------
 
@@ -143,6 +144,10 @@ in
       powersave.enable = true;
       deployment.bootstrap.git.enable = true;
 
+      vpnConfinement = {
+        services.transmission.openPorts = { both = [ 56544 ]; };
+      };
+
       intel = {
         graphics.enable = true;
       };
@@ -170,10 +175,10 @@ in
         glances = {
           networkInterfaces = [ "enp1s0f1np1" ];
           disks = [
-            { name = "Boot"; metric = "sdb"; }
-            { name = "Data"; metric = "nvme0n1"; }
-            { name = "Editing"; metric = "nvme1n1"; }
-            { name = "Rust"; metric = "sda"; }
+            { name = "Boot"; mountPoint = "/"; }
+            { name = "NVME Data"; mountPoint = "/shuurinet-nvme-data"; }
+            { name = "NVME Editing"; mountPoint = "/shuurinet-nvme-editing"; }
+            { name = "Rust"; mountPoint = "/shuurinet-rust"; }
           ];
         };
       };
