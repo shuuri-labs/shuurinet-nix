@@ -67,7 +67,7 @@ in
           # sourceSha256 = "1c2n1qms0prj6chcn7gb169m0fc2692q2nwmah8hv70dla643g7g";
         };
         
-        "haos-15.2" = {
+        "haos-15_2" = {
           enable = true;
           source = "https://github.com/home-assistant/operating-system/releases/download/15.2/haos_ova-15.2.qcow2.xz";
           sourceFormat = "qcow2";
@@ -77,11 +77,11 @@ in
       };
 
        # To 'factory reset VM, delete in "/var/lib/vm/images" and restart service
-       # VM service names are the names of the service attribute sets below + the image name, e.g. "openwrt-openwrt" or "home-assistant-haos-15.2"
+       # VM service names are the names of the service attribute sets below e.g. "openwrt" or "home-assistant"
       services = {
         "openwrt" = {
           enable      = true;
-          baseImage   = "openwrt";
+          # baseImage   = "openwrt";
           uefi        = true;
           memory      = 1024;
           smp         = 8;
@@ -96,7 +96,7 @@ in
 
         "home-assistant" = {
           enable      = true;
-          baseImage   = "haos-15.2";
+          # baseImage   = "haos-15_2";
           uefi        = true;
           memory      = 3072;
           smp         = 2;
