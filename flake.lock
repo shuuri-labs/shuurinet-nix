@@ -420,11 +420,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1750774498,
-        "narHash": "sha256-BOnCDYmTWFK8K1YKAOiV1OtzLlgtoTSVfOWDcvXch3s=",
+        "lastModified": 1750861620,
+        "narHash": "sha256-Wu/a5cvqJEzIjIt+YWBjZKm0FfhzMIWwEfQuQkcd8LI=",
         "owner": "shuuri-labs",
         "repo": "nix-virtualisation",
-        "rev": "4427fb8040bc2a8518a7ceed636b52631451a951",
+        "rev": "ef0d211c0bca7739b197f0c10941d571a122b4ba",
         "type": "github"
       },
       "original": {

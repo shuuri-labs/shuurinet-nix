@@ -7,5 +7,7 @@
     ./media-server
     ./paperless
     ./frigate
+    ./openwrt
+    ./home-assistant
   ];
 }
