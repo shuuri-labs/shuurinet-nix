@@ -186,7 +186,7 @@ in
 
     services = {
       mealie.enable = true;
-      
+
       openwrt = {
         enable = true;
         imageDefinition = ./openwrt-config-test.nix;
@@ -205,6 +205,7 @@ in
         enable = true;
         address = "http://192.168.11.155";
       };
+      
       # mediaServer.enable = true;
       # paperless = {
       #   enable = true;

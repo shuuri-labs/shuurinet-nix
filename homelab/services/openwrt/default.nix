@@ -8,7 +8,7 @@ let
   common   = import ../common.nix { inherit lib config homelab service; };
   commonVm = import ../common-vm.nix { inherit lib config inputs service; };
 
-  openwrtImage = (import ./img-builder-extractor { inherit inputs; }).mkImageExtractor {
+  openwrtImage = (import ./image/builder-extractor { inherit inputs; }).mkImageExtractor {
     name = "${service}";
     imageDerivation = (import cfg.imageDefinition { inherit inputs; });
     format = "squashfs-combined-efi";
@@ -51,7 +51,7 @@ in
 
           vm = {
             baseImage = "${service}";
-            vncPort = 1;
+            vncPort = lib.mkDefault 1;
           };
         };
       };

@@ -44,12 +44,13 @@ in
             trusted_proxies:
               - <proxy_host_ip>
           ```
+          ref: https://www.home-assistant.io/integrations/http/
           */
           vm = {
             baseImage = "${service}";
-            memory = 3072;
+            memory = lib.mkDefault 3072;
             rootScsi = true;
-            vncPort = 2;
+            vncPort = lib.mkDefault 2;
           };
         };
       };
