@@ -12,7 +12,6 @@ in
     imports = [
     ./hardware-configuration.nix
     ./disk-config.nix
-    # (import ./homepage-config.nix { inherit config; })
     (import ./samba-config.nix { inherit config hostname; })
     (import ./power-monitoring.nix { inherit config; })
   ];

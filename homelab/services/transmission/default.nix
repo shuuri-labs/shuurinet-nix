@@ -3,7 +3,7 @@ let
   service = "transmission";
 
   homelab = config.homelab;
-  system = config.homelab.system;
+  system  = config.homelab.system;
   storage = config.homelab.system.storage;
   cfg     = homelab.services.${service};
 
