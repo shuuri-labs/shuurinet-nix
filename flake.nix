@@ -65,36 +65,6 @@
       flake = {
         nixosConfigurations = {
           dondozo = mkNixosHost "dondozo" [
-            # ./modules/homepage-dashboard
-            # ./modules/zfs
-            # ./modules/hdd-spindown
-            # ./modules/intel
-            # ./modules/power-saving
-            # ./modules/media-server
-            # ./modules/smb-provisioner
-            # ./modules/disk-care
-            # ./modules/iperf
-            # ./modules/uefi-boot
-            # ./modules/monitoring
-            # ./modules/paperless-ngx
-            # ./modules/remote-access
-            # ./modules/caddy
-            inputs.vpn-confinement.nixosModules.default
-            inputs.virtualisation.nixosModules.default
-          ] "x86_64-linux";
-
-          castform = mkNixosHost "castform" [
-            ./modules/homepage-dashboard
-            ./modules/zfs
-            ./modules/hdd-spindown
-            ./modules/intel
-            ./modules/power-saving
-            ./modules/media-server
-            ./modules/smb-provisioner
-            ./modules/disk-care
-            ./modules/iperf
-            ./modules/uefi-boot
-            ./modules/monitoring
             inputs.vpn-confinement.nixosModules.default
             inputs.virtualisation.nixosModules.default
           ] "x86_64-linux";
@@ -152,12 +122,6 @@
             inputs.virtualisation.nixosModules.default
           ] "x86_64-linux";
 
-          talonflame = mkNixosCloudHost "talonflame" [
-            ./modules/homepage-dashboard
-            inputs.vpn-confinement.nixosModules.default
-            inputs.virtualisation.nixosModules.default
-          ] "x86_64-linux";
-
           misdreavus = mkNixosHost "misdreavus" [
             # ./modules/monitoring
             ./modules/homepage-dashboard
@@ -205,8 +169,8 @@
           };
 
           # OpenWRT Configs
-          berlin-router-config = helper.mkOpenWrtConfig "./modules/openwrt/configs/berlin/router.nix" system;
-          vm-test-router-config = helper.mkOpenWrtConfig "./modules/openwrt/configs/berlin/vm-test-router.nix" system;
+          berlin-router-config = helper.mkOpenWrtConfig { configPath = "./modules/openwrt/configs/berlin/router.nix"; system; };
+          vm-test-router-config = helper.mkOpenWrtConfig { configPath = "./modules/openwrt/configs/berlin/vm-test-router.nix"; system; };
         };
       };
     };

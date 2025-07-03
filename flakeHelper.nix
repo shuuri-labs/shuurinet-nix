@@ -56,7 +56,7 @@ let
       inherit system;
 
       specialArgs = { 
-        inherit inputs stateVersion; 
+        inherit inputs stateVersion mkOpenWrtConfig; 
       };
       
       modules = [
@@ -92,12 +92,12 @@ let
       ] ++ extraModules;
     };
 
-  mkOpenWrtConfig = configPath: system:
+  mkOpenWrtConfig = { configuration, system }:
     let
       pkgs = inputs.nixpkgs.legacyPackages.${system};
     in
     pkgs.callPackage inputs.dewclaw {
-      configuration = import (builtins.path { path = ./.; name = "source"; } + "/${configPath}") { inherit inputs; };
+      inherit configuration;
     };
 
 in {

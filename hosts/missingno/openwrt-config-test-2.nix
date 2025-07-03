@@ -1,19 +1,21 @@
-{ inputs ? {} }:
+{ name ? "router" }:
 let
   common = import ./common.nix;
 
-  hostName = "shuurinet-router-bln";
+  hostName = "shuurinet-vm-test-router-bln";
 
-  lanBridge = common.mkBridge [ "eth0" "eth1" "eth2" "eth3" "eth4" ];
+  lanBridge = common.mkBridge [ "eth0" "eth1" "eth2" "eth3" "eth4" ]; 
 
   lanBridgeVlans = common.mkBridgeVlans {
-    trunkPorts = [ "eth2" "eth3" ];
-    lanPorts   = [ "eth0" "eth4" ];
-    appsPorts   = [ "eth1" ];
+    trunkPorts = [ "eth3" "eth4" ];
+    lanPorts   = [ "eth0" "eth2" ];
+    appsPorts  = [ "eth1" ];
   };
 
+  wanPort = "eth5";
+
   interfaces = common.mkInterfaces {
-    hostAddress = 1;
+    hostAddress = 51;
     dnsAddress  = 1;
     setGateway  = true;
   }; 
@@ -21,12 +23,10 @@ let
   firewallZones      = common.firewallZones;
   firewallForwarding = common.firewallForwarding;
 
-  wanPort = "eth5";
-
-  # dnsIp = "192.168.11.1";
+  dnsIp = "192.168.11.1";
 in {
-  openwrt.berlin-router-config = {
-    deploy.host = "192.168.11.1";
+  openwrt.${name} = {
+    deploy.host = "192.168.11.51";
 
     deploy.sshConfig = {
       Port         = 22;
@@ -41,33 +41,72 @@ in {
       "htop" 
       "nano" 
       "tcpdump" 
-      "pciutils"
     ];
 
     uci.sopsSecrets = "/home/ashley/shuurinet-nix/secrets/sops/openwrt.yaml";
 
-    uci.retain = [ "dhcp" "dropbear" "firewall" "luci" "rpcd" "system" "ucitrack" "uhttpd" ];
+    uci.retain = [ /* "dhcp" */ "dropbear" /* "firewall" */ "luci" "rpcd" "ucitrack" "uhttpd" ];
 
     uci.settings = {
+      system = {
+        system = [{
+          hostname = name;
+          timezone = "UTC";
+        }];
+      };
+
       network = {
         globals = [
           {
-            ula_prefix = "fd8f:2e0e:4eed::/48";
+            ula_prefix = "fd0b:b19b:f355::/48";
           }
         ];
 
         device = [
-          lanBridge
+          {
+            name   = "br-lan";
+            type   = "bridge";
+            ports  = [ "eth0" "eth1" "eth2" "eth3" "eth4" ];
+          };
         ];
 
-        "bridge-vlan" = lanBridgeVlans.bridge-vlan;
+        "bridge-vlan" = [
+          {
+          # lan
+          device   = "br-lan";
+            vlan   = "11";
+            ports  = portsFormatted lanPorts trunkPorts;
+          }
+          # guest
+          {
+            device = "br-lan";
+            vlan   = "22";
+            ports  = portsFormatted guestPorts trunkPorts;
+          }
+          # iot
+          {
+            device = "br-lan";
+            vlan   = "33";
+            ports  = portsFormatted iotPorts trunkPorts;
+          }
+          # apps
+          {
+            device = "br-lan";
+            vlan   = "44";
+            ports  = portsFormatted appsPorts trunkPorts;
+          }
+          # management
+          {
+            device = "br-lan";
+            vlan   = "55";
+            ports  = portsFormatted managementPorts trunkPorts;
+          }
+        ];
 
         interface = interfaces // {
           wan = {
             device           = wanPort;
-            proto            = "pppoe";
-            username._secret = "pppoe.username";
-            password._secret = "pppoe.password";
+            proto            = "dhcp";
             ipv6             = "auto";
           };
 
@@ -97,15 +136,15 @@ in {
         rule = [
           { name = "allow_mdns"; src = "*"; src_port = "5353"; dest_port = "5353"; proto = "udp"; dest_ip = "224.0.0.251"; target = "ACCEPT"; }
 
-          { name = "guest_dns_dhcp";      src = "guest";      dest_port = "53 67 68"; target = "ACCEPT"; }
+          { name = "guest_dns_dhcp";      src = "guest";      dest_port = "53 67 69"; target = "ACCEPT"; }
           { name = "iot_dns_dhcp";        src = "iot";        dest_port = "53 67 68"; target = "ACCEPT"; }
           { name = "apps_dns_dhcp";       src = "apps";       dest_port = "53 67 68"; target = "ACCEPT"; }
           { name = "management_dns_dhcp"; src = "management"; dest_port = "53 67 68"; target = "ACCEPT"; }
 
-          # { name = "guest_adguard_dns";      src = "guest";      dest = "lan"; dest_port = "53"; dest_ip = dnsIp; target = "ACCEPT"; }
-          # { name = "iot_adguard_dns";        src = "iot";        dest = "lan"; dest_port = "53"; dest_ip = dnsIp; target = "ACCEPT"; }
-          # { name = "dmz_adguard_dns";        src = "apps";       dest = "lan"; dest_port = "53"; dest_ip = dnsIp; target = "ACCEPT"; }
-          # { name = "management_adguard_dns"; src = "management"; dest = "lan"; dest_port = "53"; dest_ip = dnsIp; target = "ACCEPT"; }
+          { name = "guest_adguard_dns";      src = "guest";      dest = "lan"; dest_port = "53"; dest_ip = dnsIp; target = "ACCEPT"; }
+          { name = "iot_adguard_dns";        src = "iot";        dest = "lan"; dest_port = "53"; dest_ip = dnsIp; target = "ACCEPT"; }
+          { name = "dmz_adguard_dns";        src = "apps";       dest = "lan"; dest_port = "53"; dest_ip = dnsIp; target = "ACCEPT"; }
+          { name = "management_adguard_dns"; src = "management"; dest = "lan"; dest_port = "53"; dest_ip = dnsIp; target = "ACCEPT"; }
           
           { name = "avr_block_forward";                src = "iot"; src_ip._secret = "host.avr.ip"; dest = "*"; target = "REJECT"; }
           { name = "living_room_switch_block_forward"; src = "lan"; src_ip = "192.168.11.5";        dest = "*"; target = "REJECT"; }
@@ -140,13 +179,7 @@ in {
         dhcp = {
           lan = {
             interface = "lan";
-            start     = 100;
-            limit     = 150;
-            leasetime = "12h";
-            dhcpv4    = "server";
-            ra        = "server";
-            dhcpv6    = "server";
-            ra_flags  = [ "managed-config" "other-config" ];
+            ignore    = true;
           };
 
           wan = {
@@ -156,34 +189,39 @@ in {
 
           guest = {
             interface = "guest";
-            start     = 100;
-            limit     = 150;
-            leasetime = "12h";
+            ignore    = true;
           };
 
           iot = {
             interface = "iot";
-            start     = 100;
-            limit     = 150;
-            leasetime = "12h";
+            ignore    = true;
           };
 
           apps = {
             interface = "apps";
-            start     = 100;
-            limit     = 150;
-            leasetime = "12h";
-            ra        = "server";
-            dhcpv6    = "server";
+            ignore    = true;
           };
 
           management = {
             interface = "management";
-            start     = 100;
-            limit     = 150;
-            leasetime = "12h";
+            ignore    = true;
           };
         };
+
+        domain = [
+          {
+            name = "dondozo";
+            ip = "192.168.11.10";
+          }
+          {
+            name = "castform";
+            ip = "192.168.11.11";
+          }
+          {
+            name = "missingno";
+            ip = "192.168.11.12";
+          }
+        ];
 
         host = [
           # {
@@ -239,19 +277,19 @@ in {
     
     etc."avahi/avahi-daemon.conf".text = ''
       [server]
-      use-ipv4=yes
-      use-ipv6=yes
+      use-ipv4=no
+      use-ipv6=no
       check-response-ttl=no
       use-iff-running=no
 
       [publish]
-      publish-addresses=yes
-      publish-hinfo=yes
+      publish-addresses=no
+      publish-hinfo=no
       publish-workstation=no
-      publish-domain=yes
+      publish-domain=no
 
       [reflector]
-      enable-reflector=yes
+      enable-reflector=no
       reflect-ipv=no
 
       [rlimits]
@@ -265,5 +303,5 @@ in {
   };
 }
 
-# nix build .#berlin-router-config --show-trace
-# sudo -E ./result/bin/deploy-berlin-router-config 
+# nix build .#vm-test-router-config --show-trace
+# sudo -E ./result/bin/deploy-vm-test-router-config 

@@ -11,7 +11,7 @@ let
   openwrtImage = (import ./image/builder-extractor { inherit inputs; }).mkImageExtractor {
     name = "${service}";
     imageDerivation = (import cfg.imageDefinition { inherit inputs; });
-    format = "squashfs-combined-efi";
+    format = cfg.imageFormat;
   };
 in
 {
@@ -21,10 +21,10 @@ in
       description = "Path to the image definition for the OpenWRT VM";
     };
 
-    configFile = lib.mkOption {
+    imageFormat = lib.mkOption {
       type = lib.types.str;
-      default = "";
-      description = "Path to the config file for the OpenWRT VM";
+      description = "Format of the OpenWRT image";
+      default = "squashfs-combined-efi";
     };
   };
 
@@ -44,9 +44,6 @@ in
 
       homelab = { 
         services.${service} = {
-          address = lib.mkDefault "http://192.168.11.51"; # TODO: get from openwrt config
-          port = lib.mkDefault 80;
-
           fqdn.topLevel = lib.mkDefault "router";
 
           vm = {

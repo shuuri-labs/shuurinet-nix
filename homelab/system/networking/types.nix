@@ -44,4 +44,23 @@ in {
       };
     };
   });
+
+  staticHost = types.submodule {
+    options = {
+      name = mkOption {
+        type = types.str;
+        description = "Hostname for this static host";
+      };
+
+      ipv4 = mkOption {
+        type = types.str;
+        description = "IPv4 address for this static host";
+      };
+
+      mac = mkOption {
+        type = types.str;
+        description = "MAC address for this static host";
+      };
+    };
+  };
 }
