@@ -20,13 +20,11 @@ let
   mkBridgeVlans = { 
     interfaces,
     ...
-  }: {
-    "bridge-vlan" = lib.mapAttrsToList (name: interface: {
-      device = "br-lan";  
-      vlan = toString interface.vlanId;
-      ports = formatPorts interface.ports interface.trunkPorts;
-    }) interfaces;
-  }; 
+  }: lib.mapAttrsToList (name: interface: {
+    device = "br-lan";  
+    vlan = toString interface.vlanId;
+    ports = formatPorts interface.ports interface.trunkPorts;
+  }) interfaces; 
 
   # ------------------------------ Interfaces ------------------------------
 
@@ -55,6 +53,7 @@ let
     dns     = lib.concatStringsSep "," dnsAddresses;
     gateway = if !isRouter && interface.isPrimary then formatAddress { subnet = interface.address.prefix; lastOctet = 1; } else "";
     netmask = netmask;
+    # metric = if interface.isPrimary then 10 else 100;
   }) interfaces) // {
     "wan" = lib.mkIf isRouter {
       device = "wan";
@@ -62,7 +61,6 @@ let
       username = pppoeUsername;
       password = pppoePassword;
       ipv6 = "auto";
-      metric = if interface.isPrimary then 10 else 100;
     };
     "wan6" = lib.mkIf isRouter {
       device = "wan6";
@@ -96,12 +94,13 @@ let
         allOtherInterfaces = lib.filter (name: name != srcName) (lib.attrNames interfaces);
         
         # Determine target interfaces based on forwards field
+        forwards = interface.forwards or [];
         targetInterfaces = 
-          if builtins.elem "*" interface.forwards then
+          if builtins.elem "*" forwards then
             allOtherInterfaces ++ lib.optionals isRouter [ "wan" ]
           else
             # Remove duplicates in case "wan" is explicitly listed and isRouter is true
-            lib.unique (interface.forwards ++ lib.optionals isRouter [ "wan" ]);
+            lib.unique (forwards ++ lib.optionals isRouter [ "wan" ]);
       in
         # Create forwarding rules for each target
         map (destName: {
@@ -142,12 +141,10 @@ let
   mkDHCP = {
     interfaces,
     ...
-  }: {
-    dhcp = lib.mapAttrs (name: interface: {
-      interface = name;
-      ignore = !isRouter;
-    });
-  };
+  }: lib.mapAttrs (name: interface: {
+    interface = name;
+    ignore = !isRouter;
+  }) interfaces;
 
   mkSQM = {
     wanPort,
@@ -174,5 +171,5 @@ let
   };
 in 
 {
-  inherit mkBridgeVlans mkInterfaces mkFirewall;
+  inherit mkBridgeVlans mkInterfaces mkFirewall mkDHCP mkSQM;
 }

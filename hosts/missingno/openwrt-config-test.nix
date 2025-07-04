@@ -56,7 +56,7 @@ let
     };
   };
 
-  helper = import ./helper.nix { inherit lib isRouter dnsAddresses; };
+  helper = import /home/ashley/shuurinet-nix/homelab/services/openwrt/config/helper.nix { inherit lib isRouter dnsAddresses; };
 in
 {
   config = {
@@ -107,7 +107,7 @@ in
             }
           ];
 
-          "bridge-vlan" = helper.mkBridgeVlans."bridge-vlan" {
+          "bridge-vlan" = helper.mkBridgeVlans {
             inherit interfaces;
           };
 
@@ -124,7 +124,7 @@ in
             # { name = "kitchen_led_mqtt";                 src = "iot"; src_ip = "${interfaces.iot.address.prefix}.194"; dest = "lan"; dest_ip = "${interfaces.lan.address.prefix}.127"; dest_port = "1883"; target = "ACCEPT"; }
             { name = "tv_allow_airplay";                 src = "iot"; src_ip = "${interfaces.iot.address.prefix}.192";  dest = "lan"; dest_port = "6002 7000 49152-65535"; target = "ACCEPT"; }
             { name = "living_room_switch_block_input";   src = "lan"; src_ip = "${interfaces.lan.address.prefix}.5"; target = "REJECT"; }
-          ]
+          ];
         };
 
         dhcp = {
@@ -147,7 +147,7 @@ in
             }
           ];
 
-          dhcp = helper.mkDHCP.dhcp {
+          dhcp = helper.mkDHCP {
             inherit interfaces;
           };
 
@@ -187,6 +187,6 @@ in
         #   rlimit-nproc=3
         # '';
       };
-    }
+    };
   };
 }

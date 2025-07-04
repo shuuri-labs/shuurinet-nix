@@ -168,9 +168,9 @@
             format = "squashfs-combined-efi";
           };
 
-          # OpenWRT Configs
-          berlin-router-config = helper.mkOpenWrtConfig { configPath = "./modules/openwrt/configs/berlin/router.nix"; system; };
-          vm-test-router-config = helper.mkOpenWrtConfig { configPath = "./modules/openwrt/configs/berlin/vm-test-router.nix"; system; };
+          # # OpenWRT Configs
+          # berlin-router-config = helper.mkOpenWrtConfig { configPath = "./modules/openwrt/configs/berlin/router.nix"; system; };
+          # vm-test-router-config = helper.mkOpenWrtConfig { configPath = "./modules/openwrt/configs/berlin/vm-test-router.nix"; system; };
         };
       };
     };

@@ -15,6 +15,10 @@ let
   };
 in
 {
+  imports = [
+    ./config
+  ];
+
   options.homelab.services.${service} = common.options // commonVm.options // { 
     imageDefinition = lib.mkOption {
       type = lib.types.path;

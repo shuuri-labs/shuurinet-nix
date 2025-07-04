@@ -30,6 +30,7 @@
       forwards = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         description = "Interfaces to forward traffic to";
+        default = [];
       };
 
       isPrivileged = lib.mkOption {

@@ -191,7 +191,7 @@ in
 
       openwrt = {
         enable = true;
-        imageDefinition = ./openwrt-config-test.nix;
+        imageDefinition = ./openwrt-image-test.nix;
 
         vm = {
           smp         = 8;
@@ -209,7 +209,7 @@ in
           {
             ${routerName} = {
               enable = true; 
-              config = import (builtins.path { path = ./.; name = "source"; } + "/home/ashley/shuurinet-nix/hosts/missingno/openwrt-config-test.nix") { inherit lib dnsRecords staticLeases; name = routerName; };
+              config = import ./openwrt-config-test.nix { inherit lib dnsRecords; name = routerName; };
               isRouter = true;
             };
           };

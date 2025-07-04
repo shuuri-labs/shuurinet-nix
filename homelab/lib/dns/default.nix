@@ -7,6 +7,7 @@ in
 {
   imports = [
     ./cloudflare.nix
+    ./openwrt.nix
   ];
 
   options.homelab.lib.dns = {

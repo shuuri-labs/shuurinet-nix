@@ -1,7 +1,7 @@
 { config, lib, pkgs, mkOpenWrtConfig, ... }:
 
 let
-  cfg = config.homelab.services.openwrt.configs;
+  # cfg = config.homelab.services.openwrt.configs;
 
     ## --- 1 ▪ don't check ssh/scp host keys ------------------------------
   sshNoCheck = pkgs.writeShellScriptBin "ssh" ''
@@ -29,7 +29,7 @@ let
     ##  wrappers go FIRST in PATH  ↓
     environment = {
       NIX_PATH = "nixpkgs=${pkgs.path}";
-      PATH = mkForce (lib.makeBinPath ([
+      PATH = lib.mkForce (lib.makeBinPath ([
         sshNoCheck
         scpNoCheck
       ] ++ [
@@ -120,6 +120,7 @@ in
           default = false;
         };
       };
+      default = {};
     });    
   };
 
@@ -141,20 +142,12 @@ in
           };
         };
 
-        # config = import (builtins.path { path = ./.; name = "source"; } + "/${configOptions.configFile}") { inherit lib dnsRecords staticLeases; };
-        # do above elsewhere 
-
-        configDrv = mkOpenWrtConfig {
-          configuration = configOptions.config;
-          system = configOptions.system;
-        };
-
-        systemd.services = makeService {
-          name        = configName;
-          drv         = configDrv;
-          host        = host;
+        systemd.services."${configName}-auto-configure" = makeService {
+          name = configName;
+          drv = configDrv;
+          host = host;
         };
       }
     )
-  ) cfg);
+  ) config.homelab.services.openwrt.configs);
 }
