@@ -9,6 +9,8 @@ let
 
   hostAddress = "151";
   deploymentMode = false;
+
+  dnsRecords = config.homelab.lib.dns.openwrt.records;
 in
 {
   imports = [
@@ -199,6 +201,18 @@ in
             { address = "04:00.0"; }
           ];
         };
+
+        configs = 
+          let 
+            routerName = "shuurinet-test-router"; # attribute set name and name passed to config must be the same!
+          in
+          {
+            ${routerName} = {
+              enable = true; 
+              config = import (builtins.path { path = ./.; name = "source"; } + "/home/ashley/shuurinet-nix/hosts/missingno/openwrt-config-test.nix") { inherit lib dnsRecords staticLeases; name = routerName; };
+              isRouter = true;
+            };
+          };
       };
 
       home-assistant = { 
