@@ -2,12 +2,13 @@
 let
   isRouter = false;
   hostAddress = 51;
-  dnsAddresses = [ "192.168.1.1" ];
+  dnsAddresses = [ "192.168.11.1" ];
 
   bridgePorts = [ "eth0" "eth1" "eth2" "eth3" "eth4" ];
   trunkPorts = [ "eth2" "eth3" ];
   wanPort = "eth5";
 
+  # Define interfaces - these will be converted to interfaceType by the helper for type safety
   interfaces = {
     lan = {
       vlanId = 11;
@@ -23,6 +24,7 @@ let
 
     guest = {
       vlanId = 22;
+      ports = [];  # VLAN-only interface, no direct ports
       trunkPorts = trunkPorts;
       address = {
         prefix = "10.10.22";
@@ -31,6 +33,7 @@ let
 
     iot = {
       vlanId = 33;
+      ports = [];  # VLAN-only interface, no direct ports
       trunkPorts = trunkPorts;
       address = {
         prefix = "10.10.33";
@@ -39,6 +42,7 @@ let
 
     apps = {
       vlanId = 44;
+      ports = [];  # VLAN-only interface, no direct ports
       trunkPorts = trunkPorts;
       address = {
         prefix = "10.10.44";
@@ -52,11 +56,10 @@ let
       address = {
         prefix = "10.10.55";
       };
-      isPrivileged = true;
     };
   };
 
-  helper = import /home/ashley/shuurinet-nix/homelab/services/openwrt/config/helper.nix { inherit lib isRouter dnsAddresses; };
+  helper = import /home/ashley/shuurinet-nix/homelab/services/openwrt/config/helper.nix { inherit lib interfaces isRouter dnsAddresses; };
 in
 {
   config = {
@@ -80,7 +83,7 @@ in
         "tcpdump"
       ];
 
-      uci.sopsSecrets = "/home/ashley/shuurinet-nix/secrets/sops/openwrt.yaml";
+      # uci.sopsSecrets = "/home/ashley/shuurinet-nix/secrets/sops/openwrt.yaml";
 
       uci.retain = [ /* "dhcp" */ "dropbear" /* "firewall" */ "luci" "rpcd" "ucitrack" "uhttpd" ];
 
@@ -108,16 +111,14 @@ in
           ];
 
           "bridge-vlan" = helper.mkBridgeVlans {
-            inherit interfaces;
           };
 
           interface = helper.mkInterfaces {
-            inherit interfaces hostAddress;
+            inherit hostAddress;
           };
         };
 
         firewall = helper.mkFirewall {
-          inherit interfaces;
           extraRules = [
             { name = "avr_block_forward";                src = "iot"; src_ip = "${interfaces.iot.address.prefix}.118"; dest = "*"; target = "REJECT"; }
             { name = "living_room_switch_block_forward"; src = "lan"; src_ip = "${interfaces.lan.address.prefix}.5"; dest = "*"; target = "REJECT"; }
@@ -148,7 +149,6 @@ in
           ];
 
           dhcp = helper.mkDHCP {
-            inherit interfaces;
           };
 
           domain = dnsRecords;

@@ -48,6 +48,7 @@ in
 
       homelab = { 
         services.${service} = {
+          port = lib.mkDefault 80;
           fqdn.topLevel = lib.mkDefault "router";
 
           vm = {

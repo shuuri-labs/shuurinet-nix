@@ -66,42 +66,30 @@
     };
   };
 
-  wanConfigType = lib.types.submodule {
+  configDefinitionType = lib.types.submodule {
     options = {
-      interface = lib.mkOption {
+      enable = lib.mkEnableOption "OpenWRT configuration";
+
+      name = lib.mkOption {
         type = lib.types.str;
-        description = "WAN interface to use for the OpenWRT configuration";
-        default = "wan";
+        description = "Name of the OpenWRT configuration file";
       };
 
-      protocol = lib.mkOption {
-        type = lib.types.enum [ "dhcp" "pppoe" ];
-        description = "Protocol to use for the WAN interface";
-        default = "dhcp";
+      config = lib.mkOption {
+        type = lib.types.attrs;
+        description = "OpenWRT configuration";
       };
 
-      download = lib.mkOption {
-        type = lib.types.int;
-        description = "Download speed of the WAN interface for SQM";
-        default = 0;
-      };
-
-      upload = lib.mkOption {
-        type = lib.types.int;
-        description = "Upload speed of the WAN interface for SQM";
-        default = 0;
-      };
-
-      username = lib.mkOption {
+      system = lib.mkOption {
         type = lib.types.str;
-        description = "PPPoE Username for the WAN interface";
-        default = "";
+        description = "System to build the configuration for";
+        default = "x86_64-linux";
       };
 
-      password = lib.mkOption {
-        type = lib.types.str;
-        description = "PPPoE Password for the WAN interface";
-        default = "";
+      isRouter = lib.mkOption {
+        type = lib.types.bool;
+        description = "Whether this configuration is a router";
+        default = false;
       };
     };
   };

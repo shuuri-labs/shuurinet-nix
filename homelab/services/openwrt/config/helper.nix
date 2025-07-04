@@ -1,5 +1,28 @@
-{ lib, isRouter ? false, dnsAddresses ? [], ... }:
-let 
+{ lib, interfaces, isRouter ? false, dnsAddresses ? [], ... }:
+let
+  # Import OpenWRT types and convert interfaces to get default values
+  openwrtTypes = import ./types.nix { inherit lib; };
+  
+  # Convert interfaces to interfaceType to populate default fields
+  typedInterfaces = lib.mapAttrs (name: interface:
+    # Provide default values for missing fields
+    {
+      vlanId = interface.vlanId;
+      ports = interface.ports or [];
+      trunkPorts = interface.trunkPorts or [];
+      address = interface.address;
+      forwards = interface.forwards or [];
+      isPrivileged = interface.isPrivileged or false;
+      isPrimary = interface.isPrimary or false;
+      wifi = interface.wifi or {
+        enable = false;
+        ssid = "";
+        password = "";
+        frequency = "2.4";
+      };
+    }
+  ) interfaces;
+
   # ------------------------------ Helper Functions ------------------------------
 
   formatPorts = interfacePorts: trunkPorts:
@@ -18,13 +41,12 @@ let
   # ------------------------------ Bridge VLANs ------------------------------
 
   mkBridgeVlans = { 
-    interfaces,
     ...
   }: lib.mapAttrsToList (name: interface: {
     device = "br-lan";  
     vlan = toString interface.vlanId;
     ports = formatPorts interface.ports interface.trunkPorts;
-  }) interfaces; 
+  }) typedInterfaces; 
 
   # ------------------------------ Interfaces ------------------------------
 
@@ -35,7 +57,6 @@ let
   in 
   {
     hostAddress,
-    interfaces,
     pppoeUsername ? "",
     pppoePassword ? "",
     ...
@@ -54,7 +75,7 @@ let
     gateway = if !isRouter && interface.isPrimary then formatAddress { subnet = interface.address.prefix; lastOctet = 1; } else "";
     netmask = netmask;
     # metric = if interface.isPrimary then 10 else 100;
-  }) interfaces) // {
+  }) typedInterfaces) // {
     "wan" = lib.mkIf isRouter {
       device = "wan";
       proto = if pppoeUsername != null && pppoePassword != null then "pppoe" else "dhcp";
@@ -73,7 +94,6 @@ let
   # ------------------------------ Firewall ------------------------------
   
   mkFirewall = {
-    interfaces, 
     dnsZone ? "lan",
     extraRules ? [],
     ...
@@ -84,14 +104,14 @@ let
       output = "ACCEPT";
       forward = if interface.isPrivileged then "ACCEPT" else "REJECT";
       network = [ name ];
-    }) interfaces ++ lib.optionals isRouter [
+    }) typedInterfaces ++ lib.optionals isRouter [
       { name = "wan"; input = "REJECT"; output = "ACCEPT"; forward = "REJECT"; network = [ "wan" "wan6" ]; }
     ];
 
     forwarding = lib.flatten (lib.mapAttrsToList (srcName: interface: 
       let
         # Get all interface names except the current source
-        allOtherInterfaces = lib.filter (name: name != srcName) (lib.attrNames interfaces);
+        allOtherInterfaces = lib.filter (name: name != srcName) (lib.attrNames typedInterfaces);
         
         # Determine target interfaces based on forwards field
         forwards = interface.forwards or [];
@@ -107,7 +127,7 @@ let
           src = srcName;
           dest = destName;
         }) targetInterfaces
-    ) interfaces);
+    ) typedInterfaces);
 
     rule = lib.flatten [
       # DNS/DHCP rules for each interface (only if router)
@@ -116,7 +136,7 @@ let
         src = name;
         dest_port = "53 67 68";
         target = "ACCEPT";
-      }) interfaces))
+      }) typedInterfaces))
       
       # AdGuard DNS rules for each interface (only if is router and DNS address provided)
       (lib.optionals (isRouter && dnsAddressIpv4 != null) (lib.mapAttrsToList (name: interface: {
@@ -126,7 +146,7 @@ let
         dest_port = "53";
         dest_ip = dnsAddressIpv4;
         target = "ACCEPT";
-      }) interfaces))
+      }) typedInterfaces))
       
       # mDNS rule (only if router)
       (lib.optionals isRouter [
@@ -138,13 +158,16 @@ let
     ];
   };
 
+  # ------------------------------ DHCP ------------------------------
+
   mkDHCP = {
-    interfaces,
     ...
   }: lib.mapAttrs (name: interface: {
     interface = name;
     ignore = !isRouter;
-  }) interfaces;
+  }) typedInterfaces;
+
+  # ------------------------------ SQM ------------------------------
 
   mkSQM = {
     wanPort,

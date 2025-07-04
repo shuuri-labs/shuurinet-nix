@@ -1,7 +1,13 @@
 { config, lib, pkgs, mkOpenWrtConfig, ... }:
 
 let
-  # cfg = config.homelab.services.openwrt.configs;
+  cfg = config.homelab.services.openwrt.configAutoDeployment;
+  
+  # Import our custom types
+  openwrtTypes = import ./types.nix { inherit lib; };
+
+  # Keep configuration flexible for now - type safety is handled by helper validation
+  openwrtConfigType = lib.types.attrs;
 
     ## --- 1 ▪ don't check ssh/scp host keys ------------------------------
   sshNoCheck = pkgs.writeShellScriptBin "ssh" ''
@@ -93,39 +99,18 @@ let
   };
 in
 {
-  options.homelab.services.openwrt.configs = {
-    type = lib.types.attrsOf (lib.types.submodule {
-      options = {
-        enable = lib.mkEnableOption "OpenWRT configuration";
+  options.homelab.services.openwrt.configAutoDeployment = {
+    enable = lib.mkEnableOption "OpenWRT configuration auto-deployment";
 
-        name = lib.mkOption {
-          type = lib.types.str;
-          description = "Name of the OpenWRT configuration file";
-        };
-
-        config = lib.mkOption {
-          type = lib.types.attrs;
-          description = "OpenWRT configuration";
-        };
-
-        system = lib.mkOption {
-          type = lib.types.str;
-          description = "System to build the configuration for";
-          default = "x86_64-linux";
-        };
-
-        isRouter = lib.mkOption {
-          type = lib.types.bool;
-          description = "Whether this configuration is a router";
-          default = false;
-        };
-      };
+    configs = lib.mkOption {
+      type = lib.types.attrsOf openwrtTypes.configDefinitionType;  
       default = {};
-    });    
+      description = "Set of OpenWRT configurations to deploy";
+    };
   };
 
-  config = lib.mkMerge (lib.mapAttrsToList (configName: configOptions: 
-    lib.mkIf configOptions.enable (
+  config = lib.mkIf cfg.enable {
+    systemd.services = lib.mapAttrs (configName: configOptions: 
       let
         host = configOptions.config.config.openwrt.${configName}.deploy.host;
 
@@ -134,20 +119,11 @@ in
           system = configOptions.system;
         };
       in
-      {
-        homelab = lib.mkIf configOptions.isRouter {
-          services.openwrt = {
-            address = lib.mkDefault "http://${host}";
-            port = lib.mkDefault 80;
-          };
-        };
-
-        systemd.services."${configName}-auto-configure" = makeService {
-          name = configName;
-          drv = configDrv;
-          host = host;
-        };
+      makeService {
+        name = configName;
+        drv = configDrv;
+        host = host;
       }
-    )
-  ) config.homelab.services.openwrt.configs);
+    ) (lib.filterAttrs (name: configOptions: configOptions.enable) cfg.configs);
+  };
 }

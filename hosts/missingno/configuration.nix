@@ -163,6 +163,7 @@ in
       
       dns = {
         cloudflare.credentialsFile = config.age.secrets.cloudflare-credentials.path;
+        openwrt.enable = true;
       };
 
       reverseProxy = {
@@ -194,6 +195,8 @@ in
         imageDefinition = ./openwrt-image-test.nix;
 
         vm = {
+          baseImage = lib.mkForce null; # remove dependency on openwrt image drv
+
           smp         = 8;
           hostBridges = [ "br0" "br1" ];
           pciHosts    = [ 
@@ -202,17 +205,21 @@ in
           ];
         };
 
-        configs = 
+        configAutoDeployment = {
+          enable = true;
+          configs = 
           let 
             routerName = "shuurinet-test-router"; # attribute set name and name passed to config must be the same!
           in
           {
             ${routerName} = {
-              enable = true; 
+              enable = true;
+              name = routerName;  # Add the required name field
               config = import ./openwrt-config-test.nix { inherit lib dnsRecords; name = routerName; };
               isRouter = true;
             };
           };
+        };
       };
 
       home-assistant = { 
