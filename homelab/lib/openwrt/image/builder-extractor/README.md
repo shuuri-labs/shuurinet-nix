@@ -8,7 +8,7 @@ To build an image, first updat openwrt-image-builder flake input url commit hash
 
 Sometimes, their build lags behind and you may need to clone the repo and fetch the latest hashes yourself. To do this, run the following script: 
 
-`~/shuurinet-nix/modules/openwrt/image-definitions/builder-extractor/fetch-newest-hashes.sh`
+`~/shuurinet-nix/homelab/lib/openwrt/image/builder-extractor/fetch-newest-hashes.sh`
 
 you should now be able to re-run your host rebuild with: `nxrbi --override-input openwrt-imagebuilder "git+file://$IB"`
 

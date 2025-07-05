@@ -146,7 +146,7 @@
           # build the image with `nix build .#berlin-router-img`
           # berlin-ap-imgs = import ./modules/openwrt/image-definitions/berlin/ap.nix { inherit inputs; };
 
-          bln-test-router-img = (import ./homelab/services/openwrt/image/builder-extractor { inherit inputs; }).mkImageExtractor {
+          bln-test-router-img = (import ./homelab/lib/openwrt/image/builder-extractor { inherit inputs; }).mkImageExtractor {
             name = "berlin-router";
             imageDefinition = (import ./hosts/missingno/openwrt-image-test.nix { inherit inputs; });
             format = "squashfs-combined-efi";

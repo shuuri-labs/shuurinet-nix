@@ -59,7 +59,7 @@ let
     };
   };
 
-  helper = import /home/ashley/shuurinet-nix/homelab/lib/openwrt-config-autodeploy/helper.nix { inherit lib interfaces isRouter dnsAddresses; };
+  helper = import /home/ashley/shuurinet-nix/homelab/lib/openwrt/config/helper.nix { inherit lib interfaces isRouter dnsAddresses; };
 in
 {
   config = {

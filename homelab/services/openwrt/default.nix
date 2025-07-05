@@ -10,7 +10,7 @@ let
   commonVm = import ../common-vm.nix { inherit lib config inputs service; };
 
   routerImage = if cfg.router.imageDefinition != null then
-    (import ./image/builder-extractor { inherit inputs; }).mkImageExtractor {
+    (import /home/ashley/shuurinet-nix/homelab/lib/openwrt/image/builder-extractor { inherit inputs; }).mkImageExtractor {
       name = "${service}";
       imageDefinition = (import cfg.router.imageDefinition { inherit inputs; });
       format = "squashfs-combined-efi";

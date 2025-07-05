@@ -2,7 +2,7 @@
 let
   system = "x86_64-linux";
   pkgs = inputs.nixpkgs.legacyPackages.${system};
-  x86RouterBase = import ../../homelab/services/openwrt/image/templates/x86-router.nix { inherit inputs; };
+  x86RouterBase = import /home/ashley/shuurinet-nix/homelab/lib/openwrt/image/templates/x86-router.nix { inherit inputs; };
   
   # Router configuration parameters
   routerArgs = {
