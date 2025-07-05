@@ -123,6 +123,10 @@ in
   homelab = {
     enable = true;
 
+    domain = {
+      sub = "test";
+    };
+
     common.secrets.sopsKeyPath = "${secretsAbsolutePath}/keys/sops-key.age";
 
     system = {

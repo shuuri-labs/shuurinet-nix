@@ -77,10 +77,6 @@ in
   homelab = {
     enable = true;
 
-    domain = {
-      sub = "bln";
-    };
-
     system = {
       disk.care = {
         trim.enable = true;
