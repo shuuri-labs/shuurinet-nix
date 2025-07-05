@@ -190,9 +190,15 @@ in
     services = {
       mealie.enable = true;
 
-      openwrt = {
+      openwrt = 
+      let
+        routerName = "shuurinet-test-router"; # attribute set name and name passed to config must be the same!
+        routerConfig = import ./openwrt-config-test.nix { inherit lib dnsRecords; name = routerName; };
+      in
+      {
         enable = true;
         imageDefinition = ./openwrt-image-test.nix;
+        address = routerConfig.config.openwrt.${routerName}.deploy.host;
 
         vm = {
           baseImage = lib.mkForce null; # remove dependency on openwrt image drv
@@ -207,15 +213,11 @@ in
 
         configAutoDeployment = {
           enable = true;
-          configs = 
-          let 
-            routerName = "shuurinet-test-router"; # attribute set name and name passed to config must be the same!
-          in
-          {
+          configs = {
             ${routerName} = {
               enable = true;
               name = routerName;  # Add the required name field
-              config = import ./openwrt-config-test.nix { inherit lib dnsRecords; name = routerName; };
+              config = routerConfig;
               isRouter = true;
             };
           };

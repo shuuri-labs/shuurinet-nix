@@ -4,14 +4,14 @@ let
   dns = config.homelab.lib.dns;
   cfg = dns.openwrt;
 
-  convertDnsRecords = lib.attrValues (lib.mapAttrs (name: record: {
+  convertDnsRecords = records: lib.attrValues (lib.mapAttrs (name: record: {
     name = record.name;
     ip = record.content;
   }) (lib.filterAttrs (name: record: 
     record.enable && 
     record.type == "A" && 
     record.content != null
-  )));
+  ) records));
 in 
 {
   options.homelab.lib.dns.openwrt = {
