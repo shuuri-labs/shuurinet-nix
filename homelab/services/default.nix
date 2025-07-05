@@ -3,8 +3,10 @@
   imports = [
     ./mealie
     ./jellyfin
+    ./jellyseerr
     ./transmission
     ./media-server
+    ./immich
     ./paperless
     ./frigate
     ./openwrt

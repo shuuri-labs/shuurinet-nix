@@ -201,8 +201,9 @@ in
 
     services = {
       mealie.enable = true;
-
+      jellyseerr.enable = true;
       mediaServer.enable = true; 
+      immich.enable = true;
 
       paperless = {
         enable = true;
