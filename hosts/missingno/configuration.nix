@@ -204,17 +204,17 @@ in
         enable = true;
         
         vm = {
-          baseImage = lib.mkForce null; # remove dependency on openwrt image drv once image is built
-
           smp         = 8;
           hostBridges = [ "br0" "br1" ];
           pciHosts    = [ 
             { address = "03:00.0"; } 
             { address = "04:00.0"; }
           ];
+
+          baseImage = lib.mkForce null; # remove dependency on openwrt image drv once image is built (1/2) ⬇️
         };
 
-        router = router; 
+        router = router // { imageDefinition = lib.mkForce null; }; # remove dependency on openwrt image drv once image is built (2/2) ⬆️
       };
 
       home-assistant = { 

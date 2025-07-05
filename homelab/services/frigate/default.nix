@@ -60,14 +60,12 @@ in
 
     (lib.mkIf cfg.enable {
       # -- Override default service options
-
       homelab.services.${service} = {
         port = lib.mkDefault 8971;
         fqdn.topLevel = lib.mkDefault "nvr";
       };
 
       # -- Create the ${service} user and group
-
       users = {
         users = {
           ${cfg.user} = {
@@ -91,7 +89,6 @@ in
       };
 
       # -- Create the directories
-
       systemd.services = dirUtils.createDirectoriesService {
         serviceName = service;
         directories = {
@@ -104,7 +101,6 @@ in
       };
 
       # -- Bind mount the config file
-
       fileSystems."${cfg.directories.config}/config.yaml" = {
         device = cfg.configFile;
         fsType = "none";

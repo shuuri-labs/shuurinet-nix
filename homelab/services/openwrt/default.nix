@@ -42,12 +42,12 @@ in
 
       isVM = lib.mkOption {
         type = lib.types.bool;
-        description = "Whether the router is a VM";
+        description = "Whether or not the router is a VM";
         default = false;
       };
 
       imageDefinition = lib.mkOption {
-        type = lib.types.path;
+        type = lib.types.nullOr lib.types.path;
         description = "Path to the image definition for the OpenWRT VM";
         default = null;
       };
@@ -83,6 +83,7 @@ in
         };
 
         lib = { 
+          # to run the config deployment service manually, run `systemctl start <router.name>`
           openwrt.configAutoDeploy = lib.mkIf (routerConfig.value != {}) {
             enable = lib.mkDefault true;
             configs = {
@@ -94,6 +95,10 @@ in
                 deployment.reloadOnly = lib.mkDefault routerConfig.reloadOnly;
               };
             };
+          };
+
+          dashboard.entries.${service} = {
+            description = "Router & firewall";
           };
         };
       };
