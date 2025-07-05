@@ -199,6 +199,8 @@ in
       mealie.enable = true;
       jellyseerr.enable = true;
       mediaServer.enable = true; 
+
+      jellyfin.fqdn.sub = "bln";
       immich.enable = true;
 
       paperless = {
