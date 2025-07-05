@@ -61,6 +61,7 @@ in
           };
 
           dashboard.entries.${service} = {
+            description = "Torrents";
             href = "http://${system.network.primaryBridge.address}:${toString cfg.port}";
             widget = {
               type = "transmission";

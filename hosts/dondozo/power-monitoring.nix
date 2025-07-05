@@ -30,7 +30,7 @@ in
           icon = "home-assistant.png";
           href = "http://${smartPlugIp}";
           siteMonitor = "http://${smartPlugIp}";
-          description = "System power consumption";
+          description = "System Power";
           section = "Monitoring";
           widget = {
             type =  "homeassistant";

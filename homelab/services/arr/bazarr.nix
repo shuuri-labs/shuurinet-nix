@@ -21,7 +21,7 @@ in
       homelab.lib.dashboard.entries.${service} = {
         section = "Media";
         icon = "bazarr.png";
-        description = "Subtitle management";
+        description = "Subtitles";
       };
 
       services.${service} = {

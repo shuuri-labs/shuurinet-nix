@@ -19,7 +19,7 @@ in
       };
 
       homelab.lib.dashboard.entries.${service} = {
-        description = "Media source management";
+        description = "Media Sources";
       };
 
       services.${service} = {

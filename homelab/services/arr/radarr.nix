@@ -22,7 +22,7 @@ in
 
       homelab.lib.dashboard.entries.${service} = {
         section = "Media";
-        description = "Movie media management";
+        description = "Movie Media";
       };
 
       services.${service} = {

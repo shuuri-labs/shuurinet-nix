@@ -21,6 +21,7 @@ in
 
       homelab.lib.dashboard.entries.${service} = {
         section = "Media";
+        description = "Media Server";
         widget = {
           type = "jellyfin";
           url = "http://${cfg.address}:${toString cfg.port}";

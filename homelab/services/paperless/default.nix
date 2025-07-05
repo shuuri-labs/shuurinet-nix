@@ -47,7 +47,7 @@ in
 
         lib = {
           dashboard.entries.${service} = {
-            description = "Document management";
+            description = "Document Organizer";
           };
         };
       };

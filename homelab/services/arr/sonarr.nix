@@ -21,7 +21,7 @@ in
 
       homelab.lib.dashboard.entries.${service} = {
         section = "Media";
-        description = "TV media management";
+        description = "TV Media";
       };
 
       nixpkgs.config.permittedInsecurePackages = [
