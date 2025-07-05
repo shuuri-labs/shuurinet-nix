@@ -11,6 +11,16 @@ let
   deploymentMode = false;
 
   dnsRecords = config.homelab.lib.dns.openwrt.records;
+
+  router = {
+    name = "shuurinet-test-router"; # attribute set name and name passed to config must be the same!
+    configuration = {
+      value = import ./openwrt-config-test.nix { inherit lib dnsRecords; name = router.name; };
+      reloadOnly = !deploymentMode;
+    };
+    isVM = true;
+    imageDefinition = ./openwrt-image-test.nix;
+  };
 in
 {
   imports = [
@@ -190,18 +200,11 @@ in
     services = {
       mealie.enable = true;
 
-      openwrt = 
-      let
-        routerName = "shuurinet-test-router"; # attribute set name and name passed to config must be the same!
-        routerConfig = import ./openwrt-config-test.nix { inherit lib dnsRecords; name = routerName; };
-      in
-      {
+      openwrt = {
         enable = true;
-        imageDefinition = ./openwrt-image-test.nix;
-        address = routerConfig.config.openwrt.${routerName}.deploy.host;
-
+        
         vm = {
-          baseImage = lib.mkForce null; # remove dependency on openwrt image drv
+          baseImage = lib.mkForce null; # remove dependency on openwrt image drv once image is built
 
           smp         = 8;
           hostBridges = [ "br0" "br1" ];
@@ -211,17 +214,7 @@ in
           ];
         };
 
-        configAutoDeployment = {
-          enable = true;
-          configs = {
-            ${routerName} = {
-              enable = true;
-              name = routerName;  # Add the required name field
-              config = routerConfig;
-              isRouter = true;
-            };
-          };
-        };
+        router = router; 
       };
 
       home-assistant = { 

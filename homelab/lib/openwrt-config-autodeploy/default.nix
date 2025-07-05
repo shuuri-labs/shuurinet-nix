@@ -1,13 +1,10 @@
 { config, lib, pkgs, mkOpenWrtConfig, ... }:
 
 let
-  cfg = config.homelab.services.openwrt.configAutoDeployment;
+  cfg = config.homelab.lib.openwrt.configAutoDeploy;
   
   # Import our custom types
-  openwrtTypes = import ./types.nix { inherit lib; };
-
-  # Keep configuration flexible for now - type safety is handled by helper validation
-  openwrtConfigType = lib.types.attrs;
+  types = import ./types.nix { inherit lib; };
 
     ## --- 1 ▪ don't check ssh/scp host keys ------------------------------
   sshNoCheck = pkgs.writeShellScriptBin "ssh" ''
@@ -25,7 +22,8 @@ let
   makeService = {
     name,
     drv,
-    host
+    host,
+    reloadOnly ? false
   }: {
     description = "Auto‑deploy ${name} when derivation changes";
 
@@ -89,8 +87,14 @@ let
         wait_for_ssh
 
         DEPLOY_SCRIPT="${drv}/bin/deploy-${name}"
-        echo "Executing $DEPLOY_SCRIPT"
-        "$DEPLOY_SCRIPT"
+        DEPLOY_ARGS=""
+        
+        ${lib.optionalString reloadOnly ''
+        DEPLOY_ARGS="$DEPLOY_ARGS --reload"
+        ''}
+        
+        echo "Executing $DEPLOY_SCRIPT$DEPLOY_ARGS"
+        $DEPLOY_SCRIPT $DEPLOY_ARGS
       ''}'';
 
       StandardOutput = "journal";
@@ -99,16 +103,17 @@ let
   };
 in
 {
-  options.homelab.services.openwrt.configAutoDeployment = {
+  options.homelab.lib.openwrt.configAutoDeploy = {
     enable = lib.mkEnableOption "OpenWRT configuration auto-deployment";
 
     configs = lib.mkOption {
-      type = lib.types.attrsOf openwrtTypes.configDefinitionType;  
+      type = lib.types.attrsOf types.configDefinitionType;  
       default = {};
       description = "Set of OpenWRT configurations to deploy";
     };
   };
 
+  # to run config deployment service manually, run `systemctl start <config.name>`
   config = lib.mkIf cfg.enable {
     systemd.services = lib.mapAttrs (configName: configOptions: 
       let
@@ -123,6 +128,7 @@ in
         name = configName;
         drv = configDrv;
         host = host;
+        reloadOnly = configOptions.deployment.reloadOnly;
       }
     ) (lib.filterAttrs (name: configOptions: configOptions.enable) cfg.configs);
   };

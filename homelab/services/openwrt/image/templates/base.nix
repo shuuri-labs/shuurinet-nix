@@ -4,9 +4,21 @@ let
   pkgs = inputs.nixpkgs.legacyPackages.${system};
   profiles = inputs.openwrt-imagebuilder.lib.profiles { inherit pkgs; };
 
-  hostKey = builtins.readFile /etc/ssh/ssh_host_ed25519_key.pub;
-  userKey = builtins.readFile /home/ashley/.ssh/id_ed25519.pub;
-  laptopKey = builtins.readFile /home/ashley/shuurinet-nix/secrets/keys/laptop-key.pub;
+  # Import SSH keys from secrets - this is pure since it's a static file
+  secrets = import /home/ashley/shuurinet-nix/secrets/secrets.nix;
+
+  # Default SSH keys using the secrets system (these are known public keys)
+  # These can be overridden by passing authorizedKeys parameter
+  defaultAuthorizedKeys = [
+    secrets.allKeys.tatsugiri
+    secrets.allKeys.tatsugiri-user
+
+    secrets.allKeys.missingno
+    secrets.allKeys.missingno-user
+
+    secrets.allKeys.dondozo
+    secrets.allKeys.rotom
+  ];
 
   # Common function to create router configurations
   mkBaseConfig = { 
@@ -17,11 +29,11 @@ let
     target,
     variant,
     profile,
-    release ? "24.10.1",
+    release ? "24.10.2",
     extraPackages ? [],
     extraServices ? [],
     disabledServices ? [],
-    authorizedKeys ? [ hostKey userKey laptopKey ],
+    authorizedKeys ? defaultAuthorizedKeys,
     rootFsPartSize ? null,
     extraUciCommands ? "",
     extraFiles ? "",
@@ -66,6 +78,10 @@ let
       image = inputs.openwrt-imagebuilder.lib.build config;
     in
       image // { inherit config; };
+
 in {
   inherit mkBaseConfig mkBaseImage;
+  
+  # Export the default keys for reference
+  inherit defaultAuthorizedKeys;
 }

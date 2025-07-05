@@ -17,5 +17,6 @@
     ./uefi
     ./deployment
     ./zfs
+    ./openwrt-config-autodeploy
   ];
 }

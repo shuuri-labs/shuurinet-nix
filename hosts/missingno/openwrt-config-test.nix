@@ -59,7 +59,7 @@ let
     };
   };
 
-  helper = import /home/ashley/shuurinet-nix/homelab/services/openwrt/config/helper.nix { inherit lib interfaces isRouter dnsAddresses; };
+  helper = import /home/ashley/shuurinet-nix/homelab/lib/openwrt-config-autodeploy/helper.nix { inherit lib interfaces isRouter dnsAddresses; };
 in
 {
   config = {
@@ -69,7 +69,7 @@ in
 
         sshConfig = {
           Port         = 22;
-          IdentityFile = "~/.ssh/id_ed25519";
+          IdentityFile = "/home/ashley/.ssh/id_ed25519";
         };
       };
 
@@ -85,7 +85,7 @@ in
 
       # uci.sopsSecrets = "/home/ashley/shuurinet-nix/secrets/sops/openwrt.yaml";
 
-      uci.retain = [ /* "dhcp" */ "dropbear" /* "firewall" */ "luci" "rpcd" "ucitrack" "uhttpd" ];
+      uci.retain = [ /* "dhcp" */ "dropbear" "firewall" "luci" "rpcd" "ucitrack" "uhttpd" ];
 
       uci.settings = {
         system = {
@@ -122,7 +122,7 @@ in
           extraRules = [
             { name = "avr_block_forward";                src = "iot"; src_ip = "${interfaces.iot.address.prefix}.118"; dest = "*"; target = "REJECT"; }
             { name = "living_room_switch_block_forward"; src = "lan"; src_ip = "${interfaces.lan.address.prefix}.5"; dest = "*"; target = "REJECT"; }
-            # { name = "kitchen_led_mqtt";                 src = "iot"; src_ip = "${interfaces.iot.address.prefix}.194"; dest = "lan"; dest_ip = "${interfaces.lan.address.prefix}.127"; dest_port = "1883"; target = "ACCEPT"; }
+            { name = "kitchen_led_mqtt";                 src = "iot"; src_ip = "${interfaces.iot.address.prefix}.194"; dest = "lan"; dest_ip = "${interfaces.lan.address.prefix}.240"; dest_port = "1883"; target = "ACCEPT"; }
             { name = "tv_allow_airplay";                 src = "iot"; src_ip = "${interfaces.iot.address.prefix}.192";  dest = "lan"; dest_port = "6002 7000 49152-65535"; target = "ACCEPT"; }
             { name = "living_room_switch_block_input";   src = "lan"; src_ip = "${interfaces.lan.address.prefix}.5"; target = "REJECT"; }
           ];

@@ -91,6 +91,14 @@
         description = "Whether this configuration is a router";
         default = false;
       };
+
+      deployment = {
+        reloadOnly = lib.mkOption {
+          type = lib.types.bool;
+          description = "Reload/deploy config without rebooting";
+          default = true;
+        };
+      };
     };
   };
 }

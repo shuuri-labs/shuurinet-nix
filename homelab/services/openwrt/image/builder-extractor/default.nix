@@ -4,17 +4,17 @@ let
   base = import ./base.nix { inherit inputs; };
 
   mkImageExtractor = { name, 
-                      imageDerivation, 
+                      imageDefinition, 
                       format ? "ext4-combined-efi",
                       imageFormat ? "img",
                       compressedFormat ? "gz"
                     }:
     let
-      inherit (imageDerivation.config) release target variant profile;
+      inherit (imageDefinition.config) release target variant profile;
       
       imageName  = "openwrt-${release}-${target}-${variant}-${profile}-${format}.${imageFormat}.${compressedFormat}";
       outputName = "${name}.${imageFormat}.${compressedFormat}";
-    in pkgs.runCommand outputName { src = imageDerivation; } ''
+    in pkgs.runCommand outputName { src = imageDefinition; } ''
          cp $src/${imageName} $out
        '';
 in

@@ -4,15 +4,15 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
-    nixpkgs-virtualisation.url = "github:nixos/nixpkgs/nixos-24.11";
-    nixpkgs-openwrt.url = "github:NixOS/nixpkgs/nixos-24.11";
+    nixpkgs-virtualisation.url = "github:nixos/nixpkgs/nixos-25.05";
+    nixpkgs-openwrt.url = "github:NixOS/nixpkgs/nixos-25.05";
     
     flake-parts = {
       url = "github:hercules-ci/flake-parts";
     };
 
     home-manager = {
-      url = "github:nix-community/home-manager/release-24.11";
+      url = "github:nix-community/home-manager/release-25.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -142,35 +142,15 @@
         formatter = pkgs.nixpkgs-fmt;
         packages = {
           # OpenWRT Images (folder with multiple image files)
-
+          
+          # build the image with `nix build .#berlin-router-img`
           # berlin-ap-imgs = import ./modules/openwrt/image-definitions/berlin/ap.nix { inherit inputs; };
-          # london-router-imgs = import ./modules/openwrt/image-definitions/london/router.nix { inherit inputs; };
 
-          # single image file derivation for berlin router
-          # The openwrt-imagebuilder input is pinned to a specific commit in the inputs section
-          # This prevents it from updating when running `nix flake update`          
-          # When you want to update the OpenWRT image, update the commit hash in the inputs section
-          berlin-router-img = (import ./modules/openwrt/image-definitions/builder-extractor { inherit inputs; }).mkImageExtractor {
+          bln-test-router-img = (import ./homelab/services/openwrt/image/builder-extractor { inherit inputs; }).mkImageExtractor {
             name = "berlin-router";
-            imageDerivation = (import ./modules/openwrt/image-definitions/berlin/router.nix { inherit inputs; });
+            imageDefinition = (import ./hosts/missingno/openwrt-image-test.nix { inherit inputs; });
             format = "squashfs-combined-efi";
           };
-
-          berlin-vm-router-img = (import ./modules/openwrt/image-definitions/builder-extractor { inherit inputs; }).mkImageExtractor {
-            name = "berlin-vm-router";
-            imageDerivation = (import ./modules/openwrt/image-definitions/berlin/vm-test-router.nix { inherit inputs; });
-            format = "squashfs-combined-efi";
-          };
-
-          london-test-router-img = (import ./modules/openwrt/image-definitions/builder-extractor { inherit inputs; }).mkImageExtractor {
-            name = "london-test-router";
-            imageDerivation = (import ./modules/openwrt/image-definitions/london/test-router.nix { inherit inputs; });
-            format = "squashfs-combined-efi";
-          };
-
-          # # OpenWRT Configs
-          # berlin-router-config = helper.mkOpenWrtConfig { configPath = "./modules/openwrt/configs/berlin/router.nix"; system; };
-          # vm-test-router-config = helper.mkOpenWrtConfig { configPath = "./modules/openwrt/configs/berlin/vm-test-router.nix"; system; };
         };
       };
     };
