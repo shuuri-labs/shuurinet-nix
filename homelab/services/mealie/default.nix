@@ -24,7 +24,7 @@ in
 
         lib = {
           dashboard.entries.${service} = {
-            description = "Meal planning & recipe management";
+            description = "Recipe & Meal Planning";
           };
         };
       };

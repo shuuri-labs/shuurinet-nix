@@ -53,6 +53,12 @@ in
             vncPort = lib.mkDefault 2;
           };
         };
+
+        lib = {
+          dashboard.entries.${service} = {
+            description = "Home Automation";
+          };
+        };
       };
     })
   ];

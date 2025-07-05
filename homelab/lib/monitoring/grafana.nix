@@ -66,7 +66,7 @@ in
       icon = "grafana.png";
       href = "https://${cfg.domain}";
       siteMonitor = "https://${cfg.domain}";
-      description = "Monitoring & statistics dashboard";
+      description = "Monitoring & Statistics";
     };
 
     services.grafana = {

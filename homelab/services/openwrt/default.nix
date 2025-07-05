@@ -98,7 +98,7 @@ in
           };
 
           dashboard.entries.${service} = {
-            description = "Router & firewall";
+            description = "Router & Firewall";
           };
         };
       };
